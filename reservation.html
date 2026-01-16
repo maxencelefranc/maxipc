@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réservation - MaxPC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <style>
+        .calendar-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .calendar-header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        .calendar-header h1 {
+            font-size: 3rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .calendar-header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .calendar-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .calendar-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            animation: slideInLeft 0.8s ease-out;
+        }
+
+        .calendar-panel.form-panel {
+            animation: slideInRight 0.8s ease-out;
+        }
+
+        .month-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .month-navigation button {
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .month-navigation button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(167, 107, 207, 0.5);
+        }
+
+        .month-navigation h3 {
+            color: var(--text-light);
+            font-size: 1.3rem;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .weekday {
+            text-align: center;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 10px;
+            font-size: 0.85rem;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .day:hover:not(.empty):not(.disabled) {
+            transform: scale(1.05);
+            background: rgba(167, 107, 207, 0.2);
+            border-color: var(--accent-color);
+        }
+
+        .day.selected {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 20px rgba(167, 107, 207, 0.5);
+        }
+
+        .day.empty {
+            background: transparent;
+            border: none;
+            cursor: default;
+        }
+
+        .day.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: rgba(255, 0, 0, 0.05);
+        }
+
+        .timeslots {
+            margin-top: 30px;
+        }
+
+        .timeslots h4 {
+            color: var(--text-light);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .time-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .time-slot {
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .time-slot:hover:not(.unavailable) {
+            transform: translateY(-3px);
+            background: rgba(167, 107, 207, 0.2);
+            border-color: var(--accent-color);
+        }
+
+        .time-slot.selected {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(167, 107, 207, 0.5);
+        }
+
+        .time-slot.unavailable {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: rgba(255, 0, 0, 0.05);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: var(--text-light);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(167, 107, 207, 0.3);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .selected-info {
+            background: rgba(167, 107, 207, 0.1);
+            border: 1px solid rgba(167, 107, 207, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: var(--text-light);
+        }
+
+        .selected-info .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .selected-info .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .reserve-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .reserve-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(167, 107, 207, 0.4);
+        }
+
+        .reserve-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            animation: slideInUp 0.5s ease-out;
+        }
+
+        .message.success {
+            background: rgba(76, 175, 80, 0.15);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            color: #4caf50;
+        }
+
+        .message.error {
+            background: rgba(244, 67, 54, 0.15);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            color: #f44336;
+        }
+
+        .no-selection {
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .service-select-info {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-wrapper {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .calendar-header h1 {
+                font-size: 2rem;
+            }
+
+            .time-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .calendar-panel {
+                padding: 20px;
+            }
+        }
+
+        .duration-badge {
+            display: inline-block;
+            background: rgba(167, 107, 207, 0.2);
+            color: var(--accent-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">
+                    <i class="fas fa-laptop"></i> MaxPC
+                </a>
+            </div>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a href="services.html" class="nav-link">Services</a>
+                </li>
+                <li class="nav-item">
+                    <a href="apropos.html" class="nav-link">À Propos</a>
+                </li>
+                <li class="nav-item">
+                    <a href="contact.html" class="nav-link">Contact</a>
+                </li>
+                <li class="nav-item">
+                    <a href="reservation.html" class="nav-link active">Réservation</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <h1>📅 Réservez Votre Intervention</h1>
+            <p>Choisissez une date et une heure disponibles</p>
+        </div>
+
+        <div class="calendar-wrapper">
+            <!-- Calendar Panel -->
+            <div class="calendar-panel">
+                <div class="month-navigation">
+                    <button id="prevMonth"><i class="fas fa-chevron-left"></i></button>
+                    <h3 id="monthYear"></h3>
+                    <button id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+                </div>
+
+                <div class="weekdays">
+                    <div class="weekday">Lun</div>
+                    <div class="weekday">Mar</div>
+                    <div class="weekday">Mer</div>
+                    <div class="weekday">Jeu</div>
+                    <div class="weekday">Ven</div>
+                    <div class="weekday">Sam</div>
+                    <div class="weekday">Dim</div>
+                </div>
+
+                <div class="days" id="calendarDays"></div>
+
+                <div class="timeslots" id="timeslots" style="display: none;">
+                    <h4>Créneaux disponibles</h4>
+                    <div class="time-grid" id="timeGrid"></div>
+                </div>
+            </div>
+
+            <!-- Form Panel -->
+            <div class="calendar-panel form-panel">
+                <h3 style="color: var(--text-light); margin-bottom: 25px;">Votre Réservation</h3>
+
+                <div class="selected-info" id="selectedInfo">
+                    <div class="no-selection">Sélectionnez une date et une heure</div>
+                </div>
+
+                <form id="reservationForm">
+                    <div class="form-group">
+                        <label for="service">Service *</label>
+                        <select id="service" name="service" required>
+                            <option value="">-- Sélectionnez un service --</option>
+                            <option value="dépannage">Dépannage Informatique</option>
+                            <option value="montage">Montage PC Gaming</option>
+                            <option value="optimisation">Optimisation Système</option>
+                            <option value="installation">Installation Logiciels</option>
+                            <option value="conseils">Conseils & Configuration</option>
+                            <option value="domicile">Intervention à Domicile</option>
+                            <option value="autre">Autre</option>
+                        </select>
+                        <div class="service-select-info">Sélectionnez le service pour lequel vous souhaitez réserver</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="name">Nom Complet *</label>
+                        <input type="text" id="name" name="name" placeholder="Votre nom" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" placeholder="votre@email.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Téléphone *</label>
+                        <input type="tel" id="phone" name="phone" placeholder="+33 6 XX XX XX XX" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description du problème *</label>
+                        <textarea id="description" name="description" placeholder="Décrivez votre besoin..." rows="4" required></textarea>
+                    </div>
+
+                    <button type="submit" class="reserve-btn" id="submitBtn">Confirmer la Réservation</button>
+
+                    <div class="message" id="formMessage"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>MaxPC</h4>
+                <p>Réparation et configuration PC à Lannion</p>
+            </div>
+            <div class="footer-section">
+                <h4>Liens Rapides</h4>
+                <ul>
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="services.html">Services</a></li>
+                    <li><a href="apropos.html">À Propos</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact</h4>
+                <p>Email: <a href="mailto:maxence@maxpc.fr">maxence@maxpc.fr</a></p>
+                <p>Téléphone: <a href="tel:+33626453849">+33 6 26 45 38 49</a></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 MaxPC. Tous droits réservés. | <a href="#">Conditions d'utilisation</a></p>
+        </div>
+    </footer>
+
+    <script>
+        // Calendar & Reservation Logic
+        let selectedDate = null;
+        let selectedTime = null;
+        let currentMonth = new Date();
+
+        const AVAILABLE_HOURS = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'];
+        
+        // Disable weekends and past dates
+        function isAvailableDate(date) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Disable past dates and Sundays
+            if (date < today || date.getDay() === 0) {
+                return false;
+            }
+            
+            // Disable some sample "busy" dates (you can customize this)
+            const busyDates = [];
+            for (let date of busyDates) {
+                if (date.toDateString() === date.toDateString()) return false;
+            }
+            
+            return true;
+        }
+
+        function renderCalendar() {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            
+            // Update month/year display
+            const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+            document.getElementById('monthYear').textContent = `${monthNames[month]} ${year}`;
+
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            let html = '';
+
+            // Previous month days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                html += `<div class="day empty"></div>`;
+            }
+
+            // Current month days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dateString = date.toISOString().split('T')[0];
+                const isAvailable = isAvailableDate(date);
+                const isSelected = selectedDate === dateString;
+
+                html += `<div class="day ${!isAvailable ? 'disabled' : ''} ${isSelected ? 'selected' : ''}" 
+                    data-date="${dateString}" 
+                    ${isAvailable ? `onclick="selectDate('${dateString}')"` : ''}>
+                    ${day}
+                </div>`;
+            }
+
+            document.getElementById('calendarDays').innerHTML = html;
+        }
+
+        function selectDate(dateString) {
+            selectedDate = dateString;
+            selectedTime = null;
+            renderCalendar();
+            renderTimeSlots();
+        }
+
+        function renderTimeSlots() {
+            if (!selectedDate) {
+                document.getElementById('timeslots').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('timeslots').style.display = 'block';
+            let html = '';
+
+            // Sample busy times (customize as needed)
+            const busyTimes = ['10:00', '14:30'];
+
+            for (let time of AVAILABLE_HOURS) {
+                const isBusy = busyTimes.includes(time);
+                const isSelected = selectedTime === time;
+
+                html += `<div class="time-slot ${isBusy ? 'unavailable' : ''} ${isSelected ? 'selected' : ''}" 
+                    ${!isBusy ? `onclick="selectTime('${time}')"` : ''}>
+                    ${time}
+                </div>`;
+            }
+
+            document.getElementById('timeGrid').innerHTML = html;
+        }
+
+        function selectTime(time) {
+            selectedTime = time;
+            renderTimeSlots();
+            updateSelectedInfo();
+        }
+
+        function updateSelectedInfo() {
+            const infoDiv = document.getElementById('selectedInfo');
+
+            if (selectedDate && selectedTime) {
+                const date = new Date(selectedDate);
+                const dateFormatter = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                const formattedDate = dateFormatter.format(date);
+
+                infoDiv.innerHTML = `
+                    <div class="info-row">
+                        <span class="info-label">📅 Date:</span>
+                        <span class="info-value">${formattedDate}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">🕐 Heure:</span>
+                        <span class="info-value">${selectedTime}</span>
+                    </div>
+                `;
+            } else {
+                infoDiv.innerHTML = `<div class="no-selection">Sélectionnez une date et une heure</div>`;
+            }
+        }
+
+        // Month navigation
+        document.getElementById('prevMonth').addEventListener('click', () => {
+            currentMonth.setMonth(currentMonth.getMonth() - 1);
+            renderCalendar();
+            document.getElementById('timeslots').style.display = 'none';
+        });
+
+        document.getElementById('nextMonth').addEventListener('click', () => {
+            currentMonth.setMonth(currentMonth.getMonth() + 1);
+            renderCalendar();
+            document.getElementById('timeslots').style.display = 'none';
+        });
+
+        // Form submission with EmailJS
+        document.getElementById('reservationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!selectedDate || !selectedTime) {
+                alert('Veuillez sélectionner une date et une heure');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            const formMessage = document.getElementById('formMessage');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Envoi en cours...';
+
+            const formData = new FormData(document.getElementById('reservationForm'));
+            const date = new Date(selectedDate);
+            const dateFormatter = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+            const templateParams = {
+                from_name: formData.get('name'),
+                from_email: formData.get('email'),
+                phone: formData.get('phone'),
+                service: formData.get('service'),
+                reservation_date: dateFormatter.format(date),
+                reservation_time: selectedTime,
+                description: formData.get('description')
+            };
+
+            try {
+                await emailjs.send('service_m3logoe', 'template_bqxnfpb', templateParams);
+
+                formMessage.textContent = '✓ Réservation confirmée! Vous recevrez un email de confirmation.';
+                formMessage.classList.remove('error');
+                formMessage.classList.add('success');
+                formMessage.style.display = 'block';
+
+                document.getElementById('reservationForm').reset();
+                selectedDate = null;
+                selectedTime = null;
+                renderCalendar();
+                updateSelectedInfo();
+
+                setTimeout(() => {
+                    formMessage.style.display = 'none';
+                }, 5000);
+
+            } catch (error) {
+                console.error('Error:', error);
+                formMessage.textContent = '✗ Erreur lors de la réservation. Veuillez réessayer.';
+                formMessage.classList.remove('success');
+                formMessage.classList.add('error');
+                formMessage.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Confirmer la Réservation';
+            }
+        });
+
+        // Initialize
+        renderCalendar();
+
+        // EmailJS init
+        emailjs.init('c4iw2Wxz3QnEZYi7S');
+    </script>
+
+    <!-- Navigation Script -->
+    <script src="script.js"></script>
+</body>
+</html>
