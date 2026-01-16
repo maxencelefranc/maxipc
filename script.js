@@ -1,13 +1,13 @@
 /* ===================== */
-/* NAVIGATION & MENU     */
+/* ENHANCED NAVIGATION    */
 /* ===================== */
 
-// Toggle mobile menu
 const hamburger = document.getElementById('hamburger');
 const navMenu = document.getElementById('navMenu');
 
 if (hamburger && navMenu) {
-    hamburger.addEventListener('click', () => {
+    hamburger.addEventListener('click', (e) => {
+        e.stopPropagation();
         hamburger.classList.toggle('active');
         navMenu.classList.toggle('active');
     });
@@ -130,31 +130,51 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 });
 
 /* ===================== */
-/* SCROLL ANIMATIONS     */
+/* ADVANCED ANIMATIONS    */
 /* ===================== */
 
-// Intersection Observer for fade-in animations
+// Smooth scroll and parallax effects
 const observerOptions = {
-    threshold: 0.1,
+    threshold: 0.15,
     rootMargin: '0px 0px -100px 0px'
 };
 
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
+            entry.target.style.animation = `slideInUp 0.8s ease-out both`;
             observer.unobserve(entry.target);
         }
     });
 }, observerOptions);
 
-// Observe all elements with animation classes
-document.querySelectorAll('.feature-card, .service-card, .reason-card').forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+// Apply animation to cards on scroll
+document.querySelectorAll('.feature-card, .service-card, .reason-card, .info-card, .faq-item').forEach(el => {
     observer.observe(el);
+});
+
+// Cursor effect (optional modern touch)
+document.addEventListener('mousemove', (e) => {
+    const cards = document.querySelectorAll('.feature-card, .service-card, .reason-card');
+    cards.forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const rotateX = (y - centerY) / 10;
+        const rotateY = (centerX - x) / 10;
+        
+        // Only apply light effect on hover
+        if (e.clientX > rect.left && e.clientX < rect.right &&
+            e.clientY > rect.top && e.clientY < rect.bottom) {
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        } else {
+            card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg)`;
+        }
+    });
 });
 
 /* ===================== */
