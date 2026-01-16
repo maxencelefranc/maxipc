@@ -47,6 +47,15 @@ function updateActiveNav() {
 updateActiveNav();
 
 /* ===================== */
+/* EMAILJS CONFIGURATION */
+/* ===================== */
+
+// Initialize EmailJS
+(function() {
+    emailjs.init('c4iw2Wxz3QnEZYi7S');
+})();
+
+/* ===================== */
 /* CONTACT FORM          */
 /* ===================== */
 
@@ -57,42 +66,35 @@ if (contactForm) {
     contactForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        // Disable submit button to prevent double submission
+        const submitButton = contactForm.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.textContent;
+        submitButton.disabled = true;
+        submitButton.textContent = 'Envoi en cours...';
+        
         // Get form data
         const formData = new FormData(contactForm);
-        const data = {
-            name: formData.get('name'),
-            email: formData.get('email'),
+        const templateParams = {
+            from_name: formData.get('name'),
+            from_email: formData.get('email'),
             phone: formData.get('phone') || 'Non fourni',
             subject: formData.get('subject'),
-            message: formData.get('message'),
-            timestamp: new Date().toISOString()
+            message: formData.get('message')
         };
 
         try {
-            // Log to console (in production, send to backend)
-            console.log('Form data:', data);
+            // Send email using EmailJS
+            const response = await emailjs.send(
+                'service_m3logoe',      // Service ID
+                'template_2l95wjh',     // Template ID
+                templateParams
+            );
 
-            // Simulate sending to email service
-            // In a real scenario, you'd send this to a backend/email service
-            const emailContent = `
-                Nouvelle demande de contact - MaxPC
-                
-                Nom: ${data.name}
-                Email: ${data.email}
-                Téléphone: ${data.phone}
-                Sujet: ${data.subject}
-                
-                Message:
-                ${data.message}
-                
-                ---
-                Date d'envoi: ${new Date(data.timestamp).toLocaleString('fr-FR')}
-            `;
-
-            console.log('Email to send:', emailContent);
+            console.log('Email sent successfully:', response);
 
             // Show success message
             formMessage.textContent = '✓ Message envoyé avec succès! Nous vous répondrons dans les 24 heures.';
+            formMessage.classList.remove('error');
             formMessage.classList.add('success');
             formMessage.style.display = 'block';
 
@@ -106,10 +108,15 @@ if (contactForm) {
             }, 5000);
 
         } catch (error) {
-            console.error('Error:', error);
-            formMessage.textContent = '✗ Erreur lors de l\'envoi du message. Veuillez réessayer.';
+            console.error('EmailJS Error:', error);
+            formMessage.textContent = '✗ Erreur lors de l\'envoi du message. Veuillez réessayer ou nous contacter par téléphone.';
+            formMessage.classList.remove('success');
             formMessage.classList.add('error');
             formMessage.style.display = 'block';
+        } finally {
+            // Re-enable submit button
+            submitButton.disabled = false;
+            submitButton.textContent = originalButtonText;
         }
     });
 }
