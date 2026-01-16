@@ -50,10 +50,16 @@ updateActiveNav();
 /* EMAILJS CONFIGURATION */
 /* ===================== */
 
-// Initialize EmailJS
-(function() {
-    emailjs.init('c4iw2Wxz3QnEZYi7S');
-})();
+// Initialize EmailJS when document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize EmailJS with Public Key
+    if (typeof emailjs !== 'undefined') {
+        emailjs.init({
+            publicKey: 'c4iw2Wxz3QnEZYi7S'
+        });
+        console.log('EmailJS initialized successfully');
+    }
+});
 
 /* ===================== */
 /* CONTACT FORM          */
@@ -63,8 +69,10 @@ const contactForm = document.getElementById('contactForm');
 const formMessage = document.getElementById('formMessage');
 
 if (contactForm) {
-    contactForm.addEventListener('submit', async (e) => {
+    contactForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        
+        console.log('Form submitted');
         
         // Disable submit button to prevent double submission
         const submitButton = contactForm.querySelector('button[type="submit"]');
@@ -82,42 +90,52 @@ if (contactForm) {
             message: formData.get('message')
         };
 
-        try {
-            // Send email using EmailJS
-            const response = await emailjs.send(
-                'service_m3logoe',      // Service ID
-                'template_2l95wjh',     // Template ID
-                templateParams
-            );
+        console.log('Sending with params:', templateParams);
 
-            console.log('Email sent successfully:', response);
+        // Send email using EmailJS
+        emailjs.send('service_m3logoe', 'template_bqxnfpb', templateParams)
+            .then(function(response) {
+                console.log('SUCCESS!', response.status, response.text);
+                
+                // Show success message
+                formMessage.textContent = '✓ Message envoyé avec succès! Nous vous répondrons dans les 24 heures.';
+                formMessage.classList.remove('error');
+                formMessage.classList.add('success');
+                formMessage.style.display = 'block';
 
-            // Show success message
-            formMessage.textContent = '✓ Message envoyé avec succès! Nous vous répondrons dans les 24 heures.';
-            formMessage.classList.remove('error');
-            formMessage.classList.add('success');
-            formMessage.style.display = 'block';
+                // Reset form
+                contactForm.reset();
 
-            // Reset form
-            contactForm.reset();
+                // Hide message after 5 seconds
+                setTimeout(function() {
+                    formMessage.style.display = 'none';
+                    formMessage.classList.remove('success');
+                }, 5000);
 
-            // Hide message after 5 seconds
-            setTimeout(() => {
-                formMessage.style.display = 'none';
+                // Re-enable submit button
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+                
+            }, function(error) {
+                console.error('FAILED...', error);
+                
+                // Show detailed error
+                let errorMsg = '✗ Erreur lors de l\'envoi: ';
+                if (error.text) {
+                    errorMsg += error.text;
+                } else {
+                    errorMsg += 'Veuillez vérifier votre connexion internet.';
+                }
+                
+                formMessage.textContent = errorMsg;
                 formMessage.classList.remove('success');
-            }, 5000);
+                formMessage.classList.add('error');
+                formMessage.style.display = 'block';
 
-        } catch (error) {
-            console.error('EmailJS Error:', error);
-            formMessage.textContent = '✗ Erreur lors de l\'envoi du message. Veuillez réessayer ou nous contacter par téléphone.';
-            formMessage.classList.remove('success');
-            formMessage.classList.add('error');
-            formMessage.style.display = 'block';
-        } finally {
-            // Re-enable submit button
-            submitButton.disabled = false;
-            submitButton.textContent = originalButtonText;
-        }
+                // Re-enable submit button
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+            });
     });
 }
 
