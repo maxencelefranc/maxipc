@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Contactez MaxPC pour vos besoins en réparation, montage ou optimisation de PC. Devis gratuit à Lannion et environs.">
+    <title>Contact – MaxPC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <div class="logo">
+                <i class="fas fa-laptop"></i>
+                <span>MaxPC</span>
+            </div>
+            <button class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html">Accueil</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="apropos.html">À propos</a></li>
+                <li><a href="contact.html" class="active cta-button">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1>Contactez MaxPC</h1>
+            <p>Demandez un devis gratuit ou posez vos questions</p>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section">
+        <div class="container">
+            <div class="contact-grid">
+                <!-- Contact Form -->
+                <div class="contact-form-wrapper">
+                    <h2>Envoyez-nous un message</h2>
+                    <form class="contact-form" id="contactForm">
+                        <div class="form-group">
+                            <label for="name">Nom *</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Téléphone</label>
+                            <input type="tel" id="phone" name="phone">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="subject">Sujet *</label>
+                            <select id="subject" name="subject" required>
+                                <option value="">-- Sélectionnez un sujet --</option>
+                                <option value="devis">Demande de devis</option>
+                                <option value="depannage">Dépannage PC</option>
+                                <option value="montage">Montage PC</option>
+                                <option value="optimisation">Optimisation</option>
+                                <option value="conseil">Conseil technique</option>
+                                <option value="autre">Autre</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="message">Message *</label>
+                            <textarea id="message" name="message" rows="5" required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Envoyer le message</button>
+                        <p class="form-note">* Champs obligatoires</p>
+                    </form>
+                    <div id="formMessage" class="form-message" style="display: none;"></div>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="contact-info">
+                    <h2>Informations de contact</h2>
+
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="info-content">
+                            <h3>Téléphone</h3>
+                            <p><a href="tel:+33626453849">+33 6 26 45 38 49</a></p>
+                            <p class="info-note">Du lundi au samedi, 9h-18h</p>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="info-content">
+                            <h3>Email</h3>
+                            <p><a href="mailto:maxence@maxpc.fr">maxence@maxpc.fr</a></p>
+                            <p class="info-note">Réponse sous 24h</p>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="info-content">
+                            <h3>Zone d'intervention</h3>
+                            <p>Lannion et environs</p>
+                            <p class="info-note">Rayon d'intervention: 10-15 km</p>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <div class="info-content">
+                            <h3>Service</h3>
+                            <p>Intervention à domicile ou sur site</p>
+                            <p class="info-note">Horaires flexibles selon vos disponibilités</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-social">
+                        <h3>Réseaux directs</h3>
+                        <div class="social-buttons">
+                            <a href="https://wa.me/33626453849" target="_blank" class="social-btn whatsapp" title="WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                            <a href="mailto:maxence@maxpc.fr" class="social-btn email" title="Email">
+                                <i class="fas fa-envelope"></i>
+                            </a>
+                            <a href="tel:+33626453849" class="social-btn phone" title="Appeler">
+                                <i class="fas fa-phone"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+        <div class="container">
+            <h2>Questions fréquentes</h2>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <h3><i class="fas fa-question-circle"></i> Quel est le coût d'une intervention ?</h3>
+                    <p>Les tarifs varient selon la nature du problème et le temps d'intervention. Je propose un devis gratuit et sans engagement après diagnostic.</p>
+                </div>
+                <div class="faq-item">
+                    <h3><i class="fas fa-question-circle"></i> Combien de temps pour une réparation ?</h3>
+                    <p>Cela dépend du problème. Les interventions simples peuvent prendre 30 min à 1h, tandis que les montages complets prennent plus de temps. Je vous fournirai un délai indicatif.</p>
+                </div>
+                <div class="faq-item">
+                    <h3><i class="fas fa-question-circle"></i> Proposez-vous une garantie ?</h3>
+                    <p>Oui, garantie sur tous les travaux effectués. Pour les pièces remplacées, elles bénéficient de la garantie du constructeur.</p>
+                </div>
+                <div class="faq-item">
+                    <h3><i class="fas fa-question-circle"></i> Intervenez-vous le week-end ?</h3>
+                    <p>Oui, sur demande. Contactez-moi pour connaître les disponibilités. Les week-ends peuvent avoir des tarifs ajustés.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>MaxPC</h4>
+                    <p>Réparation et montage de PC à Lannion</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Navigation</h4>
+                    <ul>
+                        <li><a href="index.html">Accueil</a></li>
+                        <li><a href="services.html">Services</a></li>
+                        <li><a href="apropos.html">À propos</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p>Email: <a href="mailto:maxence@maxpc.fr">maxence@maxpc.fr</a></p>
+                    <p>Téléphone: <a href="tel:+33626453849">+33 6 26 45 38 49</a></p>
+                    <p>Zone: Lannion et environs</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 MaxPC. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
