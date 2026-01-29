@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - MaxiPC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: var(--dark-bg);
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: 450px;
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h1 {
+            font-size: 2rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .auth-header p {
+            color: var(--text-muted);
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .auth-tab.active {
+            background: var(--primary-gradient);
+            border-color: transparent;
+            color: white;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .auth-form-group {
+            margin-bottom: 20px;
+        }
+
+        .auth-form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .auth-form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: var(--text-light);
+            font-family: var(--font-primary);
+            transition: all 0.3s ease;
+        }
+
+        .auth-form-group input:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.5);
+            background: rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .auth-form-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .auth-submit {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .auth-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .auth-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .auth-message {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .auth-message.success {
+            background: rgba(76, 175, 80, 0.15);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            color: #4caf50;
+        }
+
+        .auth-message.error {
+            background: rgba(244, 67, 54, 0.15);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            color: #f44336;
+        }
+
+        .auth-divider {
+            margin: 25px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-muted);
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .auth-social {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .auth-social button {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .auth-social button:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .back-link a:hover {
+            color: var(--text-light);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Dev Notice -->
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; padding: 10px; font-size: 0.9rem; position: relative; z-index: 1000;">
+        <i class="fas fa-tools"></i> Site en cours de développement - Certaines fonctionnalités peuvent être limitées
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <div class="logo">
+                <i class="fas fa-laptop"></i>
+                <span>MaxiPC</span>
+            </div>
+            <button class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html">Accueil</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="apropos.html">À propos</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="reservation.html">Réservation</a></li>
+                <li><a href="auth.html" class="cta-button" aria-label="Connexion"><i class="fas fa-user"></i></a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>MaxiPC</h1>
+                <p>Connectez-vous pour gérer vos réservations</p>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">Connexion</button>
+                <button class="auth-tab" data-tab="signup">Inscription</button>
+            </div>
+
+            <div id="loginMessage" class="auth-message"></div>
+            <div id="signupMessage" class="auth-message"></div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form active">
+                <div class="auth-form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" name="email" placeholder="votre@email.com" required>
+                </div>
+                <div class="auth-form-group">
+                    <label for="loginPassword">Mot de passe</label>
+                    <input type="password" id="loginPassword" name="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="auth-submit">Se connecter</button>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="signupForm" class="auth-form">
+                <div class="auth-form-group">
+                    <label for="signupName">Nom complet</label>
+                    <input type="text" id="signupName" name="name" placeholder="Votre nom" required>
+                </div>
+                <div class="auth-form-group">
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" name="email" placeholder="votre@email.com" required>
+                </div>
+                <div class="auth-form-group">
+                    <label for="signupPassword">Mot de passe</label>
+                    <input type="password" id="signupPassword" name="password" placeholder="••••••••" required>
+                </div>
+                <div class="auth-form-group">
+                    <label for="signupConfirmPassword">Confirmer le mot de passe</label>
+                    <input type="password" id="signupConfirmPassword" name="confirmPassword" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="auth-submit">S'inscrire</button>
+            </form>
+
+            <div class="back-link">
+                <a href="index.html"><i class="fas fa-arrow-left"></i> Retour à l'accueil</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Tab switching
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+                
+                tab.classList.add('active');
+                const tabName = tab.getAttribute('data-tab');
+                document.getElementById(tabName + 'Form').classList.add('active');
+            });
+        });
+
+        // Login handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const messageDiv = document.getElementById('loginMessage');
+
+            try {
+                const result = await supabaseAuth.signIn(email, password);
+                
+                if (result.success) {
+                    messageDiv.textContent = '✓ Connexion réussie ! Redirection...';
+                    messageDiv.classList.remove('error');
+                    messageDiv.classList.add('success');
+                    messageDiv.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'my-reservations.html';
+                    }, 1500);
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                messageDiv.textContent = '✗ ' + error.message;
+                messageDiv.classList.remove('success');
+                messageDiv.classList.add('error');
+                messageDiv.style.display = 'block';
+            }
+        });
+
+        // Signup handler
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+            const messageDiv = document.getElementById('signupMessage');
+
+            if (password !== confirmPassword) {
+                messageDiv.textContent = '✗ Les mots de passe ne correspondent pas';
+                messageDiv.classList.remove('success');
+                messageDiv.classList.add('error');
+                messageDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const result = await supabaseAuth.signUp(email, password, name);
+                
+                if (result.success) {
+                    messageDiv.textContent = '✓ Inscription réussie ! Un email de confirmation a été envoyé.';
+                    messageDiv.classList.remove('error');
+                    messageDiv.classList.add('success');
+                    messageDiv.style.display = 'block';
+                    
+                    document.getElementById('signupForm').reset();
+                    
+                    setTimeout(() => {
+                        window.location.href = 'auth.html?tab=login';
+                    }, 2000);
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                messageDiv.textContent = '✗ ' + error.message;
+                messageDiv.classList.remove('success');
+                messageDiv.classList.add('error');
+                messageDiv.style.display = 'block';
+            }
+        });
+
+        // Check if already logged in
+        async function checkAuth() {
+            const user = await supabaseAuth.getCurrentUser();
+            if (user) {
+                window.location.href = 'my-reservations.html';
+            }
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>

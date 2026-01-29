@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Contactez MaxPC pour vos besoins en réparation, montage ou optimisation de PC. Devis gratuit à Lannion et environs.">
-    <title>Contact – MaxPC</title>
+    <meta name="description" content="Contactez MaxiPC pour vos besoins en réparation, montage ou optimisation de PC. Devis gratuit à Lannion et environs.">
+    <title>Contact – MaxiPC</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
         <div class="container nav-container">
             <div class="logo">
                 <i class="fas fa-laptop"></i>
-                <span>MaxPC</span>
+                <span>MaxiPC</span>
             </div>
             <button class="hamburger" id="hamburger">
                 <span></span>
@@ -33,7 +33,9 @@
                 <li><a href="services.html">Services</a></li>
                 <li><a href="apropos.html">À propos</a></li>
                 <li><a href="contact.html" class="active">Contact</a></li>
-                <li><a href="reservation.html" class="cta-button">Réservation</a></li>
+                <li><a href="boutique.html">Boutique</a></li>
+                <li><a href="reservation.html">Réservation</a></li>
+                <li><a href="auth.html" class="cta-button" aria-label="Connexion"><i class="fas fa-user"></i></a></li>
             </ul>
         </div>
     </nav>
@@ -41,7 +43,7 @@
     <!-- Page Header -->
     <section class="page-header">
         <div class="container">
-            <h1>Contactez MaxPC</h1>
+            <h1>Contactez MaxiPC</h1>
             <p>Demandez un devis gratuit ou posez vos questions</p>
         </div>
     </section>
@@ -99,11 +101,11 @@
 
                     <div class="info-card">
                         <div class="info-icon">
-                            <i class="fas fa-phone"></i>
+                            <i class="fas fa-clock"></i>
                         </div>
                         <div class="info-content">
-                            <h3>Téléphone</h3>
-                            <p><a href="tel:+33682186791">+33 6 82 18 67 91</a></p>
+                            <h3>Horaires</h3>
+                            <p>Sur rendez-vous</p>
                             <p class="info-note">Du lundi au samedi, 9h-18h</p>
                         </div>
                     </div>
@@ -149,9 +151,6 @@
                             </a>
                             <a href="mailto:lefrancmaxence8@gmail.com" class="social-btn email" title="Email">
                                 <i class="fas fa-envelope"></i>
-                            </a>
-                            <a href="tel:+33682186791" class="social-btn phone" title="Appeler">
-                                <i class="fas fa-phone"></i>
                             </a>
                         </div>
                     </div>
@@ -205,16 +204,17 @@
                 <div class="footer-section">
                     <h4>Contact</h4>
                     <p>Email: <a href="mailto:lefrancmaxence8@gmail.com">lefrancmaxence8@gmail.com</a></p>
-                    <p>Téléphone: <a href="tel:+33682186791">+33 6 82 18 67 91</a></p>
                     <p>Zone: Lannion et environs</p>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 MaxPC. Tous droits réservés.</p>
+                <p>&copy; 2026 MaxiPC. Tous droits réservés.</p>
             </div>
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

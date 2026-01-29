@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Boutique MaxiPC : composants et prestations sélectionnées pour booster votre PC à Lannion.">
+    <title>Boutique – MaxiPC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+    <!-- Dev Notice -->
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; padding: 10px; font-size: 0.9rem; position: relative; z-index: 1000;">
+        <i class="fas fa-tools"></i> Site en cours de développement - Certaines fonctionnalités peuvent être limitées
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <div class="logo">
+                <i class="fas fa-laptop"></i>
+                <span>MaxiPC</span>
+            </div>
+            <button class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html">Accueil</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="apropos.html">À propos</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="boutique.html" class="active">Boutique</a></li>
+                <li><a href="reservation.html">Réservation</a></li>
+                <li><a href="auth.html" class="cta-button" aria-label="Connexion"><i class="fas fa-user"></i></a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Shop Hero -->
+    <section class="shop-hero">
+        <div class="container shop-hero-inner">
+            <div class="shop-hero-text">
+                <p class="badge">Nouvelle boutique</p>
+                <h1>Composants et prestations prêts à commander</h1>
+                <p class="shop-hero-subtitle">Sélection testée par MaxiPC : pièces fiables, upgrades performants et prestations clés en main. Nous installons et configurons tout pour vous.</p>
+                <div class="shop-hero-actions">
+                    <a href="#shop" class="btn btn-primary">Voir les produits</a>
+                    <a href="reservation.html" class="btn btn-secondary">Planifier l'installation</a>
+                </div>
+            </div>
+            <div class="shop-hero-highlight">
+                <div class="highlight-card">
+                    <i class="fas fa-microchip"></i>
+                    <div>
+                        <p class="highlight-label">Compatible & testé</p>
+                        <p class="highlight-value">Intel / AMD / NVIDIA</p>
+                    </div>
+                </div>
+                <div class="highlight-card">
+                    <i class="fas fa-shield-check"></i>
+                    <div>
+                        <p class="highlight-label">Garantie atelier</p>
+                        <p class="highlight-value">Installation + vérif.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Shop Content -->
+    <section class="shop-content" id="shop">
+        <div class="container shop-layout">
+            <div class="shop-main">
+                <div class="shop-toolbar" id="shopFilters">
+                    <button class="filter-btn active" data-filter="all">Tout</button>
+                    <button class="filter-btn" data-filter="pieces">Pièces</button>
+                    <button class="filter-btn" data-filter="pcs">PC reconditionnés</button>
+                    <button class="filter-btn" data-filter="services">Prestations</button>
+                    <button class="filter-btn" data-filter="packs">Packs upgrade</button>
+                </div>
+                <div class="shop-grid" id="shopGrid"></div>
+            </div>
+            <aside class="cart-panel">
+                <div class="cart-header">
+                    <div>
+                        <p class="badge">Panier rapide</p>
+                        <h3>Votre sélection</h3>
+                        <p class="cart-note">Nous validons la compatibilité et vous recontactons sous 24h.</p>
+                    </div>
+                    <i class="fas fa-cart-shopping"></i>
+                </div>
+                <div id="cartItems" class="cart-items"></div>
+                <div class="cart-total">
+                    <span>Total estimé</span>
+                    <strong id="cartTotal">0 €</strong>
+                </div>
+                <div class="cart-actions">
+                    <a href="reservation.html" class="btn btn-primary disabled" id="cartSend" aria-disabled="true">Envoyer ma sélection</a>
+                    <button class="btn btn-secondary" id="cartClear">Vider</button>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>MaxiPC</h4>
+                    <p>Réparation et montage de PC à Lannion</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Navigation</h4>
+                    <ul>
+                        <li><a href="index.html">Accueil</a></li>
+                        <li><a href="services.html">Services</a></li>
+                        <li><a href="apropos.html">À propos</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="boutique.html" class="active">Boutique</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p>Email: <a href="mailto:lefrancmaxence8@gmail.com">lefrancmaxence8@gmail.com</a></p>
+                    <p>Zone: Lannion et environs</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 MaxiPC. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

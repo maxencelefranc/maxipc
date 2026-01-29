@@ -35,13 +35,16 @@
                 <li><a href="services.html">Services</a></li>
                 <li><a href="apropos.html">À propos</a></li>
                 <li><a href="contact.html">Contact</a></li>
-                <li><a href="reservation.html" class="cta-button">Réservation</a></li>
+                <li><a href="boutique.html">Boutique</a></li>
+                <li><a href="reservation.html">Réservation</a></li>
+                <li><a href="auth.html" class="cta-button" aria-label="Connexion"><i class="fas fa-user"></i></a></li>
             </ul>
         </div>
     </nav>
 
     <!-- Hero Section -->
     <section class="hero">
+        <canvas id="heroCanvas" class="hero-canvas"></canvas>
         <div class="hero-content">
             <h1>MaxiPC – Réparation et montage d'ordinateurs à Lannion</h1>
             <p class="hero-subtitle">Dépannage rapide et fiable pour particuliers et professionnels – intervention à domicile ou sur site.</p>
@@ -50,8 +53,6 @@
                 <a href="services.html" class="btn btn-secondary">Découvrir nos services</a>
             </div>
         </div>
-        <div class="hero-image">
-            <i class="fas fa-desktop"></i>
         </div>
     </section>
 
@@ -122,7 +123,6 @@
                 <div class="footer-section">
                     <h4>Contact</h4>
                     <p>Email: <a href="mailto:lefrancmaxence8@gmail.com">lefrancmaxence8@gmail.com</a></p>
-                    <p>Téléphone: <a href="tel:+33682186791">+33 6 82 18 67 91</a></p>
                     <p>Zone: Lannion et environs</p>
                 </div>
             </div>
@@ -132,6 +132,8 @@
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

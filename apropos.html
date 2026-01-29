@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Maxence Lefranc, technicien indépendant spécialisé en réparation et montage de PC à Lannion. Service professionnel, rapide et transparent.">
-    <title>À propos – MaxPC</title>
+    <title>À propos – MaxiPC</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
         <div class="container nav-container">
             <div class="logo">
                 <i class="fas fa-laptop"></i>
-                <span>MaxPC</span>
+                <span>MaxiPC</span>
             </div>
             <button class="hamburger" id="hamburger">
                 <span></span>
@@ -33,7 +33,9 @@
                 <li><a href="services.html">Services</a></li>
                 <li><a href="apropos.html" class="active">À propos</a></li>
                 <li><a href="contact.html">Contact</a></li>
-                <li><a href="reservation.html" class="cta-button">Réservation</a></li>
+                <li><a href="boutique.html">Boutique</a></li>
+                <li><a href="reservation.html">Réservation</a></li>
+                <li><a href="auth.html" class="cta-button" aria-label="Connexion"><i class="fas fa-user"></i></a></li>
             </ul>
         </div>
     </nav>
@@ -41,8 +43,8 @@
     <!-- Page Header -->
     <section class="page-header">
         <div class="container">
-            <h1>À propos de MaxPC</h1>
-            <p>Connaître l'expert derrière MaxPC</p>
+            <h1>À propos de MaxiPC</h1>
+            <p>Connaître l'expert derrière MaxiPC</p>
         </div>
     </section>
 
@@ -85,10 +87,10 @@
         </div>
     </section>
 
-    <!-- Why Choose MaxPC -->
+    <!-- Why Choose MaxiPC -->
     <section class="why-choose">
         <div class="container">
-            <h2>Pourquoi choisir MaxPC ?</h2>
+            <h2>Pourquoi choisir MaxiPC ?</h2>
             <div class="reasons-grid">
                 <div class="reason-card">
                     <div class="reason-icon">
@@ -139,7 +141,7 @@
     <!-- CTA -->
     <section class="cta-section">
         <div class="container">
-            <h2>Prêt à faire confiance à MaxPC ?</h2>
+            <h2>Prêt à faire confiance à MaxiPC ?</h2>
             <p>Contactez-moi pour discuter de votre projet ou pour un devis gratuit</p>
             <a href="contact.html" class="btn btn-primary">Demander un devis</a>
         </div>
@@ -150,7 +152,7 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h4>MaxPC</h4>
+                    <h4>MaxiPC</h4>
                     <p>Réparation et montage de PC à Lannion</p>
                 </div>
                 <div class="footer-section">
@@ -164,17 +166,19 @@
                 </div>
                 <div class="footer-section">
                     <h4>Contact</h4>
-                    <p>Email: <a href="mailto:maxence@maxpc.fr">maxence@maxpc.fr</a></p>
-                    <p>Téléphone: <a href="tel:+33626453849">+33 6 26 45 38 49</a></p>
+                    <p>Email: <a href="mailto:lefrancmaxence8@gmail.com">lefrancmaxence8@gmail.com</a></p>
+                    <p>Téléphone: <a href="tel:+33682186791">+33 6 82 18 67 91</a></p>
                     <p>Zone: Lannion et environs</p>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 MaxPC. Tous droits réservés.</p>
+                <p>&copy; 2026 MaxiPC. Tous droits réservés.</p>
             </div>
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

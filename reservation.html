@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Réservation - MaxPC</title>
+    <title>Réservation - MaxiPC</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .calendar-container {
             max-width: 1200px;
@@ -421,7 +422,9 @@
                 <li><a href="services.html">Services</a></li>
                 <li><a href="apropos.html">À propos</a></li>
                 <li><a href="contact.html">Contact</a></li>
-                <li><a href="reservation.html" class="active cta-button">Réservation</a></li>
+                <li><a href="boutique.html">Boutique</a></li>
+                <li><a href="reservation.html" class="active">Réservation</a></li>
+                <li><a href="auth.html" class="cta-button" aria-label="Connexion"><i class="fas fa-user"></i></a></li>
             </ul>
         </div>
     </nav>
@@ -446,9 +449,9 @@
                 <p>Vous recevrez un email de confirmation immédiatement</p>
             </div>
             <div class="info-card">
-                <i class="fas fa-phone"></i>
-                <h4>Besoin d'aide?</h4>
-                <p><a href="tel:+33626453849">+33 6 26 45 38 49</a></p>
+                <i class="fas fa-clock"></i>
+                <h4>Prenez vite rendez-vous</h4>
+                <p>Sur rendez-vous uniquement</p>
             </div>
         </div>
 
@@ -536,7 +539,7 @@
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-section">
-                <h4>MaxPC</h4>
+                <h4>MaxiPC</h4>
                 <p>Réparation et configuration PC à Lannion</p>
             </div>
             <div class="footer-section">
@@ -550,12 +553,11 @@
             </div>
             <div class="footer-section">
                 <h4>Contact</h4>
-                <p>Email: <a href="mailto:maxence@maxpc.fr">maxence@maxpc.fr</a></p>
-                <p>Téléphone: <a href="tel:+33626453849">+33 6 26 45 38 49</a></p>
+                <p>Email: <a href="mailto:lefrancmaxence8@gmail.com">lefrancmaxence8@gmail.com</a></p>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 MaxPC. Tous droits réservés. | <a href="#">Conditions d'utilisation</a></p>
+            <p>&copy; 2026 MaxiPC. Tous droits réservés. | <a href="#">Conditions d'utilisation</a></p>
         </div>
     </footer>
 
@@ -717,20 +719,56 @@
             const date = new Date(selectedDate);
             const dateFormatter = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-            const templateParams = {
-                from_name: formData.get('name'),
-                from_email: formData.get('email'),
-                phone: formData.get('phone'),
+            // Check if user is logged in
+            const currentUser = await supabaseAuth.getCurrentUser();
+
+            if (!currentUser) {
+                formMessage.textContent = '✗ Veuillez vous connecter pour faire une réservation.';
+                formMessage.classList.remove('success');
+                formMessage.classList.add('error');
+                formMessage.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Confirmer la Réservation';
+                
+                setTimeout(() => {
+                    window.location.href = 'auth.html';
+                }, 2000);
+                return;
+            }
+
+            const reservationData = {
                 service: formData.get('service'),
-                reservation_date: dateFormatter.format(date),
+                reservation_date: selectedDate,
                 reservation_time: selectedTime,
+                customer_name: formData.get('name'),
+                customer_email: formData.get('email'),
+                customer_phone: formData.get('phone'),
                 description: formData.get('description')
             };
 
             try {
+                // Save to Supabase
+                const dbResult = await reservationManager.createReservation(currentUser.id, reservationData);
+                
+                if (!dbResult.success) {
+                    throw new Error(dbResult.error);
+                }
+
+                // Send confirmation email
+                const templateParams = {
+                    from_name: reservationData.customer_name,
+                    from_email: reservationData.customer_email,
+                    phone: reservationData.customer_phone,
+                    service: reservationData.service,
+                    reservation_date: dateFormatter.format(date),
+                    reservation_time: selectedTime,
+                    description: reservationData.description,
+                    confirmation_number: dbResult.data.confirmation_number
+                };
+
                 await emailjs.send('service_m3logoe', 'template_bqxnfpb', templateParams);
 
-                formMessage.textContent = '✓ Réservation confirmée! Vous recevrez un email de confirmation.';
+                formMessage.innerHTML = `✓ Réservation confirmée! Numéro: <strong>${dbResult.data.confirmation_number}</strong><br>Un email de confirmation a été envoyé.`;
                 formMessage.classList.remove('error');
                 formMessage.classList.add('success');
                 formMessage.style.display = 'block';
@@ -742,8 +780,8 @@
                 updateSelectedInfo();
 
                 setTimeout(() => {
-                    formMessage.style.display = 'none';
-                }, 5000);
+                    window.location.href = 'my-reservations.html';
+                }, 3000);
 
             } catch (error) {
                 console.error('Error:', error);
@@ -758,6 +796,8 @@
         }
     </script>
 
+    <!-- Supabase Config -->
+    <script src="supabase-config.js"></script>
     <!-- Navigation Script -->
     <script src="script.js"></script>
 </body>
