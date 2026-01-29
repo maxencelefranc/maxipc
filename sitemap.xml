@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://maxipc.fr/</loc>
+    <loc>https://maxencelefranc.github.io/maxipc/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://maxipc.fr/services.html</loc>
+    <loc>https://maxencelefranc.github.io/maxipc/services.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://maxipc.fr/boutique.html</loc>
+    <loc>https://maxencelefranc.github.io/maxipc/boutique.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://maxipc.fr/reservation.html</loc>
+    <loc>https://maxencelefranc.github.io/maxipc/reservation.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://maxipc.fr/apropos.html</loc>
+    <loc>https://maxencelefranc.github.io/maxipc/apropos.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://maxipc.fr/contact.html</loc>
+    <loc>https://maxencelefranc.github.io/maxipc/contact.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://maxipc.fr/auth.html</loc>
+    <loc>https://maxencelefranc.github.io/maxipc/auth.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
