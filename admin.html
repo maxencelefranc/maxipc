@@ -219,6 +219,122 @@
             display: block;
         }
 
+        .tab-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* Tables */
+        .table-wrapper {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(240, 147, 251, 0.2);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(240, 147, 251, 0.12);
+            color: #e6e6e6;
+            font-size: 0.9rem;
+            vertical-align: top;
+        }
+
+        .admin-table th {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #b0b0b0;
+            background: rgba(240, 147, 251, 0.05);
+        }
+
+        .admin-table tr:hover td {
+            background: rgba(240, 147, 251, 0.06);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid rgba(240, 147, 251, 0.3);
+            color: #f093fb;
+        }
+
+        .status-pill.cancelled {
+            color: #ff7a9c;
+            border-color: rgba(255, 122, 156, 0.4);
+        }
+
+        .status-pill.completed {
+            color: #6ee7b7;
+            border-color: rgba(110, 231, 183, 0.4);
+        }
+
+        .status-pill.in_progress {
+            color: #fbbf24;
+            border-color: rgba(251, 191, 36, 0.4);
+        }
+
+        .status-pill.processing {
+            color: #60a5fa;
+            border-color: rgba(96, 165, 250, 0.4);
+        }
+
+        .status-select {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(240, 147, 251, 0.3);
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.85rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #b0b0b0;
+            display: none;
+        }
+
+        .admin-toast-container {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .admin-toast {
+            background: rgba(26, 26, 46, 0.95);
+            border: 1px solid rgba(240, 147, 251, 0.4);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 0.9rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+
         /* Products Grid */
         .products-grid {
             display: grid;
@@ -584,11 +700,24 @@
                             <i class="fas fa-file-alt"></i>
                             <span><span class="stat-value" id="statTexts">0</span> textes</span>
                         </div>
+                        <div class="stat-item">
+                            <i class="fas fa-calendar-check"></i>
+                            <span><span class="stat-value" id="statReservations">0</span> réservations</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span><span class="stat-value" id="statOrders">0</span> commandes</span>
+                        </div>
                     </div>
                 </div>
-                <button class="btn btn-secondary" id="adminSignOut" style="display:none;">
-                    <i class="fas fa-sign-out-alt"></i> Déconnexion
-                </button>
+                <div style="display:flex; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end;">
+                    <a class="btn btn-secondary" href="index.html" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-home"></i> Accueil
+                    </a>
+                    <button class="btn btn-secondary" id="adminSignOut" style="display:none;">
+                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                    </button>
+                </div>
             </div>
 
             <div class="dashboard-tabs">
@@ -597,6 +726,12 @@
                 </button>
                 <button class="tab-btn" data-tab="content">
                     <i class="fas fa-file-alt"></i> Textes
+                </button>
+                <button class="tab-btn" data-tab="reservations">
+                    <i class="fas fa-calendar-check"></i> Réservations
+                </button>
+                <button class="tab-btn" data-tab="orders">
+                    <i class="fas fa-shopping-cart"></i> Commandes
                 </button>
             </div>
 
@@ -615,6 +750,63 @@
             <div id="contentTab" class="tab-content">
                 <div class="content-list" id="contentList"></div>
             </div>
+
+            <!-- Reservations Tab -->
+            <div id="reservationsTab" class="tab-content">
+                <div class="tab-header">
+                    <h3 style="margin:0; color:#fff;">Réservations</h3>
+                    <div class="tab-actions">
+                        <button class="btn btn-secondary" id="exportReservationsBtn">
+                            <i class="fas fa-file-export"></i> Export CSV
+                        </button>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Référence</th>
+                                <th>Client</th>
+                                <th>Contact</th>
+                                <th>Service</th>
+                                <th>Date & heure</th>
+                                <th>Statut</th>
+                                <th>Créée</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reservationsTableBody"></tbody>
+                    </table>
+                    <div class="empty-state" id="reservationsEmpty">Aucune réservation pour le moment.</div>
+                </div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div id="ordersTab" class="tab-content">
+                <div class="tab-header">
+                    <h3 style="margin:0; color:#fff;">Commandes boutique</h3>
+                    <div class="tab-actions">
+                        <button class="btn btn-secondary" id="exportOrdersBtn">
+                            <i class="fas fa-file-export"></i> Export CSV
+                        </button>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Référence</th>
+                                <th>Client</th>
+                                <th>Contact</th>
+                                <th>Détails commande</th>
+                                <th>Créée</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody"></tbody>
+                    </table>
+                    <div class="empty-state" id="ordersEmpty">Aucune commande boutique pour le moment.</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -632,6 +824,8 @@
             </div>
         </div>
     </div>
+
+    <div class="admin-toast-container" id="adminToastContainer"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>

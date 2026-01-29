@@ -1374,18 +1374,424 @@ async function initializeAdmin() {
     await updateAdminUI(user);
 }
 
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function formatDate(value) {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '-';
+    return date.toLocaleDateString('fr-FR');
+}
+
+function formatDateTime(dateValue, timeValue) {
+    const date = formatDate(dateValue);
+    const time = timeValue ? String(timeValue).slice(0, 5) : '';
+    return time ? `${date} ${time}` : date;
+}
+
+function formatCreatedAt(value) {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '-';
+    return date.toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+function renderAdminProducts(products) {
+    const grid = document.getElementById('productsGrid');
+    if (!grid) return;
+    const addCard = document.getElementById('addProductCard');
+    grid.innerHTML = '';
+    if (addCard) grid.appendChild(addCard);
+
+    if (!Array.isArray(products)) return;
+    products.forEach((product) => {
+        const card = document.createElement('div');
+        card.className = 'product-card-admin';
+        const statusClass = product.status === 'Vendu' ? 'cancelled' : '';
+        card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; gap: 12px;">
+                <strong>${escapeHtml(product.name)}</strong>
+                <span class="status-pill ${statusClass}">${escapeHtml(product.status || 'Disponible')}</span>
+            </div>
+            <div style="color:#b0b0b0; font-size:0.85rem; margin-top: 6px;">${escapeHtml(product.category || '')}</div>
+            <div style="margin-top: 10px; font-weight: 600; color: #fff;">${formatPrice(Number(product.price || 0))}</div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+function renderAdminContent(items) {
+    const list = document.getElementById('contentList');
+    if (!list) return;
+    list.innerHTML = '';
+    if (!Array.isArray(items)) return;
+    items.forEach((item) => {
+        const card = document.createElement('div');
+        card.className = 'content-card';
+        card.innerHTML = `
+            <div class="content-key">${escapeHtml(item.key)}</div>
+            <div class="content-value">${escapeHtml(item.value)}</div>
+        `;
+        list.appendChild(card);
+    });
+}
+
+function renderReservationsTable(rows, tbody, emptyState) {
+    if (!tbody || !emptyState) return;
+    tbody.innerHTML = '';
+    if (!Array.isArray(rows) || rows.length === 0) {
+        emptyState.style.display = 'block';
+        return;
+    }
+    emptyState.style.display = 'none';
+    rows.forEach((row) => {
+        const statusClass = row.status ? row.status.toLowerCase() : 'confirmed';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${escapeHtml(row.confirmation_number || row.id)}</td>
+            <td>${escapeHtml(row.customer_name || '-')}</td>
+            <td>${escapeHtml(row.customer_email || '-')}${row.customer_phone ? `<br>${escapeHtml(row.customer_phone)}` : ''}</td>
+            <td>${escapeHtml(row.service || '-')}</td>
+            <td>${formatDateTime(row.reservation_date, row.reservation_time)}</td>
+            <td>
+                <select class="status-select" data-type="reservation" data-id="${escapeHtml(row.id)}">
+                    <option value="confirmed" ${row.status === 'confirmed' ? 'selected' : ''}>Confirmée</option>
+                    <option value="in_progress" ${row.status === 'in_progress' ? 'selected' : ''}>En cours</option>
+                    <option value="completed" ${row.status === 'completed' ? 'selected' : ''}>Terminée</option>
+                    <option value="cancelled" ${row.status === 'cancelled' ? 'selected' : ''}>Annulée</option>
+                </select>
+            </td>
+            <td>${formatCreatedAt(row.created_at)}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function renderOrdersTable(rows, tbody, emptyState) {
+    if (!tbody || !emptyState) return;
+    tbody.innerHTML = '';
+    if (!Array.isArray(rows) || rows.length === 0) {
+        emptyState.style.display = 'block';
+        return;
+    }
+    emptyState.style.display = 'none';
+    rows.forEach((row) => {
+        const statusClass = row.status ? row.status.toLowerCase() : 'pending';
+        const detailsRaw = row.items_text || '-';
+        const details = detailsRaw.replace(/\n+/g, ' | ').slice(0, 120);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${escapeHtml(row.reference || row.id)}</td>
+            <td>${escapeHtml(row.customer_name || '-')}</td>
+            <td>${escapeHtml(row.customer_email || '-')}${row.customer_phone ? `<br>${escapeHtml(row.customer_phone)}` : ''}</td>
+            <td>${escapeHtml(details)}</td>
+            <td>${formatCreatedAt(row.created_at)}</td>
+            <td>
+                <select class="status-select" data-type="order" data-id="${escapeHtml(row.id)}">
+                    <option value="pending" ${row.status === 'pending' ? 'selected' : ''}>En attente</option>
+                    <option value="processing" ${row.status === 'processing' ? 'selected' : ''}>En cours</option>
+                    <option value="completed" ${row.status === 'completed' ? 'selected' : ''}>Terminée</option>
+                    <option value="cancelled" ${row.status === 'cancelled' ? 'selected' : ''}>Annulée</option>
+                </select>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function buildCsv(rows, columns) {
+    const header = columns.map((col) => col.label).join(';');
+    const lines = [header];
+    rows.forEach((row) => {
+        const values = columns.map((col) => {
+            const raw = typeof col.value === 'function' ? col.value(row) : row[col.value];
+            const safe = String(raw ?? '').replace(/\r?\n/g, ' ').replace(/"/g, '""');
+            return `"${safe}"`;
+        });
+        lines.push(values.join(';'));
+    });
+    return lines.join('\n');
+}
+
+function downloadCsv(filename, content) {
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+}
+
 async function loadAdminProducts() {
-    // Placeholder - will be replaced by initializeAdmin
+    const products = await loadShopProducts();
+    renderAdminProducts(products || []);
+    const availableCount = Array.isArray(products)
+        ? products.filter((p) => p.status !== 'Vendu').length
+        : 0;
+    const statProducts = document.getElementById('statProducts');
+    const statAvailable = document.getElementById('statAvailable');
+    if (statProducts) statProducts.textContent = Array.isArray(products) ? products.length : 0;
+    if (statAvailable) statAvailable.textContent = availableCount;
 }
 
 async function loadAdminContent() {
-    // Placeholder - will be replaced by initializeAdmin
+    if (!window.supabaseClient) return;
+    const { data } = await window.supabaseClient
+        .from('site_content')
+        .select('*')
+        .order('key', { ascending: true });
+    renderAdminContent(data || []);
+    const statTexts = document.getElementById('statTexts');
+    if (statTexts) statTexts.textContent = Array.isArray(data) ? data.length : 0;
 }
 
-async function isAdminUser(user) {
-    if (!user || !window.supabaseClient) return false;
-    const { data } = await window.supabaseClient.from('admin_users').select('*').eq('user_id', user.id).single();
-    return !!data;
+let adminReservationsCache = [];
+let adminOrdersCache = [];
+
+async function loadAdminReservationsAndOrders() {
+    if (!window.supabaseClient) return;
+    const reservationsTable = document.getElementById('reservationsTableBody');
+    const reservationsEmpty = document.getElementById('reservationsEmpty');
+    const ordersTable = document.getElementById('ordersTableBody');
+    const ordersEmpty = document.getElementById('ordersEmpty');
+
+    const { data: reservations } = await window.supabaseClient
+        .from('reservations')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    const { data: orders } = await window.supabaseClient
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    adminReservationsCache = reservations || [];
+    adminOrdersCache = orders || [];
+    renderReservationsTable(adminReservationsCache, reservationsTable, reservationsEmpty);
+    renderOrdersTable(adminOrdersCache, ordersTable, ordersEmpty);
+
+    const statReservations = document.getElementById('statReservations');
+    const statOrders = document.getElementById('statOrders');
+    if (statReservations) statReservations.textContent = adminReservationsCache.length;
+    if (statOrders) statOrders.textContent = adminOrdersCache.length;
+}
+
+async function initializeAdminDashboardPage() {
+    const adminApp = document.getElementById('adminApp');
+    if (!adminApp || !window.supabaseAuth || !window.supabaseClient) return;
+
+    const adminAuth = document.getElementById('adminAuth');
+    const adminDashboard = document.getElementById('adminDashboard');
+    const loginForm = document.getElementById('adminLoginForm');
+    const adminMessage = document.getElementById('adminMessage');
+    const adminSignOut = document.getElementById('adminSignOut');
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const exportReservationsBtn = document.getElementById('exportReservationsBtn');
+    const exportOrdersBtn = document.getElementById('exportOrdersBtn');
+    const reservationsTable = document.getElementById('reservationsTableBody');
+    const ordersTable = document.getElementById('ordersTableBody');
+    const toastContainer = document.getElementById('adminToastContainer');
+
+    const showMessage = (type, text) => {
+        if (!adminMessage) return;
+        adminMessage.textContent = text;
+        adminMessage.className = `message show ${type}`;
+    };
+
+    const setDashboardVisible = (visible) => {
+        if (adminAuth) adminAuth.style.display = visible ? 'none' : 'block';
+        if (adminDashboard) adminDashboard.classList.toggle('show', visible);
+        if (adminSignOut) adminSignOut.style.display = visible ? 'inline-flex' : 'none';
+    };
+
+    const canAccessAdmin = async (user) => {
+        if (!user) return false;
+        const adminEmails = window.ADMIN_EMAILS || [];
+        if (adminEmails.includes(user.email)) return true;
+        const { data } = await window.supabaseClient
+            .from('admin_users')
+            .select('user_id')
+            .eq('user_id', user.id)
+            .single();
+        return !!data;
+    };
+
+    const setupTabs = () => {
+        tabButtons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                tabButtons.forEach((b) => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelectorAll('.tab-content').forEach((content) => {
+                    content.classList.toggle('active', content.id === `${tab}Tab`);
+                });
+            });
+        });
+    };
+
+    const showToast = (message) => {
+        if (!toastContainer) return;
+        const toast = document.createElement('div');
+        toast.className = 'admin-toast';
+        toast.textContent = message;
+        toastContainer.appendChild(toast);
+        setTimeout(() => {
+            toast.remove();
+        }, 4000);
+    };
+
+    const loadDashboardData = async () => {
+        await loadAdminProducts();
+        await loadAdminContent();
+        await loadAdminReservationsAndOrders();
+    };
+
+    setupTabs();
+
+    if (exportReservationsBtn) {
+        exportReservationsBtn.addEventListener('click', () => {
+            if (!adminReservationsCache.length) return;
+            const csv = buildCsv(adminReservationsCache, [
+                { label: 'Référence', value: (row) => row.confirmation_number || row.id },
+                { label: 'Client', value: 'customer_name' },
+                { label: 'Email', value: 'customer_email' },
+                { label: 'Téléphone', value: 'customer_phone' },
+                { label: 'Service', value: 'service' },
+                { label: 'Date', value: (row) => formatDateTime(row.reservation_date, row.reservation_time) },
+                { label: 'Statut', value: 'status' },
+                { label: 'Créée', value: (row) => formatCreatedAt(row.created_at) }
+            ]);
+            downloadCsv('reservations.csv', csv);
+        });
+    }
+
+    if (exportOrdersBtn) {
+        exportOrdersBtn.addEventListener('click', () => {
+            if (!adminOrdersCache.length) return;
+            const csv = buildCsv(adminOrdersCache, [
+                { label: 'Référence', value: (row) => row.reference || row.id },
+                { label: 'Client', value: 'customer_name' },
+                { label: 'Email', value: 'customer_email' },
+                { label: 'Téléphone', value: 'customer_phone' },
+                { label: 'Détails', value: 'items_text' },
+                { label: 'Total', value: 'total_estimated' },
+                { label: 'Statut', value: 'status' },
+                { label: 'Créée', value: (row) => formatCreatedAt(row.created_at) }
+            ]);
+            downloadCsv('commandes.csv', csv);
+        });
+    }
+
+    if (reservationsTable) {
+        reservationsTable.addEventListener('change', async (e) => {
+            const target = e.target;
+            if (!target.classList.contains('status-select')) return;
+            if (target.dataset.type !== 'reservation') return;
+            const id = target.dataset.id;
+            const status = target.value;
+            await window.supabaseClient
+                .from('reservations')
+                .update({ status, updated_at: new Date().toISOString() })
+                .eq('id', id);
+            await loadAdminReservationsAndOrders();
+        });
+    }
+
+    if (ordersTable) {
+        ordersTable.addEventListener('change', async (e) => {
+            const target = e.target;
+            if (!target.classList.contains('status-select')) return;
+            if (target.dataset.type !== 'order') return;
+            const id = target.dataset.id;
+            const status = target.value;
+            await window.supabaseClient
+                .from('orders')
+                .update({ status, updated_at: new Date().toISOString() })
+                .eq('id', id);
+            await loadAdminReservationsAndOrders();
+        });
+    }
+
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('adminEmail')?.value.trim();
+            const password = document.getElementById('adminPassword')?.value;
+            if (!email || !password) return;
+
+            const result = await window.supabaseAuth.signIn(email, password);
+            if (!result.success) {
+                showMessage('error', 'Email ou mot de passe incorrect.');
+                return;
+            }
+
+            const user = await window.supabaseAuth.getCurrentUser();
+            const isAdmin = await canAccessAdmin(user);
+            if (!isAdmin) {
+                await window.supabaseAuth.signOut();
+                showMessage('error', 'Accès refusé - Compte non autorisé.');
+                return;
+            }
+
+            showMessage('success', 'Connexion réussie.');
+            setDashboardVisible(true);
+            await loadDashboardData();
+        });
+    }
+
+    if (adminSignOut) {
+        adminSignOut.addEventListener('click', async () => {
+            await window.supabaseAuth.signOut();
+            setDashboardVisible(false);
+            showMessage('success', 'Déconnecté.');
+        });
+    }
+
+    const currentUser = await window.supabaseAuth.getCurrentUser();
+    if (await canAccessAdmin(currentUser)) {
+        setDashboardVisible(true);
+        await loadDashboardData();
+        let lastReservationTime = adminReservationsCache[0]?.created_at || null;
+        let lastOrderTime = adminOrdersCache[0]?.created_at || null;
+        setInterval(async () => {
+            const { data: latestReservation } = await window.supabaseClient
+                .from('reservations')
+                .select('created_at')
+                .order('created_at', { ascending: false })
+                .limit(1);
+            const { data: latestOrder } = await window.supabaseClient
+                .from('orders')
+                .select('created_at')
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            const latestReservationTime = latestReservation?.[0]?.created_at || null;
+            const latestOrderTime = latestOrder?.[0]?.created_at || null;
+
+            if (latestReservationTime && latestReservationTime !== lastReservationTime) {
+                lastReservationTime = latestReservationTime;
+                showToast('Nouvelle réservation reçue.');
+                await loadAdminReservationsAndOrders();
+            }
+
+            if (latestOrderTime && latestOrderTime !== lastOrderTime) {
+                lastOrderTime = latestOrderTime;
+                showToast('Nouvelle commande boutique reçue.');
+                await loadAdminReservationsAndOrders();
+            }
+        }, 30000);
+    } else {
+        setDashboardVisible(false);
+    }
 }
 
 function initializeShopFeature() {
@@ -1419,6 +1825,7 @@ function runAppInit() {
     prefillReservationFromCart();
     loadSiteContent();
     initializeAdmin();
+    initializeAdminDashboardPage();
 }
 
 if (document.readyState === 'loading') {

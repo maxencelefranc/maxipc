@@ -700,6 +700,18 @@
             }
         }
 
+        function parseCartTotal(summary) {
+            const match = summary.match(/Total\s+estimé\s*:\s*([0-9\s.,]+)/i);
+            if (!match) return 0;
+            const raw = match[1].replace(/\s/g, '').replace(',', '.');
+            const value = parseFloat(raw);
+            return Number.isNaN(value) ? 0 : value;
+        }
+
+        function isCartSummary(summary) {
+            return summary && summary.includes('Sélection boutique');
+        }
+
         // Form submission
         async function handleFormSubmit(e) {
             e.preventDefault();
@@ -752,6 +764,19 @@
                 
                 if (!dbResult.success) {
                     throw new Error(dbResult.error);
+                }
+
+                // Create order if this reservation comes from the shop cart
+                if (isCartSummary(reservationData.description) && window.orderManager) {
+                    await orderManager.createOrder(currentUser.id, {
+                        reservation_id: dbResult.data.id,
+                        customer_name: reservationData.customer_name,
+                        customer_email: reservationData.customer_email,
+                        customer_phone: reservationData.customer_phone,
+                        items_text: reservationData.description,
+                        total_estimated: parseCartTotal(reservationData.description),
+                        status: 'pending'
+                    });
                 }
 
                 // Send confirmation email

@@ -192,3 +192,70 @@ const reservationManager = {
 
 window.supabaseAuth = supabaseAuth;
 window.reservationManager = reservationManager;
+
+// Orders management
+const orderManager = {
+    async createOrder(userId, orderData) {
+        try {
+            const reference = orderData.reference || 'ORD-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+            const { data, error } = await supabaseClient
+                .from('orders')
+                .insert([{
+                    user_id: userId,
+                    reservation_id: orderData.reservation_id || null,
+                    reference,
+                    customer_name: orderData.customer_name,
+                    customer_email: orderData.customer_email,
+                    customer_phone: orderData.customer_phone,
+                    items_text: orderData.items_text,
+                    total_estimated: orderData.total_estimated || 0,
+                    status: orderData.status || 'pending',
+                    created_at: new Date().toISOString()
+                }])
+                .select();
+
+            if (error) throw error;
+            return { success: true, data: data[0] };
+        } catch (error) {
+            console.error('Create order error:', error.message);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async getUserOrders(userId) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('orders')
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            return { success: true, data };
+        } catch (error) {
+            console.error('Get orders error:', error.message);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async updateOrder(orderId, updates) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('orders')
+                .update({
+                    ...updates,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', orderId)
+                .select();
+
+            if (error) throw error;
+            return { success: true, data: data[0] };
+        } catch (error) {
+            console.error('Update order error:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+};
+
+window.orderManager = orderManager;
