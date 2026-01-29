@@ -380,263 +380,282 @@ async function handleLogout(e) {
 }
 
 /* ===================== */
-/* TERMINAL CODE ANIMATION */
+/* HOLOGRAM 3D ANIMATION */
 /* ===================== */
 
-class TerminalCodeAnimation {
+class HologramAnimation {
     constructor() {
         this.canvas = document.getElementById('heroCanvas');
-        this.ctx = this.canvas.getContext('2d');
-        this.time = 0;
-        this.characters = [];
-        this.codeSnippets = [
-            '$ sudo maxipc-diagnostics.sh',
-            '> Initializing system scan...',
-            'CPU: [████████░░] 78% - Intel i7-12700K',
-            'RAM: [██████░░░░] 64% - 16GB DDR5',
-            'GPU: [█████████░] 92% - RTX 4090',
-            'Storage: [███████░░░] 72% - 1TB NVMe',
-            'Temperature: 45°C [OK]',
-            'Network: Gigabit Ethernet [Active]',
-            '> Performance optimization',
-            '> Cache cleared ✓',
-            '> Drivers updated ✓',
-            '> System ready for deployment',
-            '$ maxipc-status: SUCCESS',
-            '> Ready to serve',
-            '> Analyzing performance metrics...',
-            'GPU Memory: [██████████] 100% optimized',
-            'CPU Frequency: [████████░░] 3.8 GHz',
-            'Disk I/O: [█████████░] 85% - 520 MB/s',
-            'RAM Speed: DDR5 6400MHz',
-            '> Security check passed',
-            '> All drivers verified ✓',
-            '> System status: EXCELLENT',
-            '$ maxipc-reboot --safe',
-            '> Rebooting in safe mode...',
-            '> Session saved',
-            '$ _'
-        ];
-        this.displayedCode = [];
-        this.charIndex = 0;
-        this.snippetIndex = 0;
-        this.lineCreationTime = 0;
-        this.init();
-    }
-
-    init() {
         if (!this.canvas) return;
         
-        this.resizeCanvas();
-        window.addEventListener('resize', () => this.resizeCanvas());
+        // Three.js setup
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(75, this.canvas.clientWidth / this.canvas.clientHeight, 0.1, 1000);
+        this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, alpha: true, antialias: true });
+        this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
+        this.renderer.setClearColor(0x000f1f, 0.2);
+        
+        this.camera.position.z = 25;
+        
+        // Animation state
+        this.time = 0;
+        this.mouseX = 0;
+        this.mouseY = 0;
+        this.targetMouseX = 0;
+        this.targetMouseY = 0;
+        
+        // Create 3D PC model
+        this.pcGroup = new THREE.Group();
+        this.scene.add(this.pcGroup);
+        this.createPC3DModel();
+        
+        // Add hologram effects
+        this.addGlowEffect();
+        
+        // Handle resize
+        window.addEventListener('resize', () => this.onWindowResize());
+        
+        // Start animation
         this.animate();
     }
-
-    resizeCanvas() {
-        const rect = this.canvas.parentElement.getBoundingClientRect();
-        this.canvas.width = rect.width;
-        this.canvas.height = rect.height;
-    }
-
-    animate = () => {
-        this.time += 1;
-        
-        // Clear canvas
-        this.ctx.fillStyle = '#0a0a14';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-        // Draw background grid
-        this.drawBackgroundGrid();
-
-        // Add new characters periodically
-        if (this.time % 2 === 0) {
-            this.addCharacter();
-        }
-
-        // Draw all active characters
-        this.drawCharacters();
-
-        // Draw cursor
-        this.drawCursor();
-
-        requestAnimationFrame(this.animate);
-    }
-
-    addCharacter() {
-        if (this.snippetIndex >= this.codeSnippets.length) {
-            this.snippetIndex = 0;
-            this.charIndex = 0;
+    
+    createPC3DModel() {
+        // Load realistic PC model from GLB/glTF file
+        if (!window.THREE || !window.THREE.GLTFLoader) {
+            console.warn('GLTFLoader not available yet, using fallback');
+            this.createPC3DModelFallback();
             return;
         }
-
-        const currentSnippet = this.codeSnippets[this.snippetIndex];
         
-        if (this.charIndex < currentSnippet.length) {
-            const char = currentSnippet[this.charIndex];
-            const lineNum = this.snippetIndex;
-            const charPosInLine = this.charIndex;
-
-            // Get color based on character type
-            let color = '#4facfe';
-            if (char === '(' || char === ')' || char === '[' || char === ']' || char === '{' || char === '}') {
-                color = '#667eea';
-            } else if (char.match(/[0-9]/)) {
-                color = '#f093fb';
-            } else if (char === '_' || char === '>' || char === ':' || char === '$' || char === '-') {
-                color = '#764ba2';
-            } else if (char === '✓' || char === 'O' || char === 'K') {
-                color = '#4ade80';
-            }
-
-            this.displayedCode.push({
-                char: char,
-                x: 30 + charPosInLine * 11,
-                y: 100 + lineNum * 28,
-                color: color,
-                glowIntensity: Math.random() * 0.5 + 0.5,
-                lineNum: lineNum,
-                charPosInLine: charPosInLine
-            });
-
-            this.charIndex++;
-        } else {
-            // Move to next line after delay
-            if (this.lineCreationTime === 0) {
-                this.lineCreationTime = this.time;
-            }
-            if (this.time - this.lineCreationTime > 100) {
-                this.charIndex = 0;
-                this.snippetIndex++;
-                this.lineCreationTime = 0;
-            }
-        }
-    }
-
-    drawCharacters() {
-        this.ctx.font = 'bold 14px "Courier New", monospace';
-        this.ctx.textBaseline = 'middle';
-
-        // Only delete old lines after screen is full (10+ lines visible)
-        if (this.time % 5 === 0 && this.displayedCode.length > 400) {
-            // Find oldest line number currently on screen
-            const minLineNum = Math.min(...this.displayedCode.map(c => c.lineNum));
+        try {
+            const loader = new THREE.GLTFLoader();
             
-            // Only start deleting the very oldest line to keep screen scrolling
-            const charsToDelete = this.displayedCode
-                .filter(char => char.lineNum === minLineNum)
-                .sort((a, b) => a.charPosInLine - b.charPosInLine);
+            // Load the gaming PC model
+            const modelPath = 'Assets/gaming_desktop_pc.glb';
             
-            if (charsToDelete.length > 0) {
-                // Remove first character from oldest line (left to right deletion)
-                const idx = this.displayedCode.indexOf(charsToDelete[0]);
-                if (idx !== -1) {
-                    this.displayedCode.splice(idx, 1);
+            loader.load(
+                modelPath,
+                (gltf) => {
+                    const model = gltf.scene;
+                    // Scale and position the model
+                    model.scale.set(2.5, 2.5, 2.5);
+                    model.position.y = -0.5;
+                    
+                    // Apply neon glow effect to all meshes
+                    model.traverse((child) => {
+                        if (child.isMesh && child.material) {
+                            // Clone material if shared to avoid affecting other objects
+                            if (Array.isArray(child.material)) {
+                                child.material = child.material.map(m => m.clone());
+                            } else {
+                                child.material = child.material.clone();
+                            }
+                            
+                            // Apply to all materials (array or single)
+                            const materials = Array.isArray(child.material) ? child.material : [child.material];
+                            materials.forEach(mat => {
+                                mat.emissive = mat.emissive || new THREE.Color(0);
+                                mat.emissive.setHex(0x003366);
+                                mat.emissiveIntensity = 0.45;
+                                // Only set metalness/roughness if material supports them
+                                if (typeof mat.metalness !== 'undefined') mat.metalness = 0.8;
+                                if (typeof mat.roughness !== 'undefined') mat.roughness = 0.3;
+                                // For PhongMaterial, use shininess instead
+                                if (typeof mat.shininess !== 'undefined') mat.shininess = 100;
+                            });
+                            
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+                    
+                    this.pcGroup.add(model);
+                    this.pcModel = model;
+                    console.log('✓ Modèle 3D PC chargé avec succès!');
+                },
+                (progress) => {
+                    const loaded = (progress.loaded / progress.total * 100).toFixed(0);
+                    console.log('Chargement modèle:', loaded + '%');
+                },
+                (error) => {
+                    console.warn('Erreur chargement modèle:', error.message || error);
+                    console.log('Utilisation du modèle géométrique fallback...');
+                    this.createPC3DModelFallback();
                 }
-            }
+            );
+        } catch (e) {
+            console.error('Erreur création loader:', e);
+            this.createPC3DModelFallback();
         }
-
-        // Draw all characters at full opacity
-        this.displayedCode.forEach((charObj) => {
-            // Draw glow
-            this.ctx.globalAlpha = charObj.glowIntensity * 0.5;
-            this.ctx.fillStyle = charObj.color;
-            this.ctx.shadowColor = charObj.color;
-            this.ctx.shadowBlur = 12;
-            this.ctx.fillText(charObj.char, charObj.x, charObj.y);
-
-            // Draw main character at full opacity
-            this.ctx.globalAlpha = 1;
-            this.ctx.fillStyle = charObj.color;
-            this.ctx.shadowBlur = 0;
-            this.ctx.fillText(charObj.char, charObj.x, charObj.y);
-
-            // Random scan line glitch
-            if (Math.random() < 0.015) {
-                this.ctx.globalAlpha = 0.2;
-                this.ctx.fillStyle = '#ffffff';
-                this.ctx.fillText(charObj.char, charObj.x + (Math.random() - 0.5) * 2, charObj.y + (Math.random() - 0.5) * 2);
-            }
-
-            this.ctx.globalAlpha = 1;
+    }
+    
+    createPC3DModelFallback() {
+        // Fallback: Create a more detailed geometric PC if model loading fails
+        // Main case - tall tower
+        const caseGeo = new THREE.BoxGeometry(1, 3.5, 1);
+        const caseMat = new THREE.MeshPhongMaterial({ 
+            color: 0x1a1a1a,
+            emissive: 0x003366,
+            shininess: 100
         });
+        const pcCase = new THREE.Mesh(caseGeo, caseMat);
+        this.pcGroup.add(pcCase);
+        
+        // Front panel with details
+        const panelGeo = new THREE.BoxGeometry(0.95, 3.4, 0.05);
+        const panelMat = new THREE.MeshPhongMaterial({ 
+            color: 0x0a0a0a,
+            emissive: 0x004488,
+            shininess: 100
+        });
+        const panel = new THREE.Mesh(panelGeo, panelMat);
+        panel.position.z = 0.51;
+        this.pcGroup.add(panel);
+        
+        // LED strip top
+        const ledGeo = new THREE.BoxGeometry(0.9, 0.02, 0.8);
+        const ledMat = new THREE.MeshPhongMaterial({ 
+            color: 0x00ffff,
+            emissive: 0x00ffff,
+            emissiveIntensity: 0.8
+        });
+        const led = new THREE.Mesh(ledGeo, ledMat);
+        led.position.set(0, 1.75, 0);
+        this.pcGroup.add(led);
+        
+        // PSU (power supply) - bottom front
+        const psuGeo = new THREE.BoxGeometry(0.85, 0.4, 0.8);
+        const psuMat = new THREE.MeshPhongMaterial({ 
+            color: 0x2a2a2a,
+            emissive: 0x002244
+        });
+        const psu = new THREE.Mesh(psuGeo, psuMat);
+        psu.position.y = -1.55;
+        this.pcGroup.add(psu);
+        
+        // GPU (graphics card) - side mounted large
+        const gpuGeo = new THREE.BoxGeometry(0.3, 1.4, 0.9);
+        const gpuMat = new THREE.MeshPhongMaterial({ 
+            color: 0x1a1a2e,
+            emissive: 0x663399
+        });
+        const gpu = new THREE.Mesh(gpuGeo, gpuMat);
+        gpu.position.set(0.4, 0.2, 0);
+        this.pcGroup.add(gpu);
+        
+        // Front fans - 2x large fans
+        const fanGroupTop = new THREE.Group();
+        this.createFan(0.3, fanGroupTop);
+        fanGroupTop.position.set(0, 0.8, 0.48);
+        this.pcGroup.add(fanGroupTop);
+        
+        const fanGroupBottom = new THREE.Group();
+        this.createFan(0.3, fanGroupBottom);
+        fanGroupBottom.position.set(0, -0.5, 0.48);
+        this.pcGroup.add(fanGroupBottom);
+        
+        // CPU cooler - tower in center back
+        const cpuGeo = new THREE.CylinderGeometry(0.25, 0.25, 1.8, 16);
+        const cpuMat = new THREE.MeshPhongMaterial({ 
+            color: 0x333333,
+            emissive: 0x0088ff
+        });
+        const cpu = new THREE.Mesh(cpuGeo, cpuMat);
+        cpu.position.set(0, 0.3, -0.3);
+        this.pcGroup.add(cpu);
+        
+        // Add glow wireframe outline
+        const wireGeo = new THREE.BoxGeometry(1.02, 3.52, 1.02);
+        const wireMat = new THREE.MeshPhongMaterial({ 
+            wireframe: true,
+            color: 0x00c8ff,
+            emissive: 0x00ffff,
+            emissiveIntensity: 0.6
+        });
+        const wireframe = new THREE.Mesh(wireGeo, wireMat);
+        this.pcGroup.add(wireframe);
     }
-
-    drawCursor() {
-        // Calculate cursor position
-        const lastCharObj = this.displayedCode[this.displayedCode.length - 1];
-        if (!lastCharObj) return;
-
-        const cursorX = lastCharObj.x + 12;
-        const cursorY = lastCharObj.y;
-
-        // Blinking cursor
-        if (Math.floor(this.time / 20) % 2 === 0) {
-            this.ctx.globalAlpha = 0.8;
-            this.ctx.fillStyle = '#4facfe';
-            this.ctx.shadowColor = '#4facfe';
-            this.ctx.shadowBlur = 10;
-            this.ctx.fillRect(cursorX, cursorY - 8, 2, 16);
-            this.ctx.shadowBlur = 0;
-        }
+    
+    createFan(radius, parent) {
+        // Fan blade circle
+        const fanGeo = new THREE.CylinderGeometry(radius, radius, 0.05, 32);
+        const fanMat = new THREE.MeshPhongMaterial({ 
+            color: 0x00d4ff,
+            emissive: 0x0088cc,
+            emissiveIntensity: 0.5
+        });
+        const fan = new THREE.Mesh(fanGeo, fanMat);
+        fan.rotation.x = Math.PI / 2;
+        parent.add(fan);
+        
+        // Fan frame
+        const frameGeo = new THREE.TorusGeometry(radius + 0.02, 0.02, 8, 32);
+        const frameMat = new THREE.MeshPhongMaterial({ 
+            color: 0x333333,
+            emissive: 0x004488
+        });
+        const frame = new THREE.Mesh(frameGeo, frameMat);
+        frame.rotation.x = Math.PI / 2;
+        parent.add(frame);
     }
-
-    drawBackgroundGrid() {
-        // Subtle horizontal scan lines
-        this.ctx.strokeStyle = '#4facfe10';
-        this.ctx.lineWidth = 1;
-
-        for (let y = 0; y < this.canvas.height; y += 2) {
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, y);
-            this.ctx.lineTo(this.canvas.width, y);
-            this.ctx.stroke();
-        }
-
-        // Vertical accent lines
-        this.ctx.strokeStyle = '#667eea08';
-        for (let x = 0; x < this.canvas.width; x += 150) {
-            this.ctx.beginPath();
-            this.ctx.moveTo(x, 0);
-            this.ctx.lineTo(x, this.canvas.height);
-            this.ctx.stroke();
-        }
-
-        // Top glow
-        const topGradient = this.ctx.createLinearGradient(0, 0, 0, 200);
-        topGradient.addColorStop(0, '#4facfe50');
-        topGradient.addColorStop(1, '#4facfe00');
-        this.ctx.fillStyle = topGradient;
-        this.ctx.fillRect(0, 0, this.canvas.width, 200);
-
-        // Bottom glow
-        const bottomGradient = this.ctx.createLinearGradient(0, this.canvas.height - 200, 0, this.canvas.height);
-        bottomGradient.addColorStop(0, '#764ba200');
-        bottomGradient.addColorStop(1, '#764ba240');
-        this.ctx.fillStyle = bottomGradient;
-        this.ctx.fillRect(0, this.canvas.height - 200, this.canvas.width, 200);
-
-        // Left accent
-        const leftGradient = this.ctx.createLinearGradient(0, 0, 100, 0);
-        leftGradient.addColorStop(0, '#667eea30');
-        leftGradient.addColorStop(1, '#667eea00');
-        this.ctx.fillStyle = leftGradient;
-        this.ctx.fillRect(0, 0, 100, this.canvas.height);
-
-        // Right accent
-        const rightGradient = this.ctx.createLinearGradient(this.canvas.width - 100, 0, this.canvas.width, 0);
-        rightGradient.addColorStop(0, '#667eea00');
-        rightGradient.addColorStop(1, '#667eea30');
-        this.ctx.fillStyle = rightGradient;
-        this.ctx.fillRect(this.canvas.width - 100, 0, 100, this.canvas.height);
+    
+    addGlowEffect() {
+        // Ambient light with cyan tint
+        const ambientLight = new THREE.AmbientLight(0x00c8ff, 0.7);
+        this.scene.add(ambientLight);
+        
+        // Point light (neon glow)
+        const pointLight = new THREE.PointLight(0x00e5ff, 1.6, 24);
+        pointLight.position.z = 3;
+        this.scene.add(pointLight);
+        
+        // Directional light for definition
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+        dirLight.position.set(2, 2, 2);
+        this.scene.add(dirLight);
+    }
+    
+    createParticles() {}
+    
+    setupInteraction() {}
+    
+    onWindowResize() {
+        const width = this.canvas.clientWidth;
+        const height = this.canvas.clientHeight;
+        
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(width, height);
+    }
+    
+    animate = () => {
+        this.time += 0.016;
+        
+        // Left-right front movement (no orbit rotation)
+        this.pcGroup.position.x = 3 + Math.sin(this.time * 0.5) * 0.5;
+        this.pcGroup.rotation.y = 4.75 + Math.sin(this.time * 0.4) * 0.1;
+        this.pcGroup.rotation.x = 0.25 + Math.sin(this.time * 0.3) * 0.5;
+        this.pcGroup.rotation.z = Math.sin(this.time * 0.2) * 0.04;
+        
+        // Subtle glow pulse
+        const glow = 0.6 + Math.sin(this.time * 2) * 0.15;
+        this.pcGroup.children.forEach(child => {
+            if (child.material && child.material.emissive) {
+                child.material.emissiveIntensity = glow;
+            }
+        });
+        
+        this.renderer.render(this.scene, this.camera);
+        requestAnimationFrame(this.animate);
     }
 }
 
-// Initialize terminal animation
-let terminalAnimation = null;
+// Initialize hologram animation
+let hologramAnimation = null;
 function initializeTerminalAnimation() {
     const canvas = document.getElementById('heroCanvas');
-    if (canvas && !terminalAnimation) {
-        terminalAnimation = new TerminalCodeAnimation();
+    if (canvas && !hologramAnimation) {
+        hologramAnimation = new HologramAnimation();
     }
 }
 
@@ -645,16 +664,16 @@ function initializeTerminalAnimation() {
 /* ===================== */
 
 const defaultShopProducts = [
-    { id: 1, name: 'SSD NVMe 1TB PCIe 4.0', category: 'pieces', price: 119.9, desc: 'Samsung 980 Pro / 7 000 Mo/s, idéal OS et jeux', meta: 'Rapide', image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80' },
-    { id: 2, name: 'Kit RAM 32GB DDR5 6000', category: 'pieces', price: 149.0, desc: 'Dual channel optimisé Ryzen/Intel, CL36', meta: 'Upgrade perf', image: 'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=800&q=80' },
-    { id: 3, name: 'Carte graphique RTX 4070', category: 'pieces', price: 599.0, desc: '1440p ultra, DLSS 3 et ray tracing', meta: 'Gaming', image: 'https://images.unsplash.com/photo-1587202372775-98927f78b34b?auto=format&fit=crop&w=800&q=80' },
-    { id: 4, name: 'Nettoyage thermique + repaste', category: 'services', price: 59.0, desc: 'Démontage, dépoussiérage complet et pâte thermique haute perf.', meta: 'Atelier', image: 'https://images.unsplash.com/photo-1587613864521-681376e8c43e?auto=format&fit=crop&w=800&q=80' },
-    { id: 5, name: 'Installation Windows + pilotes', category: 'services', price: 79.0, desc: 'Réinstallation propre, drivers, sécurité et mises à jour', meta: 'Service', image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80' },
-    { id: 6, name: 'Pack Upgrade Gaming', category: 'packs', price: 299.0, desc: 'SSD 1TB + optimisation Windows + param tuning', meta: 'Pack rapide', image: 'https://images.unsplash.com/photo-1517059224940-d4af9eec41b7?auto=format&fit=crop&w=800&q=80' },
-    { id: 7, name: 'Pack Silence & Refroidissement', category: 'packs', price: 189.0, desc: 'Ventirad tour + courbe ventilateurs + nettoyage', meta: 'Silence', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80' },
-    { id: 8, name: 'Sauvegarde + clonage SSD', category: 'services', price: 69.0, desc: 'Clone disque vers SSD sans perte, vérification intégrité', meta: 'Sécurité', image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80' },
-    { id: 9, name: 'Routeur Wi-Fi 6 maison', category: 'pieces', price: 139.0, desc: 'Couverture stable, QoS jeux/visio, config sécurisée', meta: 'Réseau', image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80' },
-    { id: 10, name: 'PC reconditionné i5 / GTX 1660', category: 'pcs', price: 549.0, desc: 'Tour prête à l\'emploi, Windows 11, SSD 512 Go, garantie 6 mois atelier', meta: 'Prêt à l\'emploi', condition: 'Reconditionné A', image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&q=80', specs: 'Intel Core i5 | GTX 1660 6GB | 16GB DDR4 | SSD NVMe 512GB | Windows 11 Pro' }
+    { id: 1, name: 'SSD NVMe 1TB PCIe 4.0', category: 'pieces', price: 119.9, desc: 'Samsung 980 Pro / 7 000 Mo/s, idéal OS et jeux', meta: 'Rapide', image: 'https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?auto=format&fit=crop&w=900&q=80' },
+    { id: 2, name: 'Kit RAM 32GB DDR5 6000', category: 'pieces', price: 149.0, desc: 'Dual channel optimisé Ryzen/Intel, CL36', meta: 'Upgrade perf', image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80' },
+    { id: 3, name: 'Carte graphique RTX 4070', category: 'pieces', price: 599.0, desc: '1440p ultra, DLSS 3 et ray tracing', meta: 'Gaming', image: 'https://images.unsplash.com/photo-1587202372775-98927f78b34b?auto=format&fit=crop&w=900&q=80' },
+    { id: 4, name: 'Nettoyage thermique + repaste', category: 'services', price: 59.0, desc: 'Démontage, dépoussiérage complet et pâte thermique haute perf.', meta: 'Atelier', image: 'https://images.unsplash.com/photo-1587613864521-681376e8c43e?auto=format&fit=crop&w=900&q=80' },
+    { id: 5, name: 'Installation Windows + pilotes', category: 'services', price: 79.0, desc: 'Réinstallation propre, drivers, sécurité et mises à jour', meta: 'Service', image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&q=80' },
+    { id: 6, name: 'Pack Upgrade Gaming', category: 'packs', price: 299.0, desc: 'SSD 1TB + optimisation Windows + param tuning', meta: 'Pack rapide', image: 'https://images.unsplash.com/photo-1517059224940-d4af9eec41b7?auto=format&fit=crop&w=900&q=80' },
+    { id: 7, name: 'Pack Silence & Refroidissement', category: 'packs', price: 189.0, desc: 'Ventirad tour + courbe ventilateurs + nettoyage', meta: 'Silence', image: 'https://images.unsplash.com/photo-1585079542156-2755d9c6a9c9?auto=format&fit=crop&w=900&q=80' },
+    { id: 8, name: 'Sauvegarde + clonage SSD', category: 'services', price: 69.0, desc: 'Clone disque vers SSD sans perte, vérification intégrité', meta: 'Sécurité', image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=900&q=80' },
+    { id: 9, name: 'Routeur Wi-Fi 6 maison', category: 'pieces', price: 139.0, desc: 'Couverture stable, QoS jeux/visio, config sécurisée', meta: 'Réseau', image: 'https://images.unsplash.com/photo-1527430253228-e93688616381?auto=format&fit=crop&w=900&q=80' },
+    { id: 10, name: 'PC reconditionné i5 / GTX 1660', category: 'pcs', price: 549.0, desc: 'Tour prête à l\'emploi, Windows 11, SSD 512 Go, garantie 6 mois atelier', meta: 'Prêt à l\'emploi', condition: 'Reconditionné A', badge: 'Reconditionné', status: 'Disponible', image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1000&q=80', specs: 'Intel Core i5 | GTX 1660 6GB | 16GB DDR4 | SSD NVMe 512GB | Windows 11 Pro' }
 ];
 
 let shopProducts = [];
@@ -665,6 +684,21 @@ function formatPrice(amount) {
 }
 
 async function loadShopProducts() {
+    const supabaseClient = window.supabaseClient;
+    if (supabaseClient) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('products')
+                .select('*')
+                .order('id', { ascending: true });
+            if (!error && Array.isArray(data) && data.length) {
+                return data;
+            }
+        } catch (err) {
+            console.warn('Chargement Supabase échoué, fallback JSON', err);
+        }
+    }
+
     try {
         const response = await fetch('shop-products.json');
         if (!response.ok) throw new Error('Failed to fetch products');
@@ -682,8 +716,12 @@ function renderProducts(productsToRender) {
     if (!grid) return;
 
     grid.innerHTML = productsToRender.map((p) => `
-        <div class="product-card" data-id="${p.id}">
-            ${p.image ? `<img class="product-thumb" src="${p.image}" alt="${p.name}">` : ''}
+        <div class="product-card ${p.status === 'Vendu' ? 'is-sold' : ''}" data-id="${p.id}">
+            ${p.badge ? `<span class="product-badge">${p.badge}</span>` : ''}
+            ${p.status ? `<span class="status-badge ${p.status === 'Vendu' ? 'is-sold' : 'is-available'}">${p.status}</span>` : ''}
+            ${p.image
+                ? `<img class="product-thumb" src="${p.image}" alt="${p.name}">`
+                : `<div class="product-thumb placeholder"><i class="fas fa-desktop"></i></div>`}
             <div class="product-header">
                 <p class="product-name">${p.name}</p>
                 <span class="price-chip">${formatPrice(p.price)}</span>
@@ -693,12 +731,13 @@ function renderProducts(productsToRender) {
                 ${p.meta ? `<span class="chip">${p.meta}</span>` : ''}
                 <span class="chip">${p.category}</span>
                 ${p.condition ? `<span class="chip">${p.condition}</span>` : ''}
+                ${p.status ? `<span class="chip">${p.status}</span>` : ''}
             </div>
             <div class="product-actions">
                 <small>Installation possible en atelier ou sur site</small>
-                <div style="display:flex; gap:8px;">
-                    <button class="ghost-btn view-details" data-id="${p.id}">Détails</button>
-                    <button class="add-to-cart" data-id="${p.id}">Ajouter</button>
+                <div class="product-action-buttons">
+                    <button class="ghost-btn view-details" data-id="${p.id}" ${p.status === 'Vendu' ? 'disabled' : ''}>Détails</button>
+                    <button class="add-to-cart" data-id="${p.id}" ${p.status === 'Vendu' ? 'disabled' : ''}>Ajouter</button>
                 </div>
             </div>
         </div>
@@ -779,7 +818,7 @@ function bindShopEvents() {
             if (addBtn) {
                 const productId = Number(addBtn.dataset.id);
                 const product = shopProducts.find((p) => p.id === productId);
-                if (!product) return;
+                if (!product || product.status === 'Vendu') return;
                 shopCart.push(product);
                 updateCart();
                 addBtn.textContent = 'Ajouté';
@@ -791,7 +830,7 @@ function bindShopEvents() {
             if (detailBtn) {
                 const productId = Number(detailBtn.dataset.id);
                 const product = shopProducts.find((p) => p.id === productId);
-                if (product) openProductModal(product);
+                if (product && product.status !== 'Vendu') openProductModal(product);
             }
         });
     }
@@ -903,9 +942,11 @@ function openProductModal(product) {
     }
     const meta = productModal.querySelector('#modalMeta');
     meta.innerHTML = '';
-    if (product.meta) meta.innerHTML += `<span class="meta-pill">${product.meta}</span>`;
-    meta.innerHTML += `<span class="meta-pill">${product.category}</span>`;
-    if (product.condition) meta.innerHTML += `<span class="meta-pill">${product.condition}</span>`;
+    if (product.meta) meta.innerHTML += `<span class="chip">${product.meta}</span>`;
+    if (product.badge) meta.innerHTML += `<span class="chip">${product.badge}</span>`;
+    meta.innerHTML += `<span class="chip">${product.category}</span>`;
+    if (product.condition) meta.innerHTML += `<span class="chip">${product.condition}</span>`;
+    if (product.status) meta.innerHTML += `<span class="chip">${product.status}</span>`;
     productModal.classList.remove('hidden');
     const firstBtn = productModal.querySelector('#modalAdd');
     if (firstBtn) firstBtn.focus();
@@ -919,6 +960,433 @@ function closeProductModal() {
 }
 
 let lastFocusedElement = null;
+
+/* ===================== */
+/* SITE CONTENT          */
+/* ===================== */
+
+async function loadSiteContent() {
+    const supabaseClient = window.supabaseClient;
+    if (!supabaseClient) return;
+    try {
+        const { data, error } = await supabaseClient
+            .from('site_content')
+            .select('*');
+        if (error || !Array.isArray(data)) return;
+        const contentMap = new Map(data.map((row) => [row.key, row.value]));
+        document.querySelectorAll('[data-content-key]').forEach((el) => {
+            const key = el.getAttribute('data-content-key');
+            if (contentMap.has(key)) {
+                el.textContent = contentMap.get(key);
+            }
+        });
+    } catch (err) {
+        console.warn('Chargement contenu site échoué', err);
+    }
+}
+
+/* ===================== */
+/* ADMIN FEATURE         */
+/* ===================== */
+
+async function isAdminUser(user) {
+    if (!user) return false;
+    
+    // Check email allowlist first
+    const adminEmails = window.ADMIN_EMAILS || [];
+    if (adminEmails.includes(user.email)) return true;
+    
+    // Check admin_users table
+    const supabaseClient = window.supabaseClient;
+    if (supabaseClient) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('admin_users')
+                .select('user_id')
+                .eq('user_id', user.id)
+                .single();
+            return !!data && !error;
+        } catch (err) {
+            console.warn('Admin check failed:', err);
+            return false;
+        }
+    }
+    
+    return false;
+}
+
+async function initializeAdmin() {
+    if (!window.supabaseAuth || !window.supabaseClient) return;
+
+    let currentAdminUser = null;
+    let editingContentKey = null;
+    let isEditMode = false;
+    let loginAttempts = 0;
+    const MAX_ATTEMPTS = 5;
+    let lastAttemptTime = 0;
+    const ATTEMPT_LOCKOUT = 60000; // 60 secondes
+
+    // Create small login icon if it doesn't exist
+    if (!document.getElementById('adminLoginIcon')) {
+        const icon = document.createElement('div');
+        icon.id = 'adminLoginIcon';
+        icon.className = 'admin-login-icon';
+        icon.title = 'Connexion administrateur';
+        icon.innerHTML = '<i class="fas fa-lock"></i>';
+        document.body.appendChild(icon);
+    }
+
+    // Create edit mode button
+    if (!document.getElementById('adminEditButton')) {
+        const editBtn = document.createElement('div');
+        editBtn.id = 'adminEditButton';
+        editBtn.className = 'admin-login-icon';
+        editBtn.style.bottom = '80px';
+        editBtn.style.display = 'none';
+        editBtn.title = 'Mode édition';
+        editBtn.innerHTML = '<i class="fas fa-pen-fancy"></i>';
+        document.body.appendChild(editBtn);
+    }
+
+    // Create login modal if it doesn't exist
+    if (!document.getElementById('adminLoginModal')) {
+        const modal = document.createElement('div');
+        modal.id = 'adminLoginModal';
+        modal.className = 'admin-login-modal';
+        modal.innerHTML = `
+            <div class="admin-login-modal-content">
+                <h2 class="admin-login-modal-title">Accès administrateur</h2>
+                <form class="admin-login-form" id="adminLoginForm">
+                    <input type="email" placeholder="Email" id="adminEmail" required autocomplete="email">
+                    <input type="password" placeholder="Mot de passe" id="adminPassword" required autocomplete="current-password">
+                    <button type="submit" class="admin-login-btn">Connexion</button>
+                    <div id="adminLoginError" style="color: #ff7a9c; font-size: 0.9rem; text-align: center; display: none;"></div>
+                </form>
+                <div id="adminUserInfo" style="display:none; text-align: center; padding-top: 16px;">
+                    <div class="admin-user-info" style="justify-content: center; flex-direction: column; gap: 12px;">
+                        <span id="adminEmailDisplay" style="color: var(--text-light); font-weight: 600;"></span>
+                        <button type="button" class="admin-logout-btn" id="adminLogoutBtn" style="width: 100%;">Déconnexion</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    // Create edit modal
+    if (!document.getElementById('editContentModal')) {
+        const modal = document.createElement('div');
+        modal.id = 'editContentModal';
+        modal.className = 'edit-modal';
+        modal.innerHTML = `
+            <div class="edit-modal-content">
+                <div class="edit-modal-header">
+                    <h2 class="edit-modal-title" id="editModalTitle">Modifier</h2>
+                </div>
+                <textarea class="edit-modal-textarea" id="editModalTextarea" placeholder="Contenu..."></textarea>
+                <div class="edit-modal-footer">
+                    <button type="button" class="edit-modal-cancel" id="editModalCancel">Annuler</button>
+                    <button type="button" class="edit-modal-save" id="editModalSave">Enregistrer</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    const icon = document.getElementById('adminLoginIcon');
+    const editBtn = document.getElementById('adminEditButton');
+    const modal = document.getElementById('adminLoginModal');
+    const loginForm = document.getElementById('adminLoginForm');
+    const loginError = document.getElementById('adminLoginError');
+    const userInfo = document.getElementById('adminUserInfo');
+    const emailDisplay = document.getElementById('adminEmailDisplay');
+    const logoutBtn = document.getElementById('adminLogoutBtn');
+    const editModal = document.getElementById('editContentModal');
+    const editModalTitle = document.getElementById('editModalTitle');
+    const editModalTextarea = document.getElementById('editModalTextarea');
+    const editModalSave = document.getElementById('editModalSave');
+    const editModalCancel = document.getElementById('editModalCancel');
+
+    const closeLoginModal = () => {
+        modal.classList.remove('show');
+    };
+
+    const showLoginModal = () => {
+        modal.classList.add('show');
+        document.getElementById('adminEmail').focus();
+    };
+
+    const toggleEditMode = () => {
+        isEditMode = !isEditMode;
+        
+        if (isEditMode) {
+            editBtn.classList.add('logged-in');
+            editBtn.style.borderColor = '#ff7a9c';
+            enableEditMode();
+        } else {
+            editBtn.classList.remove('logged-in');
+            editBtn.style.borderColor = 'rgba(102, 126, 234, 0.3)';
+            disableEditMode();
+        }
+    };
+
+    const enableEditMode = () => {
+        // Make content sections clickable
+        document.querySelectorAll('[data-content-key]').forEach((el) => {
+            el.style.cursor = 'pointer';
+            el.style.padding = '4px 8px';
+            el.style.borderRadius = '4px';
+            el.style.transition = 'all 0.2s ease';
+            el.style.backgroundColor = 'rgba(79, 172, 254, 0.08)';
+            el.style.border = '1px dashed rgba(79, 172, 254, 0.3)';
+            
+            el.addEventListener('click', handleContentClick);
+        });
+
+        // Make products clickable
+        document.querySelectorAll('.product-card').forEach((card) => {
+            card.style.cursor = 'pointer';
+            card.style.opacity = '0.8';
+            card.style.transition = 'all 0.2s ease';
+            card.addEventListener('click', handleProductClick);
+        });
+    };
+
+    const disableEditMode = () => {
+        // Remove edit styles from content
+        document.querySelectorAll('[data-content-key]').forEach((el) => {
+            el.style.cursor = 'default';
+            el.style.padding = '';
+            el.style.borderRadius = '';
+            el.style.backgroundColor = '';
+            el.style.border = '';
+            el.removeEventListener('click', handleContentClick);
+        });
+
+        // Remove edit styles from products
+        document.querySelectorAll('.product-card').forEach((card) => {
+            card.style.cursor = 'default';
+            card.style.opacity = '1';
+            card.removeEventListener('click', handleProductClick);
+        });
+    };
+
+    const handleContentClick = (e) => {
+        e.stopPropagation();
+        const el = e.target;
+        const key = el.getAttribute('data-content-key');
+        if (key) {
+            openEditModal(key, el.textContent);
+        }
+    };
+
+    const handleProductClick = async (e) => {
+        e.stopPropagation();
+        const card = e.currentTarget;
+        const productId = card.dataset.productId;
+        
+        // Show options: Edit or Delete
+        const choice = confirm('Éditer ce produit?\n\nAnnuler = Supprimer');
+        
+        if (choice) {
+            // Edit
+            const { data } = await window.supabaseClient.from('products').select('*').eq('id', productId).single();
+            if (data) {
+                openEditModal(productId, JSON.stringify(data, null, 2), 'product');
+            }
+        } else {
+            // Delete
+            const confirmDelete = confirm('Êtes-vous sûr de vouloir supprimer ce produit ?');
+            if (confirmDelete) {
+                await window.supabaseClient.from('products').delete().eq('id', productId);
+                card.remove();
+                const p = await loadShopProducts();
+                shopProducts = p;
+                renderProducts(shopProducts);
+            }
+        }
+    };
+
+    const openEditModal = (key, content, type = 'content') => {
+        editingContentKey = key;
+        editModalTitle.textContent = type === 'product' ? `Éditer produit` : `Éditer: ${key}`;
+        editModalTextarea.value = content;
+        editModal.classList.add('show');
+        editModalTextarea.focus();
+    };
+
+    const closeEditModal = () => {
+        editModal.classList.remove('show');
+        editingContentKey = null;
+    };
+
+    const updateAdminUI = async (user) => {
+        const isAdmin = user && (await isAdminUser(user));
+        currentAdminUser = isAdmin ? user : null;
+
+        if (isAdmin) {
+            icon.classList.add('logged-in');
+            icon.title = 'Vous êtes connecté';
+            loginForm.style.display = 'none';
+            userInfo.style.display = 'block';
+            emailDisplay.textContent = user.email;
+            loginError.style.display = 'none';
+            editBtn.style.display = 'flex';
+            isEditMode = false;
+            editBtn.classList.remove('logged-in');
+        } else {
+            icon.classList.remove('logged-in');
+            icon.title = 'Connexion administrateur';
+            loginForm.style.display = 'flex';
+            userInfo.style.display = 'none';
+            editBtn.style.display = 'none';
+            disableEditMode();
+            isEditMode = false;
+        }
+    };
+
+    editModalSave.addEventListener('click', async () => {
+        if (!editingContentKey) return;
+
+        try {
+            const content = editModalTextarea.value.trim();
+            let isProduct = false;
+            let productData = null;
+            
+            try {
+                productData = JSON.parse(content);
+                isProduct = true;
+            } catch (e) {
+                // Not JSON, treat as text content
+            }
+
+            if (isProduct) {
+                const { error } = await window.supabaseClient
+                    .from('products')
+                    .update(productData)
+                    .eq('id', editingContentKey);
+                if (!error) {
+                    const p = await loadShopProducts();
+                    shopProducts = p;
+                    renderProducts(shopProducts);
+                }
+            } else {
+                await window.supabaseClient.from('site_content').upsert(
+                    { key: editingContentKey, value: content, updated_at: new Date().toISOString() },
+                    { onConflict: 'key' }
+                );
+                await loadSiteContent();
+                const el = document.querySelector(`[data-content-key="${editingContentKey}"]`);
+                if (el) el.textContent = content;
+            }
+
+            closeEditModal();
+        } catch (err) {
+            alert('Erreur lors de la sauvegarde: ' + err.message);
+        }
+    });
+
+    editModalCancel.addEventListener('click', closeEditModal);
+    editModal.addEventListener('click', (e) => {
+        if (e.target === editModal) closeEditModal();
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+        await window.supabaseAuth.signOut();
+        const user = await window.supabaseAuth.getCurrentUser();
+        await updateAdminUI(user);
+        closeLoginModal();
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Anti-brute-force
+        const now = Date.now();
+        if (loginAttempts >= MAX_ATTEMPTS && now - lastAttemptTime < ATTEMPT_LOCKOUT) {
+            loginError.textContent = 'Trop de tentatives. Veuillez réessayer dans 1 minute.';
+            loginError.style.display = 'block';
+            return;
+        }
+
+        const email = document.getElementById('adminEmail').value.trim();
+        const password = document.getElementById('adminPassword').value;
+
+        try {
+            let result = await window.supabaseAuth.signIn(email, password);
+
+            if (!result.success) {
+                result = await window.supabaseAuth.signUp(email, password);
+                if (result.success) {
+                    result = await window.supabaseAuth.signIn(email, password);
+                }
+            }
+
+            if (!result.success) {
+                loginAttempts++;
+                lastAttemptTime = Date.now();
+                loginError.textContent = 'Email ou mot de passe incorrect.';
+                loginError.style.display = 'block';
+                return;
+            }
+
+            const user = await window.supabaseAuth.getCurrentUser();
+            const isAdmin = await isAdminUser(user);
+            
+            if (!isAdmin) {
+                loginAttempts++;
+                lastAttemptTime = Date.now();
+                loginError.textContent = 'Accès refusé - Compte non autorisé.';
+                loginError.style.display = 'block';
+                await window.supabaseAuth.signOut();
+                return;
+            }
+
+            loginAttempts = 0;
+            loginForm.reset();
+            await updateAdminUI(user);
+        } catch (err) {
+            loginError.textContent = 'Erreur: ' + err.message;
+            loginError.style.display = 'block';
+        }
+    });
+
+    // Toggle modal on icon click
+    icon.addEventListener('click', () => {
+        showLoginModal();
+    });
+
+    // Toggle edit mode on edit button click
+    editBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleEditMode();
+    });
+
+    // Close modal on backdrop click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeLoginModal();
+        }
+    });
+
+    // Check current user on load
+    const user = await window.supabaseAuth.getCurrentUser();
+    await updateAdminUI(user);
+}
+
+async function loadAdminProducts() {
+    // Placeholder - will be replaced by initializeAdmin
+}
+
+async function loadAdminContent() {
+    // Placeholder - will be replaced by initializeAdmin
+}
+
+async function isAdminUser(user) {
+    if (!user || !window.supabaseClient) return false;
+    const { data } = await window.supabaseClient.from('admin_users').select('*').eq('user_id', user.id).single();
+    return !!data;
+}
 
 function initializeShopFeature() {
     const grid = document.getElementById('shopGrid');
@@ -949,6 +1417,8 @@ function runAppInit() {
     initializeTerminalAnimation();
     initializeShopFeature();
     prefillReservationFromCart();
+    loadSiteContent();
+    initializeAdmin();
 }
 
 if (document.readyState === 'loading') {

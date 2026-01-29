@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 <body>
     <!-- Dev Notice -->
@@ -46,8 +48,8 @@
     <section class="hero">
         <canvas id="heroCanvas" class="hero-canvas"></canvas>
         <div class="hero-content">
-            <h1>MaxiPC – Réparation et montage d'ordinateurs à Lannion</h1>
-            <p class="hero-subtitle">Dépannage rapide et fiable pour particuliers et professionnels – intervention à domicile ou sur site.</p>
+            <h1 data-content-key="index.hero.title">MaxiPC – Réparation et montage d'ordinateurs à Lannion</h1>
+            <p class="hero-subtitle" data-content-key="index.hero.subtitle">Dépannage rapide et fiable pour particuliers et professionnels – intervention à domicile ou sur site.</p>
             <div class="hero-buttons">
                 <a href="reservation.html" class="btn btn-primary">Réserver une intervention</a>
                 <a href="services.html" class="btn btn-secondary">Découvrir nos services</a>
@@ -89,6 +91,145 @@
                     </div>
                     <h3>Conseils et assistance personnalisés</h3>
                     <p>Recommandations d'experts pour faire les bons choix et optimiser votre investissement.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-number">250+</div>
+                    <div class="stat-label">Clients satisfaits</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-wrench"></i>
+                    </div>
+                    <div class="stat-number">500+</div>
+                    <div class="stat-label">Interventions réalisées</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-number">24h</div>
+                    <div class="stat-label">Délai moyen d'intervention</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-number">4.9/5</div>
+                    <div class="stat-label">Note moyenne</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us -->
+    <section class="why-choose-us">
+        <div class="container">
+            <h2>Pourquoi choisir MaxiPC ?</h2>
+            <div class="why-grid">
+                <div class="why-card">
+                    <div class="why-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Garantie qualité</h3>
+                    <p>Toutes nos interventions sont garanties. Votre satisfaction est notre priorité.</p>
+                </div>
+                <div class="why-card">
+                    <div class="why-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Intervention rapide</h3>
+                    <p>Disponibilité sous 24-48h pour résoudre vos problèmes informatiques rapidement.</p>
+                </div>
+                <div class="why-card">
+                    <div class="why-icon">
+                        <i class="fas fa-euro-sign"></i>
+                    </div>
+                    <h3>Tarifs transparents</h3>
+                    <p>Devis gratuit et détaillé avant toute intervention. Aucune surprise sur la facture.</p>
+                </div>
+                <div class="why-card">
+                    <div class="why-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <h3>Déplacement à domicile</h3>
+                    <p>Intervention directement chez vous ou sur votre lieu de travail dans le secteur de Lannion.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials-section">
+        <div class="container">
+            <h2>Ils nous font confiance</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"Service impeccable ! Mon PC est comme neuf après leur intervention. Rapide, efficace et à l'écoute."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="author-info">
+                            <div class="author-name">Sophie L.</div>
+                            <div class="author-role">Particulier</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"Excellent montage de PC gaming. Configuration parfaite pour mes besoins et conseils au top !"</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="author-info">
+                            <div class="author-name">Thomas B.</div>
+                            <div class="author-role">Gamer</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"Professionnel et réactif. Ils ont résolu notre problème réseau en entreprise très rapidement."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="author-info">
+                            <div class="author-name">Marie D.</div>
+                            <div class="author-role">Entreprise</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
