@@ -2939,136 +2939,99 @@ body {
         padding: 12px;
         font-size: 0.9rem;
     }
+}
 
-    .hamburger.active span:nth-child(3) {
-        transform: rotate(45deg) translate(-5px, -6px);
+/* Extra small screens (very small phones) */
+@media (max-width: 360px) {
+    html {
+        font-size: 13px;
     }
 
     .hero {
-        grid-template-columns: 1fr;
-        padding: 4rem 20px;
-        min-height: auto;
+        padding: 60px 12px 35px 12px;
+        min-height: 50vh;
     }
 
-    .hero-content h1 {
-        font-size: 2.2rem;
+    .hero h1 {
+        font-size: 1.5rem;
+        margin-bottom: 12px;
     }
 
     .hero-subtitle {
-        font-size: 1.05rem;
+        font-size: 0.85rem;
+        margin-bottom: 18px;
     }
 
-    .hero-buttons {
-        flex-direction: column;
+    .btn {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+        min-height: 40px;
     }
 
-    .hero-buttons .btn {
-        width: 100%;
+    section {
+        padding: 35px 0 !important;
     }
 
-    .hero-image {
-        min-height: 300px;
-    }
-
-    .hero-image i {
-        font-size: 12rem;
-    }
-
-    .page-header h1 {
-        font-size: 2rem;
-    }
-
-    .page-header p {
-        font-size: 1rem;
-    }
-
-    .about-content {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-
-    .about-image {
-        min-height: 350px;
-    }
-
-    .about-image i {
-        font-size: 14rem;
-    }
-
-    .contact-grid {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-
-    h2 {
-        font-size: 1.8rem !important;
-    }
-
-    .features-grid,
-    .services-grid,
-    .reasons-grid,
-    .faq-grid {
-        grid-template-columns: 1fr;
+    section h2 {
+        font-size: 1.4rem;
+        margin-bottom: 20px;
     }
 
     .container {
-        padding: 0 20px;
-    }
-}
-
-@media (max-width: 480px) {
-    .container {
-        padding: 0 15px;
+        padding: 0 12px;
     }
 
-    .hero {
-        padding: 2rem 15px;
-    }
-
-    .hero-content h1 {
-        font-size: 1.8rem;
-    }
-
-    .hero-image i {
-        font-size: 10rem;
-    }
-
-    .about-image i {
-        font-size: 10rem;
-    }
-
-    h2 {
-        font-size: 1.5rem !important;
+    .feature-card,
+    .service-card,
+    .pricing-card {
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        min-height: auto;
     }
 
     .feature-icon,
     .service-icon,
-    .reason-icon,
-    .info-icon {
+    .pricing-icon {
         font-size: 2rem;
     }
 
-    .page-header {
-        padding: 3rem 15px;
+    h3 {
+        font-size: 1rem;
+        margin-bottom: 6px;
     }
 
-    .page-header h1 {
+    h4 {
+        font-size: 0.9rem;
+    }
+
+    p {
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+
+    input,
+    select,
+    textarea {
+        font-size: 16px;
+        padding: 10px 12px;
+        min-height: 40px;
+    }
+
+    .pricing-card {
+        padding: 15px 12px;
+    }
+
+    .price {
         font-size: 1.5rem;
     }
 
-    .contact-form {
-        padding: 1.8rem;
+    .footer-section h4 {
+        font-size: 0.95rem;
     }
 
-    .info-card {
-        gap: 1rem;
-        padding: 1.5rem;
-    }
-
-    .social-btn {
-        width: 50px;
-        height: 50px;
-        font-size: 1.3rem;
+    .footer-bottom {
+        font-size: 0.8rem;
     }
 }
 
