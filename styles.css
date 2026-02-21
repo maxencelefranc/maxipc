@@ -1210,6 +1210,14 @@ body {
 /* ===================== */
 
 .hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    padding: 120px 30px 80px 30px;
+    min-height: 90vh;
+    position: relative;
+    overflow: hidden;
     align-items: center;
     gap: 4rem;
     padding: 8rem 30px;
@@ -1277,8 +1285,7 @@ body {
     position: relative;
     z-index: 1;
     animation: slideInLeft 0.8s ease-out;
-    max-width: 550px;
-    width: 100%;
+    margin-left: 40%;
 }
 
 .hero-image {
@@ -1289,8 +1296,6 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 500px;
-    max-width: 550px;
-    width: 100%;
 }
 
 .hero-content h1 {
@@ -1397,8 +1402,6 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2.5rem;
-    max-width: 1400px;
-    margin: 0 auto;
 }
 
 .feature-card {
@@ -1535,8 +1538,6 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 2.5rem;
-    max-width: 1400px;
-    margin: 0 auto;
 }
 
 .service-card {
@@ -1635,8 +1636,6 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 4rem;
     align-items: center;
-    max-width: 1300px;
-    margin: 0 auto;
 }
 
 .about-text h2 {
@@ -2653,6 +2652,26 @@ body {
                     linear-gradient(180deg, #0f0f1e 0%, #0b0b18 100%);
     }
 
+    /* Hero */
+    .hero {
+        padding: 100px 20px 60px 20px;
+        min-height: 70vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .hero-content {
+        margin-left: 0;
+        text-align: center;
+    }
+
+    .hero-image {
+        order: -1;
+        margin-bottom: 2rem;
+    }
+
     .hero h1 {
         font-size: 1.9rem;
         line-height: 1.4;
@@ -2672,6 +2691,7 @@ body {
     .hero-buttons {
         flex-direction: column;
         gap: 15px;
+        justify-content: center;
     }
 
     .btn {
