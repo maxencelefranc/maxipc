@@ -2549,24 +2549,6 @@ body {
     .nav-menu.active {
         left: 0;
     }
-        width: 100%;
-        text-align: center;
-        transition: var(--transition);
-        box-shadow: 0 10px 27px rgba(0, 0, 0, 0.3);
-        padding: 2rem 0;
-        gap: 0;
-        z-index: 999;
-        backdrop-filter: blur(10px);
-        border-bottom: 1px solid rgba(102, 126, 234, 0.1);
-    }
-
-    .nav-menu.active {
-        left: 0;
-    }
-
-    .nav-menu li {
-        padding: 1.5rem 0;
-    }
 
     .hamburger.active span:nth-child(1) {
         transform: rotate(-45deg) translate(-5px, 6px);
