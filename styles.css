@@ -2795,9 +2795,7 @@ body {
 
     .hero-content {
         margin-left: 0;
-        text-align: center;
-        flex-direction: column;
-        align-items: center;
+        gap: 1.5rem;
     }
 
     .hero-logo {
