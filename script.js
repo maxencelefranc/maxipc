@@ -2511,7 +2511,7 @@ async function initializeGoogleReviewsSection() {
 
         if (ratingCount) {
             const count = Number(place.user_ratings_total || 0);
-            ratingCount.textContent = count > 0 ? `${count} avis clients` : 'Aucun avis pour le moment';
+            ratingCount.textContent = count > 0 ? `${count} avis clients` : '';
         }
 
         if (updatedText) {
