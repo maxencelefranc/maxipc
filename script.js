@@ -1422,6 +1422,11 @@ function renderAdminProducts(products) {
             </div>
             <div style="color:#b0b0b0; font-size:0.85rem; margin-top: 6px;">${escapeHtml(product.category || '')}</div>
             <div style="margin-top: 10px; font-weight: 600; color: #fff;">${formatPrice(Number(product.price || 0))}</div>
+            <div style="color:#b0b0b0; font-size:0.82rem; margin-top: 6px; line-height:1.4;">${escapeHtml((product.desc || '').slice(0, 120))}</div>
+            <div class="product-actions">
+                <button type="button" class="btn btn-secondary btn-small" data-product-action="edit" data-product-id="${escapeHtml(product.id)}">Modifier</button>
+                <button type="button" class="btn btn-delete btn-small" data-product-action="delete" data-product-id="${escapeHtml(product.id)}">Supprimer</button>
+            </div>
         `;
         grid.appendChild(card);
     });
@@ -1533,13 +1538,12 @@ function downloadCsv(filename, content) {
 
 async function loadAdminProducts() {
     const products = await loadShopProducts();
-    renderAdminProducts(products || []);
-    const availableCount = Array.isArray(products)
-        ? products.filter((p) => p.status !== 'Vendu').length
-        : 0;
+    adminProductsCache = Array.isArray(products) ? products : [];
+    renderAdminProducts(adminProductsCache);
+    const availableCount = adminProductsCache.filter((p) => p.status !== 'Vendu').length;
     const statProducts = document.getElementById('statProducts');
     const statAvailable = document.getElementById('statAvailable');
-    if (statProducts) statProducts.textContent = Array.isArray(products) ? products.length : 0;
+    if (statProducts) statProducts.textContent = adminProductsCache.length;
     if (statAvailable) statAvailable.textContent = availableCount;
 }
 
@@ -1556,6 +1560,7 @@ async function loadAdminContent() {
 
 let adminReservationsCache = [];
 let adminOrdersCache = [];
+let adminProductsCache = [];
 
 async function loadAdminReservationsAndOrders() {
     if (!window.supabaseClient) return;
@@ -1597,9 +1602,17 @@ async function initializeAdminDashboardPage() {
     const tabButtons = document.querySelectorAll('.tab-btn');
     const exportReservationsBtn = document.getElementById('exportReservationsBtn');
     const exportOrdersBtn = document.getElementById('exportOrdersBtn');
+    const productsGrid = document.getElementById('productsGrid');
     const reservationsTable = document.getElementById('reservationsTableBody');
     const ordersTable = document.getElementById('ordersTableBody');
     const toastContainer = document.getElementById('adminToastContainer');
+    const editModal = document.getElementById('editModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalInput = document.getElementById('modalInput');
+    const modalSave = document.getElementById('modalSave');
+    const modalCancel = document.getElementById('modalCancel');
+    const closeModal = document.getElementById('closeModal');
+    let editingProductId = null;
 
     const showMessage = (type, text) => {
         if (!adminMessage) return;
@@ -1649,6 +1662,21 @@ async function initializeAdminDashboardPage() {
         }, 4000);
     };
 
+    const openProductModal = (title, productId, productData) => {
+        if (!editModal || !modalTitle || !modalInput) return;
+        editingProductId = productId;
+        modalTitle.textContent = title;
+        modalInput.value = JSON.stringify(productData, null, 2);
+        editModal.classList.add('show');
+        modalInput.focus();
+    };
+
+    const closeProductModal = () => {
+        if (!editModal) return;
+        editModal.classList.remove('show');
+        editingProductId = null;
+    };
+
     const loadDashboardData = async () => {
         await loadAdminProducts();
         await loadAdminContent();
@@ -1656,6 +1684,119 @@ async function initializeAdminDashboardPage() {
     };
 
     setupTabs();
+
+    if (productsGrid) {
+        productsGrid.addEventListener('click', async (e) => {
+            const target = e.target;
+            const addCard = target.closest('#addProductCard');
+            if (addCard) {
+                openProductModal('Ajouter un produit', 'new', {
+                    name: '',
+                    category: 'pieces',
+                    price: 0,
+                    desc: '',
+                    meta: '',
+                    image: '',
+                    badge: '',
+                    condition: '',
+                    status: 'Disponible',
+                    specs: ''
+                });
+                return;
+            }
+
+            const actionButton = target.closest('[data-product-action]');
+            if (!actionButton) return;
+
+            const action = actionButton.dataset.productAction;
+            const productId = actionButton.dataset.productId;
+            const product = adminProductsCache.find((item) => String(item.id) === String(productId));
+            if (!product) return;
+
+            if (action === 'delete') {
+                const confirmed = confirm(`Supprimer le produit "${product.name}" ?`);
+                if (!confirmed) return;
+
+                const { error } = await window.supabaseClient
+                    .from('products')
+                    .delete()
+                    .eq('id', productId);
+
+                if (error) {
+                    showToast('Suppression impossible.');
+                    return;
+                }
+
+                showToast('Produit supprimé.');
+                await loadAdminProducts();
+                return;
+            }
+
+            if (action === 'edit') {
+                openProductModal('Modifier le produit', product.id, product);
+            }
+        });
+    }
+
+    if (modalSave) {
+        modalSave.addEventListener('click', async () => {
+            if (!editingProductId || !modalInput) return;
+
+            let payload;
+            try {
+                payload = JSON.parse(modalInput.value);
+            } catch (error) {
+                showToast('JSON invalide. Vérifie la syntaxe.');
+                return;
+            }
+
+            if (!payload?.name || Number.isNaN(Number(payload.price))) {
+                showToast('Nom et prix valides sont requis.');
+                return;
+            }
+
+            payload.price = Number(payload.price);
+            payload.updated_at = new Date().toISOString();
+
+            if (editingProductId === 'new') {
+                delete payload.id;
+                const { error } = await window.supabaseClient
+                    .from('products')
+                    .insert([payload]);
+
+                if (error) {
+                    showToast('Création impossible.');
+                    return;
+                }
+
+                showToast('Produit ajouté.');
+            } else {
+                delete payload.id;
+                const { error } = await window.supabaseClient
+                    .from('products')
+                    .update(payload)
+                    .eq('id', editingProductId);
+
+                if (error) {
+                    showToast('Mise à jour impossible.');
+                    return;
+                }
+
+                showToast('Produit mis à jour.');
+            }
+
+            closeProductModal();
+            await loadAdminProducts();
+        });
+    }
+
+    if (modalCancel) modalCancel.addEventListener('click', closeProductModal);
+    if (closeModal) closeModal.addEventListener('click', closeProductModal);
+    if (editModal) {
+        editModal.addEventListener('click', (e) => {
+            if (e.target === editModal) closeProductModal();
+        });
+    }
 
     if (exportReservationsBtn) {
         exportReservationsBtn.addEventListener('click', () => {
