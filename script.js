@@ -678,6 +678,7 @@ const defaultShopProducts = [
 
 let shopProducts = [];
 let shopCart = [];
+let shopProductsSource = 'unknown';
 
 function formatPrice(amount) {
     return amount.toFixed(2).replace('.', ',') + ' €';
@@ -691,7 +692,8 @@ async function loadShopProducts() {
                 .from('products')
                 .select('*')
                 .order('id', { ascending: true });
-            if (!error && Array.isArray(data) && data.length) {
+            if (!error && Array.isArray(data)) {
+                shopProductsSource = 'supabase';
                 return data;
             }
         } catch (err) {
@@ -704,9 +706,11 @@ async function loadShopProducts() {
         if (!response.ok) throw new Error('Failed to fetch products');
         const data = await response.json();
         if (!Array.isArray(data)) throw new Error('Invalid product format');
+        shopProductsSource = 'json';
         return data;
     } catch (err) {
         console.warn('Produit distant indisponible, utilisation du fallback local', err);
+        shopProductsSource = 'local';
         return defaultShopProducts;
     }
 }
@@ -880,18 +884,32 @@ function ensureProductModal() {
     wrapper.setAttribute('aria-modal', 'true');
     wrapper.innerHTML = `
         <div class="modal-card" role="document">
-            <button class="close-btn" aria-label="Fermer">✕</button>
+            <button class="close-btn" aria-label="Fermer la fenêtre">✕</button>
             <img class="modal-image" alt="Produit" />
             <div class="modal-body">
-                <div class="product-header" style="margin-bottom:6px;">
-                    <p class="product-name" id="modalName"></p>
+                <div class="modal-head">
+                    <div>
+                        <p class="product-name" id="modalName"></p>
+                        <div class="modal-meta" id="modalMeta"></div>
+                    </div>
                     <span class="modal-price" id="modalPrice"></span>
                 </div>
-                <div class="modal-meta" id="modalMeta"></div>
                 <p class="product-desc" id="modalDesc"></p>
+                <div class="modal-info-grid">
+                    <div class="modal-info-item">
+                        <span class="label">Disponibilité</span>
+                        <strong id="modalAvailability">Disponible</strong>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="label">Garantie</span>
+                        <strong id="modalWarranty">Garantie atelier 3 mois</strong>
+                    </div>
+                </div>
+                <p class="modal-spec-title">Caractéristiques</p>
                 <ul class="spec-list" id="modalSpecList"></ul>
                 <div class="modal-actions">
                     <button class="add-to-cart" id="modalAdd">Ajouter au panier</button>
+                    <button class="btn btn-secondary" id="modalReserve">Réserver l'installation</button>
                     <button class="ghost-btn" id="modalClose">Fermer</button>
                 </div>
             </div>
@@ -912,6 +930,13 @@ function ensureProductModal() {
         updateCart();
         closeProductModal();
     });
+    wrapper.querySelector('#modalReserve').addEventListener('click', () => {
+        const id = Number(wrapper.dataset.productId);
+        const product = shopProducts.find((p) => p.id === id);
+        if (!product) return;
+        const summary = `Sélection boutique:\n- ${product.name} (${formatPrice(product.price)})`;
+        window.location.href = `reservation.html?cart=${encodeURIComponent(summary)}`;
+    });
 
     document.addEventListener('keydown', (e) => {
         if (productModal.classList.contains('hidden')) return;
@@ -930,6 +955,20 @@ function openProductModal(product) {
     productModal.querySelector('#modalName').textContent = product.name;
     productModal.querySelector('#modalPrice').textContent = formatPrice(product.price);
     productModal.querySelector('#modalDesc').textContent = product.desc || '';
+    const availability = productModal.querySelector('#modalAvailability');
+    const warranty = productModal.querySelector('#modalWarranty');
+    const isSold = product.status === 'Vendu';
+    if (availability) availability.textContent = product.status || 'Disponible';
+    if (warranty) {
+        if (String(product.category || '').toLowerCase() === 'services') {
+            warranty.textContent = 'Garantie intervention 30 jours';
+        } else if (String(product.condition || '').toLowerCase().includes('reconditionné')) {
+            warranty.textContent = 'Garantie atelier 6 mois';
+        } else {
+            warranty.textContent = 'Garantie atelier 3 mois';
+        }
+    }
+
     const specList = productModal.querySelector('#modalSpecList');
     specList.innerHTML = '';
     if (product.specs) {
@@ -947,6 +986,17 @@ function openProductModal(product) {
     meta.innerHTML += `<span class="chip">${product.category}</span>`;
     if (product.condition) meta.innerHTML += `<span class="chip">${product.condition}</span>`;
     if (product.status) meta.innerHTML += `<span class="chip">${product.status}</span>`;
+
+    const addBtn = productModal.querySelector('#modalAdd');
+    const reserveBtn = productModal.querySelector('#modalReserve');
+    if (addBtn) {
+        addBtn.disabled = isSold;
+        addBtn.textContent = isSold ? 'Produit indisponible' : 'Ajouter au panier';
+    }
+    if (reserveBtn) {
+        reserveBtn.disabled = isSold;
+    }
+
     productModal.classList.remove('hidden');
     const firstBtn = productModal.querySelector('#modalAdd');
     if (firstBtn) firstBtn.focus();
@@ -1612,7 +1662,17 @@ async function initializeAdminDashboardPage() {
     const modalSave = document.getElementById('modalSave');
     const modalCancel = document.getElementById('modalCancel');
     const closeModal = document.getElementById('closeModal');
+    const modalContent = editModal ? editModal.querySelector('.modal-content') : null;
+    let productEditorForm = document.getElementById('productEditorForm');
+    if (!productEditorForm && modalContent && modalInput) {
+        productEditorForm = document.createElement('div');
+        productEditorForm.id = 'productEditorForm';
+        productEditorForm.style.display = 'none';
+        productEditorForm.style.marginBottom = '14px';
+        modalContent.insertBefore(productEditorForm, modalInput);
+    }
     let editingProductId = null;
+    let productEditMode = false;
 
     const showMessage = (type, text) => {
         if (!adminMessage) return;
@@ -1662,18 +1722,208 @@ async function initializeAdminDashboardPage() {
         }, 4000);
     };
 
+    const setProductEditMode = (enabled) => {
+        productEditMode = enabled;
+        if (productEditorForm) productEditorForm.style.display = enabled ? 'grid' : 'none';
+        if (modalInput) modalInput.style.display = enabled ? 'none' : 'block';
+    };
+
+    const updateProductImagePreview = (value) => {
+        const preview = document.getElementById('productImagePreview');
+        if (!preview) return;
+        if (value) {
+            preview.src = value;
+            preview.style.display = 'block';
+        } else {
+            preview.removeAttribute('src');
+            preview.style.display = 'none';
+        }
+    };
+
+    const setProductImageValue = (value) => {
+        const imageInput = document.getElementById('productFieldImage');
+        if (imageInput) imageInput.value = value || '';
+        updateProductImagePreview(value || '');
+    };
+
+    const readProductImageFile = (file) => {
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            showToast('Le fichier doit être une image.');
+            return;
+        }
+        if (file.size > 4 * 1024 * 1024) {
+            showToast('Image trop lourde (max 4MB).');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const result = typeof reader.result === 'string' ? reader.result : '';
+            setProductImageValue(result);
+            showToast('Image chargée.');
+        };
+        reader.onerror = () => {
+            showToast('Impossible de lire l’image.');
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const bindProductImageUploader = () => {
+        const picker = document.getElementById('productImageFile');
+        const dropzone = document.getElementById('productImageDropzone');
+        const chooseButton = document.getElementById('productImageChooseBtn');
+        const imageInput = document.getElementById('productFieldImage');
+
+        if (chooseButton && picker) {
+            chooseButton.addEventListener('click', () => picker.click());
+        }
+
+        if (picker) {
+            picker.addEventListener('change', () => {
+                const file = picker.files && picker.files[0] ? picker.files[0] : null;
+                readProductImageFile(file);
+            });
+        }
+
+        if (imageInput) {
+            imageInput.addEventListener('input', () => {
+                updateProductImagePreview(imageInput.value.trim());
+            });
+        }
+
+        if (dropzone) {
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.style.borderColor = 'rgba(240, 147, 251, 0.8)';
+            });
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.style.borderColor = 'rgba(240, 147, 251, 0.4)';
+            });
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.style.borderColor = 'rgba(240, 147, 251, 0.4)';
+                const file = e.dataTransfer?.files?.[0] || null;
+                readProductImageFile(file);
+            });
+        }
+    };
+
+    const renderProductForm = (productData = {}) => {
+        if (!productEditorForm) return;
+        const safe = {
+            name: productData.name || '',
+            category: productData.category || 'pieces',
+            price: Number(productData.price || 0),
+            status: productData.status || 'Disponible',
+            meta: productData.meta || '',
+            image: productData.image || '',
+            badge: productData.badge || '',
+            condition: productData.condition || '',
+            desc: productData.desc || '',
+            specs: productData.specs || ''
+        };
+
+        productEditorForm.innerHTML = `
+            <label style="display:flex; flex-direction:column; gap:6px; color:#fff; margin-bottom:10px;">
+                <span>Nom du produit</span>
+                <input id="productFieldName" type="text" value="${escapeHtml(safe.name)}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+            </label>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                    <span>Prix (€)</span>
+                    <input id="productFieldPrice" type="number" min="0" step="0.01" value="${safe.price}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                </label>
+                <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                    <span>Catégorie</span>
+                    <select id="productFieldCategory" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                        <option value="pieces" ${safe.category === 'pieces' ? 'selected' : ''}>Pièces</option>
+                        <option value="services" ${safe.category === 'services' ? 'selected' : ''}>Services</option>
+                        <option value="packs" ${safe.category === 'packs' ? 'selected' : ''}>Packs</option>
+                        <option value="pcs" ${safe.category === 'pcs' ? 'selected' : ''}>PC</option>
+                    </select>
+                </label>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                    <span>Statut</span>
+                    <select id="productFieldStatus" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                        <option value="Disponible" ${safe.status === 'Disponible' ? 'selected' : ''}>Disponible</option>
+                        <option value="Vendu" ${safe.status === 'Vendu' ? 'selected' : ''}>Vendu</option>
+                    </select>
+                </label>
+                <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                    <span>Label court (meta)</span>
+                    <input id="productFieldMeta" type="text" value="${escapeHtml(safe.meta)}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                </label>
+            </div>
+            <label style="display:flex; flex-direction:column; gap:6px; color:#fff; margin-bottom:10px;">
+                <span>Image (URL)</span>
+                <input id="productFieldImage" type="text" value="${escapeHtml(safe.image)}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+            </label>
+            <div id="productImageDropzone" style="border:2px dashed rgba(240, 147, 251, 0.4); border-radius:10px; padding:12px; margin-bottom:10px; text-align:center; background:rgba(240,147,251,0.06);">
+                <input id="productImageFile" type="file" accept="image/*" style="display:none;">
+                <button id="productImageChooseBtn" type="button" class="btn btn-secondary" style="margin-bottom:8px;">Parcourir une image</button>
+                <div style="font-size:0.85rem; color:#c8c8d8;">ou glissez-déposez ici (JPG/PNG/WebP, max 4MB)</div>
+                <img id="productImagePreview" alt="Aperçu image" style="display:${safe.image ? 'block' : 'none'}; max-width:100%; max-height:170px; margin:10px auto 0; border-radius:10px; object-fit:cover;" src="${escapeHtml(safe.image)}">
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                    <span>Badge</span>
+                    <input id="productFieldBadge" type="text" value="${escapeHtml(safe.badge)}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                </label>
+                <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                    <span>Condition</span>
+                    <input id="productFieldCondition" type="text" value="${escapeHtml(safe.condition)}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                </label>
+            </div>
+            <label style="display:flex; flex-direction:column; gap:6px; color:#fff; margin-bottom:10px;">
+                <span>Description</span>
+                <textarea id="productFieldDesc" rows="3" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff; resize:vertical;">${escapeHtml(safe.desc)}</textarea>
+            </label>
+            <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                <span>Spécifications</span>
+                <textarea id="productFieldSpecs" rows="3" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff; resize:vertical;">${escapeHtml(safe.specs)}</textarea>
+            </label>
+        `;
+
+        bindProductImageUploader();
+        updateProductImagePreview(safe.image);
+    };
+
+    const getProductPayloadFromForm = () => {
+        const name = document.getElementById('productFieldName')?.value.trim() || '';
+        const priceValue = document.getElementById('productFieldPrice')?.value;
+        const price = Number(priceValue);
+        return {
+            name,
+            price,
+            category: document.getElementById('productFieldCategory')?.value || 'pieces',
+            status: document.getElementById('productFieldStatus')?.value || 'Disponible',
+            meta: document.getElementById('productFieldMeta')?.value.trim() || '',
+            image: document.getElementById('productFieldImage')?.value.trim() || '',
+            badge: document.getElementById('productFieldBadge')?.value.trim() || '',
+            condition: document.getElementById('productFieldCondition')?.value.trim() || '',
+            desc: document.getElementById('productFieldDesc')?.value.trim() || '',
+            specs: document.getElementById('productFieldSpecs')?.value.trim() || ''
+        };
+    };
+
     const openProductModal = (title, productId, productData) => {
-        if (!editModal || !modalTitle || !modalInput) return;
+        if (!editModal || !modalTitle) return;
         editingProductId = productId;
         modalTitle.textContent = title;
-        modalInput.value = JSON.stringify(productData, null, 2);
+        setProductEditMode(true);
+        renderProductForm(productData);
         editModal.classList.add('show');
-        modalInput.focus();
+        const firstField = document.getElementById('productFieldName');
+        if (firstField) firstField.focus();
     };
 
     const closeProductModal = () => {
         if (!editModal) return;
         editModal.classList.remove('show');
+        setProductEditMode(false);
         editingProductId = null;
     };
 
@@ -1714,16 +1964,27 @@ async function initializeAdminDashboardPage() {
             if (!product) return;
 
             if (action === 'delete') {
+                if (shopProductsSource !== 'supabase') {
+                    showToast('Suppression indisponible : produits chargés depuis le fallback (JSON).');
+                    return;
+                }
+
                 const confirmed = confirm(`Supprimer le produit "${product.name}" ?`);
                 if (!confirmed) return;
 
-                const { error } = await window.supabaseClient
+                const { data: deletedRows, error } = await window.supabaseClient
                     .from('products')
                     .delete()
-                    .eq('id', productId);
+                    .eq('id', productId)
+                    .select('id');
 
                 if (error) {
                     showToast('Suppression impossible.');
+                    return;
+                }
+
+                if (!Array.isArray(deletedRows) || deletedRows.length === 0) {
+                    showToast('Aucun produit supprimé (introuvable dans Supabase).');
                     return;
                 }
 
@@ -1733,6 +1994,10 @@ async function initializeAdminDashboardPage() {
             }
 
             if (action === 'edit') {
+                if (shopProductsSource !== 'supabase') {
+                    showToast('Modification indisponible : produits chargés depuis le fallback (JSON).');
+                    return;
+                }
                 openProductModal('Modifier le produit', product.id, product);
             }
         });
@@ -1740,14 +2005,17 @@ async function initializeAdminDashboardPage() {
 
     if (modalSave) {
         modalSave.addEventListener('click', async () => {
-            if (!editingProductId || !modalInput) return;
-
-            let payload;
-            try {
-                payload = JSON.parse(modalInput.value);
-            } catch (error) {
-                showToast('JSON invalide. Vérifie la syntaxe.');
-                return;
+            if (!editingProductId) return;
+            let payload = null;
+            if (productEditMode) {
+                payload = getProductPayloadFromForm();
+            } else if (modalInput) {
+                try {
+                    payload = JSON.parse(modalInput.value);
+                } catch (error) {
+                    showToast('JSON invalide. Vérifie la syntaxe.');
+                    return;
+                }
             }
 
             if (!payload?.name || Number.isNaN(Number(payload.price))) {
@@ -1771,6 +2039,11 @@ async function initializeAdminDashboardPage() {
 
                 showToast('Produit ajouté.');
             } else {
+                if (shopProductsSource !== 'supabase') {
+                    showToast('Mise à jour indisponible : produit non géré dans Supabase.');
+                    return;
+                }
+
                 delete payload.id;
                 const { error } = await window.supabaseClient
                     .from('products')
