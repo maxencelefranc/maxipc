@@ -1,13 +1,34 @@
 {
-  "fetched_at": null,
-  "source": "bootstrap",
+  "updated_at": "2026-02-22T00:00:00.000Z",
+  "source": "manual",
   "place": {
-    "place_id": "",
     "name": "MaxiPC",
-    "rating": 0,
-    "user_ratings_total": 0,
+    "rating": 5,
+    "user_ratings_total": 3,
     "google_maps_url": ""
   },
   "write_review_url": "",
-  "reviews": []
+  "reviews": [
+    {
+      "author_name": "Camille",
+      "rating": 5,
+      "text": "Intervention rapide, PC remis en état dans la journée. Très pro.",
+      "relative_time_description": "il y a 2 semaines",
+      "time": "2026-02-08T09:00:00.000Z"
+    },
+    {
+      "author_name": "Julien",
+      "rating": 5,
+      "text": "Très bon conseil pour ma config gaming, montage propre et silencieux.",
+      "relative_time_description": "il y a 1 mois",
+      "time": "2026-01-20T14:00:00.000Z"
+    },
+    {
+      "author_name": "Sophie",
+      "rating": 4,
+      "text": "Dépannage efficace et explications claires. Je recommande.",
+      "relative_time_description": "il y a 1 mois",
+      "time": "2026-01-10T11:00:00.000Z"
+    }
+  ]
 }

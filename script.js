@@ -2511,22 +2511,28 @@ async function initializeGoogleReviewsSection() {
 
         if (ratingCount) {
             const count = Number(place.user_ratings_total || 0);
-            ratingCount.textContent = count > 0 ? `${count} avis Google` : 'Aucun avis Google pour le moment';
+            ratingCount.textContent = count > 0 ? `${count} avis clients` : 'Aucun avis pour le moment';
         }
 
         if (updatedText) {
-            updatedText.textContent = payload?.fetched_at
-                ? `Dernière synchronisation : ${formatDate(payload.fetched_at)}`
-                : 'Synchronisation automatique active';
+            const updateDate = payload?.updated_at || payload?.fetched_at || null;
+            updatedText.textContent = updateDate
+                ? `Dernière mise à jour : ${formatDate(updateDate)}`
+                : 'Avis mis à jour manuellement';
         }
 
-        if (writeLink && payload?.write_review_url) {
-            writeLink.href = payload.write_review_url;
+        if (writeLink) {
+            if (payload?.write_review_url) {
+                writeLink.href = payload.write_review_url;
+                writeLink.style.display = '';
+            } else {
+                writeLink.style.display = 'none';
+            }
         }
 
         if (list) {
             if (!reviews.length) {
-                list.innerHTML = '<article class="google-review-card"><p class="google-review-text">Les avis Google s’afficheront ici automatiquement.</p></article>';
+                list.innerHTML = '<article class="google-review-card"><p class="google-review-text">Aucun avis pour le moment.</p></article>';
             } else {
                 list.innerHTML = reviews.slice(0, 6).map((review) => `
                     <article class="google-review-card">
@@ -2535,14 +2541,14 @@ async function initializeGoogleReviewsSection() {
                             <span class="google-review-stars">${toStars(review.rating)}</span>
                         </div>
                         <p class="google-review-date">${escapeHtml(review.relative_time_description || formatDate(review.time) || '')}</p>
-                        <p class="google-review-text">${escapeHtml((review.text || '').slice(0, 320) || 'Avis Google')}</p>
+                        <p class="google-review-text">${escapeHtml((review.text || '').slice(0, 320) || 'Avis client')}</p>
                     </article>
                 `).join('');
             }
         }
     } catch (error) {
-        if (updatedText) updatedText.textContent = 'Synchronisation indisponible actuellement';
-        if (ratingCount) ratingCount.textContent = 'Avis Google indisponibles pour le moment';
+        if (updatedText) updatedText.textContent = 'Chargement des avis indisponible';
+        if (ratingCount) ratingCount.textContent = 'Avis indisponibles pour le moment';
         if (list) {
             list.innerHTML = '<article class="google-review-card"><p class="google-review-text">Impossible de charger les avis pour le moment.</p></article>';
         }
