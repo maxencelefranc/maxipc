@@ -1498,6 +1498,58 @@ function renderAdminContent(items) {
     });
 }
 
+function normalizeReviewItem(item = {}) {
+    const ratingValue = Number(item.rating);
+    return {
+        author_name: String(item.author_name || '').trim(),
+        rating: Number.isFinite(ratingValue) ? Math.max(1, Math.min(5, Math.round(ratingValue))) : 5,
+        text: String(item.text || '').trim(),
+        relative_time_description: String(item.relative_time_description || '').trim(),
+        time: item.time ? String(item.time) : null
+    };
+}
+
+function normalizeReviewsPayload(payload = {}) {
+    const reviews = Array.isArray(payload.reviews)
+        ? payload.reviews
+            .map((review) => normalizeReviewItem(review))
+            .filter((review) => review.author_name && review.text)
+        : [];
+
+    const total = reviews.length;
+    const ratingAverage = total
+        ? Number((reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / total).toFixed(1))
+        : 0;
+
+    return {
+        updated_at: payload.updated_at || new Date().toISOString(),
+        source: 'manual',
+        place: {
+            name: payload?.place?.name || 'MaxiPC',
+            rating: ratingAverage,
+            user_ratings_total: total,
+            google_maps_url: payload?.place?.google_maps_url || ''
+        },
+        write_review_url: payload?.write_review_url || '',
+        reviews
+    };
+}
+
+function createDefaultReviewsPayload() {
+    return normalizeReviewsPayload({
+        updated_at: new Date().toISOString(),
+        source: 'manual',
+        place: {
+            name: 'MaxiPC',
+            rating: 0,
+            user_ratings_total: 0,
+            google_maps_url: ''
+        },
+        write_review_url: '',
+        reviews: []
+    });
+}
+
 function renderReservationsTable(rows, tbody, emptyState) {
     if (!tbody || !emptyState) return;
     tbody.innerHTML = '';
@@ -1611,6 +1663,7 @@ async function loadAdminContent() {
 let adminReservationsCache = [];
 let adminOrdersCache = [];
 let adminProductsCache = [];
+let adminReviewsPayload = createDefaultReviewsPayload();
 
 async function loadAdminReservationsAndOrders() {
     if (!window.supabaseClient) return;
@@ -1652,6 +1705,8 @@ async function initializeAdminDashboardPage() {
     const tabButtons = document.querySelectorAll('.tab-btn');
     const exportReservationsBtn = document.getElementById('exportReservationsBtn');
     const exportOrdersBtn = document.getElementById('exportOrdersBtn');
+    const addReviewBtn = document.getElementById('addReviewBtn');
+    const reviewsAdminList = document.getElementById('reviewsAdminList');
     const saveAvailabilityBtn = document.getElementById('saveAvailabilityBtn');
     const availabilityPresetWeekBtn = document.getElementById('availabilityPresetWeekBtn');
     const availabilityPresetClearBtn = document.getElementById('availabilityPresetClearBtn');
@@ -1676,6 +1731,8 @@ async function initializeAdminDashboardPage() {
     }
     let editingProductId = null;
     let productEditMode = false;
+    let reviewEditMode = false;
+    let editingReviewIndex = null;
     const availabilityWeekEditor = document.getElementById('availabilityWeekEditor');
     const availabilityOverrides = document.getElementById('availabilityOverrides');
     const availabilityBooked = document.getElementById('availabilityBooked');
@@ -1746,6 +1803,143 @@ async function initializeAdminDashboardPage() {
         productEditMode = enabled;
         if (productEditorForm) productEditorForm.style.display = enabled ? 'grid' : 'none';
         if (modalInput) modalInput.style.display = enabled ? 'none' : 'block';
+    };
+
+    const setReviewEditMode = (enabled) => {
+        reviewEditMode = enabled;
+        if (productEditorForm) productEditorForm.style.display = enabled ? 'grid' : (productEditMode ? 'grid' : 'none');
+        if (modalInput) modalInput.style.display = enabled ? 'none' : (productEditMode ? 'none' : 'block');
+    };
+
+    const renderReviewsAdminList = () => {
+        if (!reviewsAdminList) return;
+        const reviews = Array.isArray(adminReviewsPayload?.reviews) ? adminReviewsPayload.reviews : [];
+
+        if (!reviews.length) {
+            reviewsAdminList.innerHTML = `
+                <div class="content-card">
+                    <div class="content-key">Aucun avis</div>
+                    <div class="content-value">Ajoute ton premier avis client.</div>
+                </div>
+            `;
+            return;
+        }
+
+        reviewsAdminList.innerHTML = reviews.map((review, index) => {
+            const stars = '★'.repeat(Math.max(1, Math.min(5, Number(review.rating || 0))));
+            return `
+                <div class="content-card" data-review-index="${index}">
+                    <div class="content-key">${escapeHtml(review.author_name)} • ${stars}</div>
+                    <div class="content-value">${escapeHtml((review.text || '').slice(0, 220))}</div>
+                    <div class="content-actions">
+                        <button type="button" class="btn btn-secondary" data-review-action="edit" data-review-index="${index}">Modifier</button>
+                        <button type="button" class="btn btn-delete" data-review-action="delete" data-review-index="${index}">Supprimer</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    };
+
+    const renderReviewForm = (reviewData = {}) => {
+        if (!productEditorForm) return;
+        const safe = normalizeReviewItem(reviewData);
+        productEditorForm.innerHTML = `
+            <label style="display:flex; flex-direction:column; gap:6px; color:#fff; margin-bottom:10px;">
+                <span>Auteur</span>
+                <input id="reviewFieldAuthor" type="text" value="${escapeHtml(safe.author_name)}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+            </label>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                    <span>Note (1 à 5)</span>
+                    <input id="reviewFieldRating" type="number" min="1" max="5" step="1" value="${safe.rating}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                </label>
+                <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                    <span>Date affichée (ex: il y a 2 jours)</span>
+                    <input id="reviewFieldRelative" type="text" value="${escapeHtml(safe.relative_time_description || '')}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                </label>
+            </div>
+            <label style="display:flex; flex-direction:column; gap:6px; color:#fff; margin-bottom:10px;">
+                <span>Avis</span>
+                <textarea id="reviewFieldText" rows="5" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff; resize:vertical;">${escapeHtml(safe.text)}</textarea>
+            </label>
+        `;
+    };
+
+    const getReviewPayloadFromForm = () => {
+        const author = document.getElementById('reviewFieldAuthor')?.value.trim() || '';
+        const rating = Number(document.getElementById('reviewFieldRating')?.value || 0);
+        const text = document.getElementById('reviewFieldText')?.value.trim() || '';
+        const relative = document.getElementById('reviewFieldRelative')?.value.trim() || '';
+        return normalizeReviewItem({
+            author_name: author,
+            rating,
+            text,
+            relative_time_description: relative,
+            time: new Date().toISOString()
+        });
+    };
+
+    const openReviewModal = (title, index, reviewData) => {
+        if (!editModal || !modalTitle) return;
+        editingReviewIndex = index;
+        modalTitle.textContent = title;
+        setProductEditMode(false);
+        setReviewEditMode(true);
+        renderReviewForm(reviewData || {});
+        editModal.classList.add('show');
+        const firstField = document.getElementById('reviewFieldAuthor');
+        if (firstField) firstField.focus();
+    };
+
+    const closeReviewModal = () => {
+        editingReviewIndex = null;
+        setReviewEditMode(false);
+    };
+
+    const saveReviewsToSiteContent = async () => {
+        const normalized = normalizeReviewsPayload({
+            ...adminReviewsPayload,
+            updated_at: new Date().toISOString()
+        });
+
+        const { error } = await window.supabaseClient
+            .from('site_content')
+            .upsert(
+                {
+                    key: 'homepage.reviews_json',
+                    value: JSON.stringify(normalized),
+                    updated_at: new Date().toISOString()
+                },
+                { onConflict: 'key' }
+            );
+
+        if (error) return false;
+        adminReviewsPayload = normalized;
+        return true;
+    };
+
+    const loadAdminReviews = async () => {
+        if (!window.supabaseClient) return;
+        const { data } = await window.supabaseClient
+            .from('site_content')
+            .select('value')
+            .eq('key', 'homepage.reviews_json')
+            .single();
+
+        if (!data?.value) {
+            adminReviewsPayload = createDefaultReviewsPayload();
+            renderReviewsAdminList();
+            return;
+        }
+
+        try {
+            const parsed = JSON.parse(data.value);
+            adminReviewsPayload = normalizeReviewsPayload(parsed);
+        } catch {
+            adminReviewsPayload = createDefaultReviewsPayload();
+        }
+
+        renderReviewsAdminList();
     };
 
     const updateProductImagePreview = (value) => {
@@ -1932,6 +2126,7 @@ async function initializeAdminDashboardPage() {
     const openProductModal = (title, productId, productData) => {
         if (!editModal || !modalTitle) return;
         editingProductId = productId;
+        closeReviewModal();
         modalTitle.textContent = title;
         setProductEditMode(true);
         renderProductForm(productData);
@@ -1944,12 +2139,14 @@ async function initializeAdminDashboardPage() {
         if (!editModal) return;
         editModal.classList.remove('show');
         setProductEditMode(false);
+        closeReviewModal();
         editingProductId = null;
     };
 
     const loadDashboardData = async () => {
         await loadAdminProducts();
         await loadAdminContent();
+        await loadAdminReviews();
         await loadAdminAvailability();
         await loadAdminReservationsAndOrders();
     };
@@ -2245,8 +2442,79 @@ async function initializeAdminDashboardPage() {
         });
     }
 
+    if (addReviewBtn) {
+        addReviewBtn.addEventListener('click', () => {
+            openReviewModal('Ajouter un avis', 'new', {
+                author_name: '',
+                rating: 5,
+                text: '',
+                relative_time_description: ''
+            });
+        });
+    }
+
+    if (reviewsAdminList) {
+        reviewsAdminList.addEventListener('click', async (e) => {
+            const actionButton = e.target.closest('[data-review-action]');
+            if (!actionButton) return;
+
+            const action = actionButton.dataset.reviewAction;
+            const index = Number(actionButton.dataset.reviewIndex);
+            const review = adminReviewsPayload.reviews[index];
+
+            if (action === 'edit') {
+                if (!review) return;
+                openReviewModal('Modifier un avis', index, review);
+                return;
+            }
+
+            if (action === 'delete') {
+                if (!review) return;
+                const confirmed = confirm('Supprimer cet avis ?');
+                if (!confirmed) return;
+
+                adminReviewsPayload.reviews.splice(index, 1);
+                const saved = await saveReviewsToSiteContent();
+                if (!saved) {
+                    showToast('Suppression impossible.');
+                    return;
+                }
+
+                renderReviewsAdminList();
+                showToast('Avis supprimé.');
+            }
+        });
+    }
+
     if (modalSave) {
         modalSave.addEventListener('click', async () => {
+            if (reviewEditMode) {
+                const reviewPayload = getReviewPayloadFromForm();
+                if (!reviewPayload.author_name || !reviewPayload.text) {
+                    showToast('Auteur et texte de l’avis sont requis.');
+                    return;
+                }
+
+                if (editingReviewIndex === 'new') {
+                    adminReviewsPayload.reviews.unshift(reviewPayload);
+                } else {
+                    const index = Number(editingReviewIndex);
+                    if (!Number.isInteger(index) || index < 0) return;
+                    adminReviewsPayload.reviews[index] = reviewPayload;
+                }
+
+                const saved = await saveReviewsToSiteContent();
+                if (!saved) {
+                    showToast('Enregistrement de l’avis impossible.');
+                    return;
+                }
+
+                renderReviewsAdminList();
+                closeProductModal();
+                showToast(editingReviewIndex === 'new' ? 'Avis ajouté.' : 'Avis mis à jour.');
+                return;
+            }
+
             if (!editingProductId) return;
             let payload = null;
             if (productEditMode) {
@@ -2498,10 +2766,30 @@ async function initializeGoogleReviewsSection() {
     };
 
     try {
-        const response = await fetch('reviews.json', { cache: 'no-store' });
-        if (!response.ok) throw new Error('reviews.json introuvable');
+        let payload = null;
 
-        const payload = await response.json();
+        if (window.supabaseClient) {
+            const { data: reviewRow } = await window.supabaseClient
+                .from('site_content')
+                .select('value')
+                .eq('key', 'homepage.reviews_json')
+                .single();
+
+            if (reviewRow?.value) {
+                try {
+                    payload = JSON.parse(reviewRow.value);
+                } catch {
+                    payload = null;
+                }
+            }
+        }
+
+        if (!payload) {
+            const response = await fetch('reviews.json', { cache: 'no-store' });
+            if (!response.ok) throw new Error('reviews.json introuvable');
+            payload = await response.json();
+        }
+
         const place = payload?.place || {};
         const reviews = Array.isArray(payload?.reviews) ? payload.reviews : [];
 
