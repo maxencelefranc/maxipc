@@ -1504,7 +1504,7 @@ function normalizeReviewItem(item = {}) {
         author_name: String(item.author_name || '').trim(),
         rating: Number.isFinite(ratingValue) ? Math.max(1, Math.min(5, Math.round(ratingValue))) : 5,
         text: String(item.text || '').trim(),
-        relative_time_description: String(item.relative_time_description || '').trim(),
+        relative_time_description: '',
         time: item.time ? String(item.time) : null
     };
 }
@@ -1843,6 +1843,16 @@ async function initializeAdminDashboardPage() {
     const renderReviewForm = (reviewData = {}) => {
         if (!productEditorForm) return;
         const safe = normalizeReviewItem(reviewData);
+        const reviewDate = (() => {
+            const base = safe.time ? new Date(safe.time) : new Date();
+            const fallback = new Date();
+            const date = Number.isNaN(base.getTime()) ? fallback : base;
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        })();
+
         productEditorForm.innerHTML = `
             <label style="display:flex; flex-direction:column; gap:6px; color:#fff; margin-bottom:10px;">
                 <span>Auteur</span>
@@ -1854,8 +1864,8 @@ async function initializeAdminDashboardPage() {
                     <input id="reviewFieldRating" type="number" min="1" max="5" step="1" value="${safe.rating}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
                 </label>
                 <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
-                    <span>Date affichée (ex: il y a 2 jours)</span>
-                    <input id="reviewFieldRelative" type="text" value="${escapeHtml(safe.relative_time_description || '')}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                    <span>Date de l'avis</span>
+                    <input id="reviewFieldDate" type="date" value="${reviewDate}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
                 </label>
             </div>
             <label style="display:flex; flex-direction:column; gap:6px; color:#fff; margin-bottom:10px;">
@@ -1869,13 +1879,16 @@ async function initializeAdminDashboardPage() {
         const author = document.getElementById('reviewFieldAuthor')?.value.trim() || '';
         const rating = Number(document.getElementById('reviewFieldRating')?.value || 0);
         const text = document.getElementById('reviewFieldText')?.value.trim() || '';
-        const relative = document.getElementById('reviewFieldRelative')?.value.trim() || '';
+        const reviewDate = document.getElementById('reviewFieldDate')?.value || '';
+        const dateIso = /^\d{4}-\d{2}-\d{2}$/.test(reviewDate)
+            ? new Date(`${reviewDate}T12:00:00`).toISOString()
+            : null;
         return normalizeReviewItem({
             author_name: author,
             rating,
             text,
-            relative_time_description: relative,
-            time: new Date().toISOString()
+            relative_time_description: '',
+            time: dateIso
         });
     };
 
@@ -2494,6 +2507,10 @@ async function initializeAdminDashboardPage() {
                     showToast('Auteur et texte de l’avis sont requis.');
                     return;
                 }
+                if (!reviewPayload.time) {
+                    showToast('Date de l’avis invalide.');
+                    return;
+                }
 
                 if (editingReviewIndex === 'new') {
                     adminReviewsPayload.reviews.unshift(reviewPayload);
@@ -2765,6 +2782,34 @@ async function initializeGoogleReviewsSection() {
         return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
     };
 
+    const formatRelativeReviewAge = (value) => {
+        if (!value) return '';
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return '';
+
+        const today = new Date();
+        const startToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const startParsed = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+        let diffDays = Math.floor((startToday.getTime() - startParsed.getTime()) / 86400000);
+        if (!Number.isFinite(diffDays) || diffDays < 0) diffDays = 0;
+
+        if (diffDays === 0) return 'aujourd’hui';
+        if (diffDays === 1) return 'il y a 1 jour';
+        if (diffDays < 7) return `il y a ${diffDays} jours`;
+
+        const weeks = Math.floor(diffDays / 7);
+        if (weeks === 1) return 'il y a 1 semaine';
+        if (weeks < 5) return `il y a ${weeks} semaines`;
+
+        const months = Math.floor(diffDays / 30);
+        if (months === 1) return 'il y a 1 mois';
+        if (months < 12) return `il y a ${months} mois`;
+
+        const years = Math.floor(diffDays / 365);
+        if (years === 1) return 'il y a 1 an';
+        return `il y a ${years} ans`;
+    };
+
     try {
         let payload = null;
 
@@ -2828,7 +2873,7 @@ async function initializeGoogleReviewsSection() {
                             <span class="google-review-author">${escapeHtml(review.author_name || 'Client')}</span>
                             <span class="google-review-stars">${toStars(review.rating)}</span>
                         </div>
-                        <p class="google-review-date">${escapeHtml(review.relative_time_description || formatDate(review.time) || '')}</p>
+                        <p class="google-review-date">${escapeHtml(formatRelativeReviewAge(review.time) || formatDate(review.time) || '')}</p>
                         <p class="google-review-text">${escapeHtml((review.text || '').slice(0, 320) || 'Avis client')}</p>
                     </article>
                 `).join('');
