@@ -2475,10 +2475,86 @@ function prefillReservationFromCart() {
     }
 }
 
+async function initializeGoogleReviewsSection() {
+    const section = document.getElementById('googleReviewsSection');
+    if (!section) return;
+
+    const ratingValue = document.getElementById('googleRatingValue');
+    const ratingCount = document.getElementById('googleRatingCount');
+    const updatedText = document.getElementById('googleReviewsUpdated');
+    const writeLink = document.getElementById('googleReviewWriteLink');
+    const list = document.getElementById('googleReviewsList');
+
+    const toStars = (value) => {
+        const rounded = Math.max(0, Math.min(5, Math.round(Number(value) || 0)));
+        return '★'.repeat(rounded) + '☆'.repeat(5 - rounded);
+    };
+
+    const formatDate = (value) => {
+        if (!value) return '';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+    };
+
+    try {
+        const response = await fetch('reviews.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error('reviews.json introuvable');
+
+        const payload = await response.json();
+        const place = payload?.place || {};
+        const reviews = Array.isArray(payload?.reviews) ? payload.reviews : [];
+
+        if (ratingValue) {
+            ratingValue.textContent = place.rating ? `${Number(place.rating).toFixed(1)} / 5` : '—';
+        }
+
+        if (ratingCount) {
+            const count = Number(place.user_ratings_total || 0);
+            ratingCount.textContent = count > 0 ? `${count} avis Google` : 'Aucun avis Google pour le moment';
+        }
+
+        if (updatedText) {
+            updatedText.textContent = payload?.fetched_at
+                ? `Dernière synchronisation : ${formatDate(payload.fetched_at)}`
+                : 'Synchronisation automatique active';
+        }
+
+        if (writeLink && payload?.write_review_url) {
+            writeLink.href = payload.write_review_url;
+        }
+
+        if (list) {
+            if (!reviews.length) {
+                list.innerHTML = '<article class="google-review-card"><p class="google-review-text">Les avis Google s’afficheront ici automatiquement.</p></article>';
+            } else {
+                list.innerHTML = reviews.slice(0, 6).map((review) => `
+                    <article class="google-review-card">
+                        <div class="google-review-head">
+                            <span class="google-review-author">${escapeHtml(review.author_name || 'Client')}</span>
+                            <span class="google-review-stars">${toStars(review.rating)}</span>
+                        </div>
+                        <p class="google-review-date">${escapeHtml(review.relative_time_description || formatDate(review.time) || '')}</p>
+                        <p class="google-review-text">${escapeHtml((review.text || '').slice(0, 320) || 'Avis Google')}</p>
+                    </article>
+                `).join('');
+            }
+        }
+    } catch (error) {
+        if (updatedText) updatedText.textContent = 'Synchronisation indisponible actuellement';
+        if (ratingCount) ratingCount.textContent = 'Avis Google indisponibles pour le moment';
+        if (list) {
+            list.innerHTML = '<article class="google-review-card"><p class="google-review-text">Impossible de charger les avis pour le moment.</p></article>';
+        }
+        console.warn('Google reviews load failed', error);
+    }
+}
+
 function runAppInit() {
     initializeTerminalAnimation();
     initializeShopFeature();
     prefillReservationFromCart();
+    initializeGoogleReviewsSection();
     loadSiteContent();
     initializeAdmin();
     initializeAdminDashboardPage();

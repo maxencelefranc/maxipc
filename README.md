@@ -156,6 +156,28 @@ Pour améliorer le site :
 - [ ] Chatbot pour assistance
 - [ ] WhatsApp Business API
 
+## ⭐ Avis Google automatiques
+
+Le site est prêt pour une synchronisation automatique des avis Google vers `reviews.json` via GitHub Actions.
+
+### Fichiers ajoutés
+- `.github/workflows/sync-google-reviews.yml`
+- `scripts/sync-google-reviews.mjs`
+- `reviews.json`
+
+### Configuration (1 fois)
+Dans GitHub > Settings > Secrets and variables > Actions, ajouter:
+
+- `GOOGLE_PLACES_API_KEY` : clé API Google Places
+- `GOOGLE_PLACE_ID` : Place ID de votre fiche Google Business
+
+Ensuite lancer le workflow **Sync Google Reviews** manuellement (workflow_dispatch) pour la première sync.
+
+### Fonctionnement
+- Sync automatique toutes les 6h (cron GitHub Actions)
+- Mise à jour de `reviews.json`
+- Affichage automatique sur la page d'accueil (section "Avis Google")
+
 ## 📊 Pages & Sections
 
 ### Accueil
