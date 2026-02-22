@@ -219,6 +219,101 @@
             display: block;
         }
 
+        .availability-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .availability-week-editor {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .availability-day-card {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.08), rgba(79, 172, 254, 0.08));
+            border: 1px solid rgba(240, 147, 251, 0.25);
+            border-radius: 12px;
+            padding: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+        }
+
+        .availability-day-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .availability-day-head label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            color: #bfc5d8;
+            font-weight: 500;
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .availability-add-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 0.5rem;
+        }
+
+        .availability-add-row input[type="time"] {
+            width: 100%;
+            padding: 0.55rem;
+            border-radius: 8px;
+            border: 1px solid rgba(240, 147, 251, 0.3);
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+        }
+
+        .availability-slots {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            min-height: 32px;
+        }
+
+        .availability-slot-chip {
+            border: 1px solid rgba(79, 172, 254, 0.45);
+            background: rgba(79, 172, 254, 0.15);
+            color: #dff0ff;
+            border-radius: 999px;
+            padding: 0.3rem 0.55rem;
+            font-size: 0.82rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            cursor: pointer;
+        }
+
+        .availability-slot-chip:hover {
+            background: rgba(245, 87, 108, 0.18);
+            border-color: rgba(245, 87, 108, 0.4);
+        }
+
+        .availability-empty {
+            color: #9aa3bc;
+            font-size: 0.85rem;
+        }
+
+        .availability-advanced {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 0.8rem;
+        }
+
         .tab-header {
             display: flex;
             align-items: center;
@@ -727,6 +822,9 @@
                 <button class="tab-btn" data-tab="content">
                     <i class="fas fa-file-alt"></i> Textes
                 </button>
+                <button class="tab-btn" data-tab="availability">
+                    <i class="fas fa-clock"></i> Planning
+                </button>
                 <button class="tab-btn" data-tab="reservations">
                     <i class="fas fa-calendar-check"></i> Réservations
                 </button>
@@ -749,6 +847,42 @@
             <!-- Content Tab -->
             <div id="contentTab" class="tab-content">
                 <div class="content-list" id="contentList"></div>
+            </div>
+
+            <!-- Availability Tab -->
+            <div id="availabilityTab" class="tab-content">
+                <div class="tab-header" style="margin-bottom: 14px;">
+                    <h3 style="margin:0; color:#fff;">Disponibilités réservation</h3>
+                    <div class="tab-actions">
+                        <button class="btn btn-primary" id="saveAvailabilityBtn">
+                            <i class="fas fa-save"></i> Enregistrer le planning
+                        </button>
+                    </div>
+                </div>
+                <p style="margin:0 0 14px; color:#b8bfd3; font-size:0.92rem;">
+                    Ajoute tes créneaux par jour en 2 clics. Clique sur un créneau pour le supprimer.
+                </p>
+                <div class="availability-toolbar">
+                    <button type="button" class="btn btn-secondary" id="availabilityPresetWeekBtn">Preset semaine soir</button>
+                    <button type="button" class="btn btn-secondary" id="availabilityPresetClearBtn">Tout vider</button>
+                </div>
+                <div id="availabilityWeekEditor" class="availability-week-editor"></div>
+
+                <details class="availability-advanced">
+                    <summary style="cursor:pointer; color:#fff; font-weight:600;">Réglages avancés (optionnel)</summary>
+                    <p style="margin:8px 0 10px; color:#b8bfd3; font-size:0.86rem;">
+                        Exceptions ponctuelles et créneaux bloqués au format JSON.
+                    </p>
+                    <label style="display:flex; flex-direction:column; gap:6px; color:#fff; margin-bottom:10px;">
+                        <span>Exceptions par date (JSON)</span>
+                        <textarea id="availabilityOverrides" rows="4" placeholder='{"2026-02-24": ["20:00", "20:30"]}'></textarea>
+                    </label>
+
+                    <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                        <span>Créneaux déjà bloqués (JSON)</span>
+                        <textarea id="availabilityBooked" rows="4" placeholder='{"2026-02-24": ["19:00"]}'></textarea>
+                    </label>
+                </details>
             </div>
 
             <!-- Reservations Tab -->

@@ -569,40 +569,192 @@
         let selectedTime = null;
         let currentMonth = new Date();
 
-        const AVAILABLE_HOURS = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'];
+        // Disponibilités MaxiPC (fallback local)
+        // 0=Dimanche, 1=Lundi, ..., 6=Samedi
+        const DEFAULT_WEEKLY_AVAILABILITY = {
+            0: [],
+            1: ['18:30', '19:00', '19:30'],
+            2: ['18:30', '19:00', '19:30'],
+            3: ['18:30', '19:00', '19:30'],
+            4: ['18:30', '19:00', '19:30'],
+            5: ['18:30', '19:00', '19:30'],
+            6: ['09:30', '10:00', '10:30', '11:00', '14:00', '14:30', '15:00']
+        };
+        let WEEKLY_AVAILABILITY = JSON.parse(JSON.stringify(DEFAULT_WEEKLY_AVAILABILITY));
+
+        // Optionnel: disponibilité spécifique par date (prioritaire sur WEEKLY_AVAILABILITY)
+        // Exemple: '2026-02-24': ['20:00', '20:30']
+        let DATE_AVAILABILITY_OVERRIDES = {};
+
+        // Optionnel: créneaux déjà indisponibles (manuellement bloqués)
+        // Exemple: '2026-02-24': ['19:00']
+        let BOOKED_SLOTS = {};
+
+        const BOOKING_WINDOW = getBookingWindowBounds();
+        const ALLOWED_MONTH_KEYS = getAllowedMonthKeysForBookingWindow();
+
+        if (!ALLOWED_MONTH_KEYS.includes(getMonthKey(currentMonth))) {
+            currentMonth = new Date(BOOKING_WINDOW.start);
+        }
         
         // Initialize on DOM ready
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             emailjs.init('c4iw2Wxz3QnEZYi7S');
+            await loadAvailabilityFromAdmin();
             renderCalendar();
+            updateMonthNavState();
             
             // Attach event listeners
             document.getElementById('prevMonth').addEventListener('click', () => {
-                currentMonth.setMonth(currentMonth.getMonth() - 1);
+                const previousMonth = new Date(currentMonth);
+                previousMonth.setMonth(previousMonth.getMonth() - 1);
+                if (!ALLOWED_MONTH_KEYS.includes(getMonthKey(previousMonth))) {
+                    return;
+                }
+                currentMonth = previousMonth;
                 renderCalendar();
+                updateMonthNavState();
                 document.getElementById('timeslots').style.display = 'none';
             });
 
             document.getElementById('nextMonth').addEventListener('click', () => {
-                currentMonth.setMonth(currentMonth.getMonth() + 1);
+                const nextMonth = new Date(currentMonth);
+                nextMonth.setMonth(nextMonth.getMonth() + 1);
+                if (!ALLOWED_MONTH_KEYS.includes(getMonthKey(nextMonth))) {
+                    return;
+                }
+                currentMonth = nextMonth;
                 renderCalendar();
+                updateMonthNavState();
                 document.getElementById('timeslots').style.display = 'none';
             });
 
             document.getElementById('reservationForm').addEventListener('submit', handleFormSubmit);
         });
-        
-        // Disable weekends and past dates
+
+        async function loadAvailabilityFromAdmin() {
+            if (!window.supabaseClient) return;
+
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from('site_content')
+                    .select('key, value')
+                    .in('key', [
+                        'reservation.weekly_availability',
+                        'reservation.date_overrides',
+                        'reservation.booked_slots'
+                    ]);
+
+                if (error || !Array.isArray(data)) return;
+
+                const contentMap = new Map(data.map((row) => [row.key, row.value]));
+                const weeklyRaw = contentMap.get('reservation.weekly_availability');
+                const overridesRaw = contentMap.get('reservation.date_overrides');
+                const bookedRaw = contentMap.get('reservation.booked_slots');
+
+                if (weeklyRaw) {
+                    const parsedWeekly = JSON.parse(weeklyRaw);
+                    if (parsedWeekly && typeof parsedWeekly === 'object') {
+                        WEEKLY_AVAILABILITY = parsedWeekly;
+                    }
+                }
+
+                if (overridesRaw) {
+                    const parsedOverrides = JSON.parse(overridesRaw);
+                    if (parsedOverrides && typeof parsedOverrides === 'object') {
+                        DATE_AVAILABILITY_OVERRIDES = parsedOverrides;
+                    }
+                }
+
+                if (bookedRaw) {
+                    const parsedBooked = JSON.parse(bookedRaw);
+                    if (parsedBooked && typeof parsedBooked === 'object') {
+                        BOOKED_SLOTS = parsedBooked;
+                    }
+                }
+            } catch (error) {
+                console.warn('Chargement planning admin indisponible, fallback local utilisé.', error);
+            }
+        }
+
+        function getBookingWindowBounds() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const start = new Date(today);
+            start.setHours(0, 0, 0, 0);
+
+            const end = new Date(start);
+            end.setDate(start.getDate() + 6);
+            end.setHours(23, 59, 59, 999);
+
+            return { start, end };
+        }
+
+        function getMonthKey(date) {
+            return date.getFullYear() * 12 + date.getMonth();
+        }
+
+        function getAllowedMonthKeysForBookingWindow() {
+            const keys = new Set();
+            const cursor = new Date(BOOKING_WINDOW.start);
+
+            while (cursor <= BOOKING_WINDOW.end) {
+                keys.add(getMonthKey(cursor));
+                cursor.setDate(cursor.getDate() + 1);
+            }
+
+            return Array.from(keys).sort((a, b) => a - b);
+        }
+
+        function updateMonthNavState() {
+            const prevButton = document.getElementById('prevMonth');
+            const nextButton = document.getElementById('nextMonth');
+            if (!prevButton || !nextButton) return;
+
+            const currentKey = getMonthKey(currentMonth);
+            const minKey = ALLOWED_MONTH_KEYS[0];
+            const maxKey = ALLOWED_MONTH_KEYS[ALLOWED_MONTH_KEYS.length - 1];
+
+            prevButton.disabled = currentKey <= minKey;
+            nextButton.disabled = currentKey >= maxKey;
+        }
+
+        function toDateString(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function parseDateString(dateString) {
+            const [year, month, day] = String(dateString).split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+
+        function getAvailableHoursForDate(date) {
+            const dateString = toDateString(date);
+            if (Object.prototype.hasOwnProperty.call(DATE_AVAILABILITY_OVERRIDES, dateString)) {
+                return DATE_AVAILABILITY_OVERRIDES[dateString] || [];
+            }
+
+            return WEEKLY_AVAILABILITY[date.getDay()] || [];
+        }
+
+        // Disable past dates and anything outside the next 7 days window
         function isAvailableDate(date) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            
-            // Disable past dates and Sundays
-            if (date < today || date.getDay() === 0) {
+
+            if (date < today) {
                 return false;
             }
-            
-            return true;
+
+            if (date < BOOKING_WINDOW.start || date > BOOKING_WINDOW.end) {
+                return false;
+            }
+
+            return getAvailableHoursForDate(date).length > 0;
         }
 
         function renderCalendar() {
@@ -627,7 +779,7 @@
             // Current month days
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month, day);
-                const dateString = date.toISOString().split('T')[0];
+                const dateString = toDateString(date);
                 const isAvailable = isAvailableDate(date);
                 const isSelected = selectedDate === dateString;
 
@@ -657,10 +809,16 @@
             document.getElementById('timeslots').style.display = 'block';
             let html = '';
 
-            // Sample busy times
-            const busyTimes = ['10:00', '14:30'];
+            const selectedDateObject = parseDateString(selectedDate);
+            const availableHours = getAvailableHoursForDate(selectedDateObject);
+            const busyTimes = BOOKED_SLOTS[selectedDate] || [];
 
-            for (let time of AVAILABLE_HOURS) {
+            if (!availableHours.length) {
+                document.getElementById('timeGrid').innerHTML = '<div class="no-selection">Aucun créneau disponible pour cette date.</div>';
+                return;
+            }
+
+            for (let time of availableHours) {
                 const isBusy = busyTimes.includes(time);
                 const isSelected = selectedTime === time;
 
@@ -683,7 +841,7 @@
             const infoDiv = document.getElementById('selectedInfo');
 
             if (selectedDate && selectedTime) {
-                const date = new Date(selectedDate);
+                const date = parseDateString(selectedDate);
                 const dateFormatter = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 const formattedDate = dateFormatter.format(date);
 
@@ -730,7 +888,7 @@
             submitBtn.textContent = 'Envoi en cours...';
 
             const formData = new FormData(document.getElementById('reservationForm'));
-            const date = new Date(selectedDate);
+            const date = parseDateString(selectedDate);
             const dateFormatter = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
             // Check if user is logged in

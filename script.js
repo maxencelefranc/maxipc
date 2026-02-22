@@ -1652,6 +1652,9 @@ async function initializeAdminDashboardPage() {
     const tabButtons = document.querySelectorAll('.tab-btn');
     const exportReservationsBtn = document.getElementById('exportReservationsBtn');
     const exportOrdersBtn = document.getElementById('exportOrdersBtn');
+    const saveAvailabilityBtn = document.getElementById('saveAvailabilityBtn');
+    const availabilityPresetWeekBtn = document.getElementById('availabilityPresetWeekBtn');
+    const availabilityPresetClearBtn = document.getElementById('availabilityPresetClearBtn');
     const productsGrid = document.getElementById('productsGrid');
     const reservationsTable = document.getElementById('reservationsTableBody');
     const ordersTable = document.getElementById('ordersTableBody');
@@ -1673,6 +1676,23 @@ async function initializeAdminDashboardPage() {
     }
     let editingProductId = null;
     let productEditMode = false;
+    const availabilityWeekEditor = document.getElementById('availabilityWeekEditor');
+    const availabilityOverrides = document.getElementById('availabilityOverrides');
+    const availabilityBooked = document.getElementById('availabilityBooked');
+    const DAY_CONFIG = [
+        { day: 1, label: 'Lundi' },
+        { day: 2, label: 'Mardi' },
+        { day: 3, label: 'Mercredi' },
+        { day: 4, label: 'Jeudi' },
+        { day: 5, label: 'Vendredi' },
+        { day: 6, label: 'Samedi' },
+        { day: 0, label: 'Dimanche' }
+    ];
+    let availabilityState = {
+        weekly: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] },
+        overrides: {},
+        booked: {}
+    };
 
     const showMessage = (type, text) => {
         if (!adminMessage) return;
@@ -1930,10 +1950,232 @@ async function initializeAdminDashboardPage() {
     const loadDashboardData = async () => {
         await loadAdminProducts();
         await loadAdminContent();
+        await loadAdminAvailability();
         await loadAdminReservationsAndOrders();
     };
 
+    const isValidTime = (value) => /^([01]\d|2[0-3]):[0-5]\d$/.test(String(value || '').trim());
+
+    const normalizeTime = (value) => {
+        const trimmed = String(value || '').trim();
+        if (isValidTime(trimmed)) return trimmed;
+        return null;
+    };
+
+    const sortSlots = (slots) => [...new Set(slots)].sort((a, b) => a.localeCompare(b));
+
+    const parseTimesInput = (value) => {
+        if (!value) return [];
+        return sortSlots(
+            value
+                .split(',')
+                .map((entry) => normalizeTime(entry))
+                .filter(Boolean)
+        );
+    };
+
+    const ensureWeeklyStructure = (weekly = {}) => {
+        const result = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+        for (const day of Object.keys(result)) {
+            result[day] = Array.isArray(weekly[day]) ? sortSlots(weekly[day].map((v) => normalizeTime(v)).filter(Boolean)) : [];
+        }
+        return result;
+    };
+
+    const renderAvailabilityWeekEditor = () => {
+        if (!availabilityWeekEditor) return;
+
+        availabilityWeekEditor.innerHTML = DAY_CONFIG.map(({ day, label }) => {
+            const slots = availabilityState.weekly[String(day)] || [];
+            const isClosed = slots.length === 0;
+            const chips = slots.length
+                ? slots.map((slot) => `<button type="button" class="availability-slot-chip" data-day="${day}" data-remove-slot="${slot}" title="Supprimer ${slot}">${slot} ✕</button>`).join('')
+                : '<span class="availability-empty">Aucun créneau</span>';
+
+            return `
+                <div class="availability-day-card" data-day-card="${day}">
+                    <div class="availability-day-head">
+                        <span>${label}</span>
+                        <label><input type="checkbox" data-day-close="${day}" ${isClosed ? 'checked' : ''}> Fermé</label>
+                    </div>
+                    <div class="availability-add-row">
+                        <input type="time" data-day-time="${day}" step="1800">
+                        <button type="button" class="btn btn-secondary" data-day-add="${day}">Ajouter</button>
+                    </div>
+                    <div class="availability-slots">${chips}</div>
+                </div>
+            `;
+        }).join('');
+    };
+
+    const fillAvailabilityForm = (weekly = {}, overrides = {}, booked = {}) => {
+        availabilityState.weekly = ensureWeeklyStructure(weekly);
+        availabilityState.overrides = overrides || {};
+        availabilityState.booked = booked || {};
+        renderAvailabilityWeekEditor();
+
+        if (availabilityOverrides) {
+            availabilityOverrides.value = Object.keys(availabilityState.overrides).length
+                ? JSON.stringify(availabilityState.overrides, null, 2)
+                : '';
+        }
+        if (availabilityBooked) {
+            availabilityBooked.value = Object.keys(availabilityState.booked).length
+                ? JSON.stringify(availabilityState.booked, null, 2)
+                : '';
+        }
+    };
+
+    const loadAdminAvailability = async () => {
+        if (!window.supabaseClient) return;
+        const { data, error } = await window.supabaseClient
+            .from('site_content')
+            .select('key, value')
+            .in('key', [
+                'reservation.weekly_availability',
+                'reservation.date_overrides',
+                'reservation.booked_slots'
+            ]);
+
+        if (error || !Array.isArray(data)) {
+            fillAvailabilityForm();
+            return;
+        }
+
+        const map = new Map(data.map((row) => [row.key, row.value]));
+        let weekly = {};
+        let overrides = {};
+        let booked = {};
+
+        try {
+            weekly = JSON.parse(map.get('reservation.weekly_availability') || '{}');
+        } catch {
+            weekly = {};
+        }
+        try {
+            overrides = JSON.parse(map.get('reservation.date_overrides') || '{}');
+        } catch {
+            overrides = {};
+        }
+        try {
+            booked = JSON.parse(map.get('reservation.booked_slots') || '{}');
+        } catch {
+            booked = {};
+        }
+
+        fillAvailabilityForm(weekly, overrides, booked);
+    };
+
     setupTabs();
+
+    if (availabilityWeekEditor) {
+        availabilityWeekEditor.addEventListener('click', (e) => {
+            const addBtn = e.target.closest('[data-day-add]');
+            if (addBtn) {
+                const day = String(addBtn.dataset.dayAdd);
+                const input = availabilityWeekEditor.querySelector(`[data-day-time="${day}"]`);
+                const normalized = normalizeTime(input?.value);
+                if (!normalized) {
+                    showToast('Choisis une heure valide (HH:MM).');
+                    return;
+                }
+
+                const closeToggle = availabilityWeekEditor.querySelector(`[data-day-close="${day}"]`);
+                if (closeToggle?.checked) closeToggle.checked = false;
+
+                availabilityState.weekly[day] = sortSlots([...(availabilityState.weekly[day] || []), normalized]);
+                renderAvailabilityWeekEditor();
+                return;
+            }
+
+            const removeBtn = e.target.closest('[data-remove-slot]');
+            if (removeBtn) {
+                const day = String(removeBtn.dataset.day);
+                const slot = removeBtn.dataset.removeSlot;
+                availabilityState.weekly[day] = (availabilityState.weekly[day] || []).filter((item) => item !== slot);
+                renderAvailabilityWeekEditor();
+            }
+        });
+
+        availabilityWeekEditor.addEventListener('change', (e) => {
+            const closeToggle = e.target.closest('[data-day-close]');
+            if (!closeToggle) return;
+            const day = String(closeToggle.dataset.dayClose);
+            if (closeToggle.checked) {
+                availabilityState.weekly[day] = [];
+            }
+            renderAvailabilityWeekEditor();
+        });
+    }
+
+    if (availabilityPresetWeekBtn) {
+        availabilityPresetWeekBtn.addEventListener('click', () => {
+            availabilityState.weekly = {
+                0: [],
+                1: ['18:30', '19:00', '19:30'],
+                2: ['18:30', '19:00', '19:30'],
+                3: ['18:30', '19:00', '19:30'],
+                4: ['18:30', '19:00', '19:30'],
+                5: ['18:30', '19:00', '19:30'],
+                6: ['09:30', '10:00', '10:30', '11:00', '14:00', '14:30', '15:00']
+            };
+            renderAvailabilityWeekEditor();
+            showToast('Preset semaine appliqué.');
+        });
+    }
+
+    if (availabilityPresetClearBtn) {
+        availabilityPresetClearBtn.addEventListener('click', () => {
+            availabilityState.weekly = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+            renderAvailabilityWeekEditor();
+            showToast('Tous les créneaux ont été vidés.');
+        });
+    }
+
+    if (saveAvailabilityBtn) {
+        saveAvailabilityBtn.addEventListener('click', async () => {
+            if (!window.supabaseClient) return;
+
+            let overrides = {};
+            let booked = {};
+            try {
+                overrides = availabilityOverrides?.value.trim()
+                    ? JSON.parse(availabilityOverrides.value)
+                    : {};
+            } catch {
+                showToast('JSON des exceptions invalide.');
+                return;
+            }
+
+            try {
+                booked = availabilityBooked?.value.trim()
+                    ? JSON.parse(availabilityBooked.value)
+                    : {};
+            } catch {
+                showToast('JSON des créneaux bloqués invalide.');
+                return;
+            }
+
+            const weekly = ensureWeeklyStructure(availabilityState.weekly);
+            const now = new Date().toISOString();
+            const payload = [
+                { key: 'reservation.weekly_availability', value: JSON.stringify(weekly), updated_at: now },
+                { key: 'reservation.date_overrides', value: JSON.stringify(overrides), updated_at: now },
+                { key: 'reservation.booked_slots', value: JSON.stringify(booked), updated_at: now }
+            ];
+
+            const { error } = await window.supabaseClient
+                .from('site_content')
+                .upsert(payload, { onConflict: 'key' });
+
+            if (error) {
+                showToast('Impossible d’enregistrer le planning.');
+                return;
+            }
+
+            showToast('Planning enregistré.');
+        });
+    }
 
     if (productsGrid) {
         productsGrid.addEventListener('click', async (e) => {
