@@ -872,6 +872,32 @@
             return summary && summary.includes('Sélection boutique');
         }
 
+        async function sendOwnerNotification(eventType, payload) {
+            if (!window.supabaseClient) return;
+            try {
+                const supabaseUrl = window.supabaseClient.supabaseUrl || (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '');
+                if (!supabaseUrl) return;
+
+                const { data: sessionData } = await window.supabaseClient.auth.getSession();
+                const accessToken = sessionData?.session?.access_token;
+                if (!accessToken) return;
+
+                await fetch(`${supabaseUrl}/functions/v1/notify-owner`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        eventType,
+                        payload
+                    })
+                });
+            } catch (error) {
+                console.warn('Notification propriétaire non envoyée.', error);
+            }
+        }
+
         // Form submission
         async function handleFormSubmit(e) {
             e.preventDefault();
@@ -928,7 +954,7 @@
 
                 // Create order if this reservation comes from the shop cart
                 if (isCartSummary(reservationData.description) && window.orderManager) {
-                    await orderManager.createOrder(currentUser.id, {
+                    const orderResult = await orderManager.createOrder(currentUser.id, {
                         reservation_id: dbResult.data.id,
                         customer_name: reservationData.customer_name,
                         customer_email: reservationData.customer_email,
@@ -937,7 +963,29 @@
                         total_estimated: parseCartTotal(reservationData.description),
                         status: 'pending'
                     });
+
+                    if (orderResult?.success) {
+                        await sendOwnerNotification('order_created', {
+                            order_reference: orderResult?.data?.reference || '',
+                            customer_name: reservationData.customer_name,
+                            customer_email: reservationData.customer_email,
+                            customer_phone: reservationData.customer_phone,
+                            items_text: reservationData.description,
+                            total_estimated: parseCartTotal(reservationData.description)
+                        });
+                    }
                 }
+
+                await sendOwnerNotification('reservation_created', {
+                    confirmation_number: dbResult.data.confirmation_number,
+                    service: reservationData.service,
+                    reservation_date: selectedDate,
+                    reservation_time: selectedTime,
+                    customer_name: reservationData.customer_name,
+                    customer_email: reservationData.customer_email,
+                    customer_phone: reservationData.customer_phone,
+                    description: reservationData.description
+                });
 
                 // Send confirmation email
                 const templateParams = {

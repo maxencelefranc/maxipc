@@ -1799,6 +1799,30 @@ async function initializeAdminDashboardPage() {
         }, 4000);
     };
 
+    const canUseBrowserNotification = () => typeof window !== 'undefined' && 'Notification' in window;
+
+    const ensureNotificationPermission = async () => {
+        if (!canUseBrowserNotification()) return false;
+        if (Notification.permission === 'granted') return true;
+        if (Notification.permission === 'denied') return false;
+        try {
+            const permission = await Notification.requestPermission();
+            return permission === 'granted';
+        } catch {
+            return false;
+        }
+    };
+
+    const notifyAdmin = async (title, message) => {
+        showToast(message);
+        const granted = await ensureNotificationPermission();
+        if (!granted) return;
+        new Notification(title, {
+            body: message,
+            icon: 'Assets/Logo.png'
+        });
+    };
+
     const setProductEditMode = (enabled) => {
         productEditMode = enabled;
         if (productEditorForm) productEditorForm.style.display = enabled ? 'grid' : 'none';
@@ -2720,13 +2744,13 @@ async function initializeAdminDashboardPage() {
 
             if (latestReservationTime && latestReservationTime !== lastReservationTime) {
                 lastReservationTime = latestReservationTime;
-                showToast('Nouvelle réservation reçue.');
+                await notifyAdmin('MaxiPC Admin', 'Nouvelle réservation reçue.');
                 await loadAdminReservationsAndOrders();
             }
 
             if (latestOrderTime && latestOrderTime !== lastOrderTime) {
                 lastOrderTime = latestOrderTime;
-                showToast('Nouvelle commande boutique reçue.');
+                await notifyAdmin('MaxiPC Admin', 'Nouvelle commande boutique reçue.');
                 await loadAdminReservationsAndOrders();
             }
         }, 30000);

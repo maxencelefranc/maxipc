@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD022 MD031 MD032 MD034 MD040 -->
+
 # MaxPC - Site Web Professionnel
 
 Site web moderne et responsive pour MaxPC, micro-entreprise spécialisée dans la réparation, montage, optimisation et dépannage de PC à Lannion.
@@ -169,6 +171,35 @@ Le site affiche les avis depuis le fichier `reviews.json`.
 ### Affichage
 - La page d'accueil lit `reviews.json`
 - Aucun secret GitHub ni clé API n'est nécessaire
+
+## 🔔 Notifications admin (email + SMS)
+
+Les nouvelles réservations/commandes peuvent notifier le propriétaire via une fonction Supabase Edge `notify-owner`.
+
+### Déploiement de la fonction
+
+```bash
+supabase functions deploy notify-owner --project-ref leuebqwdubzwkjhieqsk
+```
+
+### Secrets requis (Supabase)
+
+```bash
+supabase secrets set \
+   RESEND_API_KEY=... \
+   OWNER_EMAIL=... \
+   NOTIFY_FROM_EMAIL="MaxiPC Notifications <noreply@ton-domaine.fr>" \
+   TWILIO_ACCOUNT_SID=... \
+   TWILIO_AUTH_TOKEN=... \
+   TWILIO_FROM_PHONE=+1XXXXXXXXXX \
+   OWNER_PHONE_E164=+33XXXXXXXXX
+```
+
+### Fonctionnement
+
+- Lors d'une réservation, le site appelle `functions/v1/notify-owner`
+- Lors d'une commande boutique, le site appelle aussi `functions/v1/notify-owner`
+- La fonction envoie un e-mail (Resend) + un SMS (Twilio)
 
 ## 📊 Pages & Sections
 
