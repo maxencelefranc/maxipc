@@ -172,21 +172,21 @@ Le site affiche les avis depuis le fichier `reviews.json`.
 - La page d'accueil lit `reviews.json`
 - Aucun secret GitHub ni clé API n'est nécessaire
 
-## 🔔 Notifications admin (Formspree + Zapier)
+## 🔔 Notifications admin (Formspree)
 
-Les nouvelles réservations/commandes peuvent notifier le propriétaire sans CLI ni fonction serveur.
+Les nouvelles réservations/commandes notifient le propriétaire directement via Formspree, sans CLI ni fonction serveur.
 
 ### Configuration
 
 - Ouvrir `reservation.html`
 - Renseigner `FORMSPREE_ENDPOINT` avec ton endpoint Formspree
-- Renseigner `ZAPIER_WEBHOOK_URL` avec ton Catch Hook Zapier
+- (Sécurité) Remplacer la clé test Turnstile `1x00000000000000000000AA` par ta vraie site key Cloudflare
 
 ### Fonctionnement
 
-- À chaque réservation : envoi Formspree + webhook Zapier
-- À chaque commande boutique : envoi Formspree + webhook Zapier
-- Zapier peut ensuite envoyer SMS, WhatsApp, Slack, etc.
+- À chaque réservation : envoi Formspree
+- À chaque commande boutique : envoi Formspree
+- Le formulaire réservation exige aussi la validation du CAPTCHA avant envoi
 
 ## 📊 Pages & Sections
 

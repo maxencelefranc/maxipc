@@ -10,6 +10,7 @@
     <link rel="icon" type="image/png" href="Assets/Logo.png">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
         .calendar-container {
             max-width: 1200px;
@@ -320,6 +321,28 @@
             flex: 1;
         }
 
+        .bot-trap {
+            position: absolute;
+            left: -10000px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+
+        .consent-note {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            line-height: 1.4;
+            margin-top: 6px;
+        }
+
+        .captcha-box {
+            margin: 16px 0 22px;
+            display: flex;
+            justify-content: center;
+        }
+
         .selected-info {
             background: rgba(167, 107, 207, 0.1);
             border: 1px solid rgba(167, 107, 207, 0.3);
@@ -590,7 +613,24 @@
 
                     <div class="form-group">
                         <label for="description">Description du problème *</label>
-                        <textarea id="description" name="description" placeholder="Décrivez votre besoin..." rows="4" required></textarea>
+                        <textarea id="description" name="description" placeholder="Décrivez votre besoin..." rows="4" maxlength="1500" required></textarea>
+                    </div>
+
+                    <div class="bot-trap" aria-hidden="true">
+                        <label for="website">Website</label>
+                        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+                    </div>
+
+                    <div class="form-group">
+                        <label style="display:flex; align-items:flex-start; gap:10px; font-weight:500;">
+                            <input type="checkbox" id="privacyConsent" name="privacy_consent" required style="width:auto; min-width:16px; margin-top:4px;">
+                            <span>J'accepte le traitement de mes données personnelles pour la gestion de ma demande de réservation.</span>
+                        </label>
+                        <p class="consent-note">Vos données sont utilisées uniquement pour organiser l'intervention et le suivi client.</p>
+                    </div>
+
+                    <div class="captcha-box">
+                        <div class="cf-turnstile" data-sitekey="0x4AAAAAACi148IL4Q061a5I"></div>
                     </div>
 
                     <button type="submit" class="reserve-btn" id="submitBtn">Confirmer la Réservation</button>
@@ -655,6 +695,7 @@
         // Exemple: '2026-02-24': ['19:00']
         let BOOKED_SLOTS = {};
         let AUTO_BOOKED_SLOTS = {};
+        let formLoadTimestamp = Date.now();
 
         const BOOKING_WINDOW = getBookingWindowBounds();
         const ALLOWED_MONTH_KEYS = getAllowedMonthKeysForBookingWindow();
@@ -665,6 +706,7 @@
         
         // Initialize on DOM ready
         document.addEventListener('DOMContentLoaded', async function() {
+            formLoadTimestamp = Date.now();
             emailjs.init('c4iw2Wxz3QnEZYi7S');
             await loadAvailabilityFromAdmin();
             await loadBookedSlotsFromReservations();
@@ -1067,11 +1109,44 @@
             }
         }
 
-        // Notifications externes (configuration simple)
-        // Formspree: https://formspree.io/
-        // Zapier Catch Hook: https://zapier.com/
-        const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xojnppzq';
-        const ZAPIER_WEBHOOK_URL = 'https://hooks.zapier.com/hooks/catch/26564942/ucpttee/';
+        function isLikelyBotSubmission(formData) {
+            const honeypot = String(formData.get('website') || '').trim();
+            if (honeypot) return true;
+            const elapsed = Date.now() - formLoadTimestamp;
+            return elapsed < 2500;
+        }
+
+        function hasValidCaptchaToken(formData) {
+            const token = String(formData.get('cf-turnstile-response') || '').trim();
+            return token.length > 10;
+        }
+
+        function validateReservationPayload(data) {
+            const name = String(data.customer_name || '').trim();
+            const email = String(data.customer_email || '').trim();
+            const phone = String(data.customer_phone || '').trim();
+            const description = String(data.description || '').trim();
+
+            if (name.length < 2 || name.length > 100) {
+                return 'Nom invalide (2 à 100 caractères).';
+            }
+
+            const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            if (!emailOk || email.length > 254) {
+                return 'Email invalide.';
+            }
+
+            const phoneOk = /^\+?[0-9\s().-]{8,20}$/.test(phone);
+            if (!phoneOk) {
+                return 'Téléphone invalide.';
+            }
+
+            if (description.length < 10 || description.length > 1500) {
+                return 'Description invalide (10 à 1500 caractères).';
+            }
+
+            return null;
+        }
 
         function buildOwnerNotificationMessage(eventType, payload = {}) {
             if (eventType === 'order_created') {
@@ -1098,52 +1173,34 @@
             ].join('\n');
         }
 
-        async function sendViaFormspree(eventType, payload = {}) {
-            if (!FORMSPREE_ENDPOINT) return;
-            const subject = eventType === 'order_created'
-                ? 'Nouvelle commande boutique - MaxiPC'
-                : 'Nouvelle réservation - MaxiPC';
-
-            const message = buildOwnerNotificationMessage(eventType, payload);
-
-            await fetch(FORMSPREE_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json'
-                },
-                body: JSON.stringify({
-                    subject,
-                    message,
-                    eventType,
-                    ...payload
-                })
-            });
-        }
-
-        async function sendViaZapier(eventType, payload = {}) {
-            if (!ZAPIER_WEBHOOK_URL) return;
-
-            await fetch(ZAPIER_WEBHOOK_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    source: 'maxipc_site',
-                    eventType,
-                    payload,
-                    sent_at: new Date().toISOString()
-                })
-            });
-        }
+        const FORMSPREE_ENDPOINT = 'https://formspree.io/f/fbloqkny';
 
         async function sendOwnerNotification(eventType, payload) {
+            if (!FORMSPREE_ENDPOINT) return;
+
             try {
-                await Promise.allSettled([
-                    sendViaFormspree(eventType, payload),
-                    sendViaZapier(eventType, payload)
-                ]);
+                const subject = eventType === 'order_created'
+                    ? 'Nouvelle commande MaxiPC'
+                    : 'Nouvelle réservation MaxiPC';
+
+                const response = await fetch(FORMSPREE_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json'
+                    },
+                    body: JSON.stringify({
+                        _subject: subject,
+                        type: eventType,
+                        message: buildOwnerNotificationMessage(eventType, payload),
+                        ...payload
+                    })
+                });
+
+                if (!response.ok) {
+                    const body = await response.text();
+                    console.warn('Notification propriétaire non envoyée (Formspree).', response.status, body);
+                }
             } catch (error) {
                 console.warn('Notification propriétaire non envoyée.', error);
             }
@@ -1167,6 +1224,26 @@
             const formData = new FormData(document.getElementById('reservationForm'));
             const date = parseDateString(selectedDate);
             const dateFormatter = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+            if (!hasValidCaptchaToken(formData)) {
+                formMessage.textContent = '✗ Merci de valider le CAPTCHA avant l’envoi.';
+                formMessage.classList.remove('success');
+                formMessage.classList.add('error');
+                formMessage.style.display = 'block';
+                submitBtn.disabled = false;
+                updateReservationModeUI();
+                return;
+            }
+
+            if (isLikelyBotSubmission(formData)) {
+                formMessage.textContent = '✗ Requête bloquée pour sécurité. Merci de réessayer.';
+                formMessage.classList.remove('success');
+                formMessage.classList.add('error');
+                formMessage.style.display = 'block';
+                submitBtn.disabled = false;
+                updateReservationModeUI();
+                return;
+            }
 
             // Check if user is logged in
             const currentUser = await supabaseAuth.getCurrentUser();
@@ -1194,6 +1271,17 @@
                 customer_phone: formData.get('phone'),
                 description: formData.get('description')
             };
+
+            const payloadValidationError = validateReservationPayload(reservationData);
+            if (payloadValidationError) {
+                formMessage.textContent = `✗ ${payloadValidationError}`;
+                formMessage.classList.remove('success');
+                formMessage.classList.add('error');
+                formMessage.style.display = 'block';
+                submitBtn.disabled = false;
+                updateReservationModeUI();
+                return;
+            }
 
             const reservationMode = getReservationMode();
             const meetingType = String(formData.get('meeting_type') || '').trim();

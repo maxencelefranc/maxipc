@@ -15,13 +15,18 @@ CREATE TABLE IF NOT EXISTS public.reservations (
     status VARCHAR(50) DEFAULT 'confirmed' CHECK (status IN ('confirmed', 'in_progress', 'cancelled', 'completed')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT customer_email_check CHECK (customer_email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$')
+    CONSTRAINT customer_email_check CHECK (customer_email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'),
+    CONSTRAINT customer_name_length_check CHECK (char_length(trim(customer_name)) BETWEEN 2 AND 100),
+    CONSTRAINT customer_phone_check CHECK (customer_phone ~ '^\+?[0-9\s().-]{8,20}$')
 );
 
 -- Create index on user_id for faster queries
 CREATE INDEX IF NOT EXISTS idx_reservations_user_id ON public.reservations(user_id);
 CREATE INDEX IF NOT EXISTS idx_reservations_status ON public.reservations(status);
 CREATE INDEX IF NOT EXISTS idx_reservations_confirmation_number ON public.reservations(confirmation_number);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_reservations_active_slot
+    ON public.reservations(reservation_date, reservation_time)
+    WHERE status IN ('confirmed', 'in_progress');
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE public.reservations ENABLE ROW LEVEL SECURITY;
