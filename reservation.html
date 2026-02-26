@@ -290,6 +290,36 @@
             color: var(--text-muted);
         }
 
+        .reservation-mode-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .reservation-mode-option {
+            display: flex !important;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 0 !important;
+            font-weight: 500;
+            line-height: 1.4;
+            cursor: pointer;
+        }
+
+        .reservation-mode-option input[type="radio"] {
+            width: auto;
+            min-width: 16px;
+            height: 16px;
+            margin: 0;
+            padding: 0;
+            flex: 0 0 auto;
+        }
+
+        .reservation-mode-option span {
+            flex: 1;
+        }
+
         .selected-info {
             background: rgba(167, 107, 207, 0.1);
             border: 1px solid rgba(167, 107, 207, 0.3);
@@ -495,6 +525,41 @@
 
                 <form id="reservationForm">
                     <div class="form-group">
+                        <label>Type de prise en charge *</label>
+                        <div class="reservation-mode-options">
+                            <label class="reservation-mode-option">
+                                <input type="radio" name="reservation_mode" value="call_first" checked>
+                                <span>Être appelé d'abord pour définir le rendez-vous</span>
+                            </label>
+                            <label class="reservation-mode-option">
+                                <input type="radio" name="reservation_mode" value="direct_meeting">
+                                <span>Prendre un rendez-vous direct</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="directMeetingFields" style="display:none;">
+                        <div class="form-group">
+                            <label for="meeting_type">Type de rendez-vous *</label>
+                            <select id="meeting_type" name="meeting_type">
+                                <option value="">-- Choisissez --</option>
+                                <option value="domicile">À domicile</option>
+                                <option value="point_rencontre">Point de rencontre</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="homeAddressGroup" style="display:none;">
+                            <label for="home_address">Adresse d'intervention *</label>
+                            <input type="text" id="home_address" name="home_address" placeholder="Ex: 12 rue de la République, 22300 Lannion">
+                        </div>
+
+                        <div class="form-group" id="meetingPointGroup" style="display:none;">
+                            <label for="meeting_point">Point de rencontre (adresse/lieu) *</label>
+                            <input type="text" id="meeting_point" name="meeting_point" placeholder="Ex: Parking Leclerc Lannion, entrée principale">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
                         <label for="service">Service *</label>
                         <select id="service" name="service" required>
                             <option value="">-- Sélectionnez un service --</option>
@@ -589,6 +654,7 @@
         // Optionnel: créneaux déjà indisponibles (manuellement bloqués)
         // Exemple: '2026-02-24': ['19:00']
         let BOOKED_SLOTS = {};
+        let AUTO_BOOKED_SLOTS = {};
 
         const BOOKING_WINDOW = getBookingWindowBounds();
         const ALLOWED_MONTH_KEYS = getAllowedMonthKeysForBookingWindow();
@@ -601,8 +667,19 @@
         document.addEventListener('DOMContentLoaded', async function() {
             emailjs.init('c4iw2Wxz3QnEZYi7S');
             await loadAvailabilityFromAdmin();
+            await loadBookedSlotsFromReservations();
             renderCalendar();
             updateMonthNavState();
+            updateReservationModeUI();
+
+            document.querySelectorAll('input[name="reservation_mode"]').forEach((input) => {
+                input.addEventListener('change', updateReservationModeUI);
+            });
+
+            const meetingTypeSelect = document.getElementById('meeting_type');
+            if (meetingTypeSelect) {
+                meetingTypeSelect.addEventListener('change', updateReservationModeUI);
+            }
             
             // Attach event listeners
             document.getElementById('prevMonth').addEventListener('click', () => {
@@ -677,6 +754,59 @@
             }
         }
 
+        function normalizeSlotTime(value) {
+            const raw = String(value || '').trim();
+            if (!raw) return null;
+            const cleaned = raw.replace(/h/gi, ':').replace(/[.]/g, ':').trim();
+            const hhmm = cleaned.length >= 5 ? cleaned.slice(0, 5) : cleaned;
+            return /^([01]\d|2[0-3]):[0-5]\d$/.test(hhmm) ? hhmm : null;
+        }
+
+        function addBlockedSlot(map, dateKey, timeValue) {
+            const time = normalizeSlotTime(timeValue);
+            if (!dateKey || !time) return;
+            if (!Array.isArray(map[dateKey])) map[dateKey] = [];
+            if (!map[dateKey].includes(time)) map[dateKey].push(time);
+        }
+
+        async function loadBookedSlotsFromReservations() {
+            if (!window.supabaseClient) return;
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from('reservations')
+                    .select('reservation_date, reservation_time, status')
+                    .neq('status', 'cancelled');
+
+                if (error || !Array.isArray(data)) return;
+
+                const autoBooked = {};
+                data.forEach((row) => {
+                    addBlockedSlot(autoBooked, row.reservation_date, row.reservation_time);
+                });
+                AUTO_BOOKED_SLOTS = autoBooked;
+            } catch (error) {
+                console.warn('Chargement des créneaux réservés indisponible.', error);
+            }
+        }
+
+        function getBlockedTimesForDate(dateString) {
+            const manual = Array.isArray(BOOKED_SLOTS[dateString])
+                ? BOOKED_SLOTS[dateString].map((slot) => normalizeSlotTime(slot)).filter(Boolean)
+                : [];
+            const automatic = Array.isArray(AUTO_BOOKED_SLOTS[dateString])
+                ? AUTO_BOOKED_SLOTS[dateString].map((slot) => normalizeSlotTime(slot)).filter(Boolean)
+                : [];
+            return Array.from(new Set([...manual, ...automatic]));
+        }
+
+        function getConfiguredHoursForDate(date) {
+            const dateString = toDateString(date);
+            if (Object.prototype.hasOwnProperty.call(DATE_AVAILABILITY_OVERRIDES, dateString)) {
+                return DATE_AVAILABILITY_OVERRIDES[dateString] || [];
+            }
+            return WEEKLY_AVAILABILITY[date.getDay()] || [];
+        }
+
         function getBookingWindowBounds() {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -734,11 +864,11 @@
 
         function getAvailableHoursForDate(date) {
             const dateString = toDateString(date);
-            if (Object.prototype.hasOwnProperty.call(DATE_AVAILABILITY_OVERRIDES, dateString)) {
-                return DATE_AVAILABILITY_OVERRIDES[dateString] || [];
-            }
-
-            return WEEKLY_AVAILABILITY[date.getDay()] || [];
+            const configured = getConfiguredHoursForDate(date)
+                .map((slot) => normalizeSlotTime(slot))
+                .filter(Boolean);
+            const blocked = getBlockedTimesForDate(dateString);
+            return configured.filter((slot) => !blocked.includes(slot));
         }
 
         // Disable past dates and anything outside the next 7 days window
@@ -810,15 +940,17 @@
             let html = '';
 
             const selectedDateObject = parseDateString(selectedDate);
-            const availableHours = getAvailableHoursForDate(selectedDateObject);
-            const busyTimes = BOOKED_SLOTS[selectedDate] || [];
+            const configuredHours = getConfiguredHoursForDate(selectedDateObject)
+                .map((slot) => normalizeSlotTime(slot))
+                .filter(Boolean);
+            const busyTimes = getBlockedTimesForDate(selectedDate);
 
-            if (!availableHours.length) {
+            if (!configuredHours.length) {
                 document.getElementById('timeGrid').innerHTML = '<div class="no-selection">Aucun créneau disponible pour cette date.</div>';
                 return;
             }
 
-            for (let time of availableHours) {
+            for (let time of configuredHours) {
                 const isBusy = busyTimes.includes(time);
                 const isSelected = selectedTime === time;
 
@@ -870,6 +1002,69 @@
 
         function isCartSummary(summary) {
             return summary && summary.includes('Sélection boutique');
+        }
+
+        function getReservationMode() {
+            return document.querySelector('input[name="reservation_mode"]:checked')?.value || 'call_first';
+        }
+
+        function updateReservationModeUI() {
+            const mode = getReservationMode();
+            const isDirectMeeting = mode === 'direct_meeting';
+
+            const directMeetingFields = document.getElementById('directMeetingFields');
+            const meetingTypeSelect = document.getElementById('meeting_type');
+            const meetingPointGroup = document.getElementById('meetingPointGroup');
+            const meetingPointInput = document.getElementById('meeting_point');
+            const homeAddressGroup = document.getElementById('homeAddressGroup');
+            const homeAddressInput = document.getElementById('home_address');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (directMeetingFields) {
+                directMeetingFields.style.display = isDirectMeeting ? 'block' : 'none';
+            }
+
+            if (meetingTypeSelect) {
+                if (isDirectMeeting) {
+                    meetingTypeSelect.setAttribute('required', 'required');
+                } else {
+                    meetingTypeSelect.removeAttribute('required');
+                    meetingTypeSelect.value = '';
+                }
+            }
+
+            const isMeetingPoint = isDirectMeeting && meetingTypeSelect?.value === 'point_rencontre';
+            const isHomeVisit = isDirectMeeting && meetingTypeSelect?.value === 'domicile';
+
+            if (meetingPointGroup) {
+                meetingPointGroup.style.display = isMeetingPoint ? 'block' : 'none';
+            }
+
+            if (homeAddressGroup) {
+                homeAddressGroup.style.display = isHomeVisit ? 'block' : 'none';
+            }
+
+            if (meetingPointInput) {
+                if (isMeetingPoint) {
+                    meetingPointInput.setAttribute('required', 'required');
+                } else {
+                    meetingPointInput.removeAttribute('required');
+                    meetingPointInput.value = '';
+                }
+            }
+
+            if (homeAddressInput) {
+                if (isHomeVisit) {
+                    homeAddressInput.setAttribute('required', 'required');
+                } else {
+                    homeAddressInput.removeAttribute('required');
+                    homeAddressInput.value = '';
+                }
+            }
+
+            if (submitBtn) {
+                submitBtn.textContent = isDirectMeeting ? 'Confirmer la Réservation' : 'Demander un appel';
+            }
         }
 
         // Notifications externes (configuration simple)
@@ -982,7 +1177,7 @@
                 formMessage.classList.add('error');
                 formMessage.style.display = 'block';
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Confirmer la Réservation';
+                updateReservationModeUI();
                 
                 setTimeout(() => {
                     window.location.href = 'auth.html';
@@ -1000,7 +1195,79 @@
                 description: formData.get('description')
             };
 
+            const reservationMode = getReservationMode();
+            const meetingType = String(formData.get('meeting_type') || '').trim();
+            const meetingPoint = String(formData.get('meeting_point') || '').trim();
+            const homeAddress = String(formData.get('home_address') || '').trim();
+
+            if (reservationMode === 'direct_meeting') {
+                if (!meetingType) {
+                    formMessage.textContent = '✗ Merci de choisir le type de rendez-vous (domicile ou point de rencontre).';
+                    formMessage.classList.remove('success');
+                    formMessage.classList.add('error');
+                    formMessage.style.display = 'block';
+                    submitBtn.disabled = false;
+                    updateReservationModeUI();
+                    return;
+                }
+
+                if (meetingType === 'point_rencontre' && !meetingPoint) {
+                    formMessage.textContent = '✗ Merci de préciser le point de rencontre.';
+                    formMessage.classList.remove('success');
+                    formMessage.classList.add('error');
+                    formMessage.style.display = 'block';
+                    submitBtn.disabled = false;
+                    updateReservationModeUI();
+                    return;
+                }
+
+                if (meetingType === 'domicile' && !homeAddress) {
+                    formMessage.textContent = '✗ Merci de renseigner l\'adresse d\'intervention à domicile.';
+                    formMessage.classList.remove('success');
+                    formMessage.classList.add('error');
+                    formMessage.style.display = 'block';
+                    submitBtn.disabled = false;
+                    updateReservationModeUI();
+                    return;
+                }
+            }
+
+            const modeLabel = reservationMode === 'direct_meeting' ? 'Rendez-vous direct' : 'Appel d\'abord';
+            const meetingTypeLabel = meetingType === 'domicile'
+                ? 'À domicile'
+                : meetingType === 'point_rencontre'
+                    ? 'Point de rencontre'
+                    : 'À définir après appel';
+
+            const extraDetails = [
+                `Mode: ${modeLabel}`,
+                `Organisation: ${meetingTypeLabel}`
+            ];
+
+            if (meetingType === 'point_rencontre' && meetingPoint) {
+                extraDetails.push(`Lieu: ${meetingPoint}`);
+            }
+
+            if (meetingType === 'domicile' && homeAddress) {
+                extraDetails.push(`Adresse: ${homeAddress}`);
+            }
+
+            reservationData.description = `${reservationData.description || ''}\n\n${extraDetails.join('\n')}`.trim();
+
             try {
+                await loadBookedSlotsFromReservations();
+                const currentlyBusy = getBlockedTimesForDate(selectedDate);
+                if (currentlyBusy.includes(normalizeSlotTime(selectedTime))) {
+                    formMessage.textContent = '✗ Ce créneau vient d’être réservé. Merci d’en choisir un autre.';
+                    formMessage.classList.remove('success');
+                    formMessage.classList.add('error');
+                    formMessage.style.display = 'block';
+                    selectedTime = null;
+                    renderTimeSlots();
+                    updateSelectedInfo();
+                    return;
+                }
+
                 // Save to Supabase
                 const dbResult = await reservationManager.createReservation(currentUser.id, reservationData);
                 
@@ -1062,6 +1329,8 @@
                 formMessage.classList.add('success');
                 formMessage.style.display = 'block';
 
+                addBlockedSlot(AUTO_BOOKED_SLOTS, selectedDate, selectedTime);
+
                 document.getElementById('reservationForm').reset();
                 selectedDate = null;
                 selectedTime = null;
@@ -1080,7 +1349,7 @@
                 formMessage.style.display = 'block';
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Confirmer la Réservation';
+                updateReservationModeUI();
             }
         }
     </script>

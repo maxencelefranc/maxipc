@@ -2196,8 +2196,16 @@ async function initializeAdminDashboardPage() {
     const isValidTime = (value) => /^([01]\d|2[0-3]):[0-5]\d$/.test(String(value || '').trim());
 
     const normalizeTime = (value) => {
-        const trimmed = String(value || '').trim();
-        if (isValidTime(trimmed)) return trimmed;
+        const raw = String(value || '').trim();
+        if (!raw) return null;
+
+        const cleaned = raw
+            .replace(/h/gi, ':')
+            .replace(/[.]/g, ':')
+            .trim();
+
+        const hhmm = cleaned.length >= 5 ? cleaned.slice(0, 5) : cleaned;
+        if (isValidTime(hhmm)) return hhmm;
         return null;
     };
 
@@ -2235,9 +2243,11 @@ async function initializeAdminDashboardPage() {
     };
 
     const getQuickSelectedDays = () => {
-        return Array.from(document.querySelectorAll('[data-quick-day]:checked'))
-            .map((input) => String(input.getAttribute('data-quick-day')))
-            .filter((value) => value !== null);
+        return Array.from(document.querySelectorAll('[data-quick-day]'))
+            .filter((input) => input instanceof HTMLInputElement && input.checked)
+            .map((input) => input.getAttribute('data-quick-day'))
+            .filter((value) => value !== null)
+            .map((value) => String(value));
     };
 
     const parseTimesInput = (value) => {
