@@ -1710,6 +1710,11 @@ async function initializeAdminDashboardPage() {
     const saveAvailabilityBtn = document.getElementById('saveAvailabilityBtn');
     const availabilityPresetWeekBtn = document.getElementById('availabilityPresetWeekBtn');
     const availabilityPresetClearBtn = document.getElementById('availabilityPresetClearBtn');
+    const availabilityQuickStart = document.getElementById('availabilityQuickStart');
+    const availabilityQuickEnd = document.getElementById('availabilityQuickEnd');
+    const availabilityQuickStep = document.getElementById('availabilityQuickStep');
+    const availabilityQuickApplyBtn = document.getElementById('availabilityQuickApplyBtn');
+    const availabilityQuickClearDaysBtn = document.getElementById('availabilityQuickClearDaysBtn');
     const productsGrid = document.getElementById('productsGrid');
     const reservationsTable = document.getElementById('reservationsTableBody');
     const ordersTable = document.getElementById('ordersTableBody');
@@ -2198,6 +2203,43 @@ async function initializeAdminDashboardPage() {
 
     const sortSlots = (slots) => [...new Set(slots)].sort((a, b) => a.localeCompare(b));
 
+    const timeToMinutes = (value) => {
+        const normalized = normalizeTime(value);
+        if (!normalized) return null;
+        const [hours, minutes] = normalized.split(':').map(Number);
+        return hours * 60 + minutes;
+    };
+
+    const minutesToTime = (minutesValue) => {
+        const safe = Math.max(0, Math.min(1439, Number(minutesValue) || 0));
+        const hours = String(Math.floor(safe / 60)).padStart(2, '0');
+        const minutes = String(safe % 60).padStart(2, '0');
+        return `${hours}:${minutes}`;
+    };
+
+    const buildSlotsFromRange = (start, end, stepMinutes) => {
+        const startMinutes = timeToMinutes(start);
+        const endMinutes = timeToMinutes(end);
+        const step = Number(stepMinutes);
+
+        if (startMinutes === null || endMinutes === null) return null;
+        if (!Number.isFinite(step) || step <= 0) return null;
+        if (endMinutes < startMinutes) return null;
+
+        const slots = [];
+        for (let cursor = startMinutes; cursor <= endMinutes; cursor += step) {
+            slots.push(minutesToTime(cursor));
+            if (slots.length > 200) break;
+        }
+        return sortSlots(slots);
+    };
+
+    const getQuickSelectedDays = () => {
+        return Array.from(document.querySelectorAll('[data-quick-day]:checked'))
+            .map((input) => String(input.getAttribute('data-quick-day')))
+            .filter((value) => value !== null);
+    };
+
     const parseTimesInput = (value) => {
         if (!value) return [];
         return sortSlots(
@@ -2363,6 +2405,51 @@ async function initializeAdminDashboardPage() {
             availabilityState.weekly = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
             renderAvailabilityWeekEditor();
             showToast('Tous les créneaux ont été vidés.');
+        });
+    }
+
+    if (availabilityQuickApplyBtn) {
+        availabilityQuickApplyBtn.addEventListener('click', () => {
+            const selectedDays = getQuickSelectedDays();
+            if (!selectedDays.length) {
+                showToast('Choisis au moins un jour.');
+                return;
+            }
+
+            const slots = buildSlotsFromRange(
+                availabilityQuickStart?.value,
+                availabilityQuickEnd?.value,
+                availabilityQuickStep?.value || '30'
+            );
+
+            if (!slots || !slots.length) {
+                showToast('Créneau invalide (début/fin/pas).');
+                return;
+            }
+
+            selectedDays.forEach((day) => {
+                availabilityState.weekly[day] = slots;
+            });
+
+            renderAvailabilityWeekEditor();
+            showToast(`Créneaux appliqués sur ${selectedDays.length} jour(s).`);
+        });
+    }
+
+    if (availabilityQuickClearDaysBtn) {
+        availabilityQuickClearDaysBtn.addEventListener('click', () => {
+            const selectedDays = getQuickSelectedDays();
+            if (!selectedDays.length) {
+                showToast('Choisis au moins un jour.');
+                return;
+            }
+
+            selectedDays.forEach((day) => {
+                availabilityState.weekly[day] = [];
+            });
+
+            renderAvailabilityWeekEditor();
+            showToast(`Jours vidés: ${selectedDays.length}.`);
         });
     }
 

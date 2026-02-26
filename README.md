@@ -172,34 +172,21 @@ Le site affiche les avis depuis le fichier `reviews.json`.
 - La page d'accueil lit `reviews.json`
 - Aucun secret GitHub ni clé API n'est nécessaire
 
-## 🔔 Notifications admin (email + SMS)
+## 🔔 Notifications admin (Formspree + Zapier)
 
-Les nouvelles réservations/commandes peuvent notifier le propriétaire via une fonction Supabase Edge `notify-owner`.
+Les nouvelles réservations/commandes peuvent notifier le propriétaire sans CLI ni fonction serveur.
 
-### Déploiement de la fonction
+### Configuration
 
-```bash
-supabase functions deploy notify-owner --project-ref leuebqwdubzwkjhieqsk
-```
-
-### Secrets requis (Supabase)
-
-```bash
-supabase secrets set \
-   RESEND_API_KEY=... \
-   OWNER_EMAIL=... \
-   NOTIFY_FROM_EMAIL="MaxiPC Notifications <noreply@ton-domaine.fr>" \
-   TWILIO_ACCOUNT_SID=... \
-   TWILIO_AUTH_TOKEN=... \
-   TWILIO_FROM_PHONE=+1XXXXXXXXXX \
-   OWNER_PHONE_E164=+33XXXXXXXXX
-```
+- Ouvrir `reservation.html`
+- Renseigner `FORMSPREE_ENDPOINT` avec ton endpoint Formspree
+- Renseigner `ZAPIER_WEBHOOK_URL` avec ton Catch Hook Zapier
 
 ### Fonctionnement
 
-- Lors d'une réservation, le site appelle `functions/v1/notify-owner`
-- Lors d'une commande boutique, le site appelle aussi `functions/v1/notify-owner`
-- La fonction envoie un e-mail (Resend) + un SMS (Twilio)
+- À chaque réservation : envoi Formspree + webhook Zapier
+- À chaque commande boutique : envoi Formspree + webhook Zapier
+- Zapier peut ensuite envoyer SMS, WhatsApp, Slack, etc.
 
 ## 📊 Pages & Sections
 

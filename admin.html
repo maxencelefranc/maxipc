@@ -885,6 +885,43 @@
                     <button type="button" class="btn btn-secondary" id="availabilityPresetWeekBtn">Preset semaine soir</button>
                     <button type="button" class="btn btn-secondary" id="availabilityPresetClearBtn">Tout vider</button>
                 </div>
+
+                <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(240,147,251,0.18); border-radius:12px; padding:12px; margin-bottom:14px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+                        <strong style="color:#fff;">Générateur rapide</strong>
+                        <span style="color:#b8bfd3; font-size:0.84rem;">Applique des créneaux en une fois</span>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:8px; margin-bottom:10px;">
+                        <label style="display:flex; flex-direction:column; gap:4px; color:#fff; font-size:0.85rem;">
+                            <span>Début</span>
+                            <input id="availabilityQuickStart" type="time" value="13:00" step="1800" style="padding:8px; border-radius:8px; border:1px solid rgba(240,147,251,0.3); background:rgba(255,255,255,0.06); color:#fff;">
+                        </label>
+                        <label style="display:flex; flex-direction:column; gap:4px; color:#fff; font-size:0.85rem;">
+                            <span>Fin</span>
+                            <input id="availabilityQuickEnd" type="time" value="19:00" step="1800" style="padding:8px; border-radius:8px; border:1px solid rgba(240,147,251,0.3); background:rgba(255,255,255,0.06); color:#fff;">
+                        </label>
+                        <label style="display:flex; flex-direction:column; gap:4px; color:#fff; font-size:0.85rem;">
+                            <span>Pas</span>
+                            <select id="availabilityQuickStep" style="padding:8px; border-radius:8px; border:1px solid rgba(240,147,251,0.3); background:#131327; color:#fff;">
+                                <option value="30" selected>30 min</option>
+                                <option value="60">60 min</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                        <label style="color:#d7ddf2; font-size:0.84rem;"><input type="checkbox" data-quick-day="1" checked> Lun</label>
+                        <label style="color:#d7ddf2; font-size:0.84rem;"><input type="checkbox" data-quick-day="2" checked> Mar</label>
+                        <label style="color:#d7ddf2; font-size:0.84rem;"><input type="checkbox" data-quick-day="3" checked> Mer</label>
+                        <label style="color:#d7ddf2; font-size:0.84rem;"><input type="checkbox" data-quick-day="4" checked> Jeu</label>
+                        <label style="color:#d7ddf2; font-size:0.84rem;"><input type="checkbox" data-quick-day="5" checked> Ven</label>
+                        <label style="color:#d7ddf2; font-size:0.84rem;"><input type="checkbox" data-quick-day="6"> Sam</label>
+                        <label style="color:#d7ddf2; font-size:0.84rem;"><input type="checkbox" data-quick-day="0"> Dim</label>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button type="button" class="btn btn-primary" id="availabilityQuickApplyBtn">Appliquer aux jours cochés</button>
+                        <button type="button" class="btn btn-secondary" id="availabilityQuickClearDaysBtn">Vider jours cochés</button>
+                    </div>
+                </div>
                 <div id="availabilityWeekEditor" class="availability-week-editor"></div>
 
                 <details class="availability-advanced">

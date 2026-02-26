@@ -872,27 +872,83 @@
             return summary && summary.includes('Sélection boutique');
         }
 
+        // Notifications externes (configuration simple)
+        // Formspree: https://formspree.io/
+        // Zapier Catch Hook: https://zapier.com/
+        const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xojnppzq';
+        const ZAPIER_WEBHOOK_URL = 'https://hooks.zapier.com/hooks/catch/26564942/ucpttee/';
+
+        function buildOwnerNotificationMessage(eventType, payload = {}) {
+            if (eventType === 'order_created') {
+                return [
+                    'Nouvelle commande boutique reçue.',
+                    `Référence: ${payload.order_reference || '-'}`,
+                    `Client: ${payload.customer_name || '-'}`,
+                    `Email: ${payload.customer_email || '-'}`,
+                    `Téléphone: ${payload.customer_phone || '-'}`,
+                    `Total estimé: ${payload.total_estimated || '-'}`,
+                    `Détails: ${payload.items_text || '-'}`
+                ].join('\n');
+            }
+
+            return [
+                'Nouvelle réservation reçue.',
+                `N° confirmation: ${payload.confirmation_number || '-'}`,
+                `Client: ${payload.customer_name || '-'}`,
+                `Email: ${payload.customer_email || '-'}`,
+                `Téléphone: ${payload.customer_phone || '-'}`,
+                `Service: ${payload.service || '-'}`,
+                `Date: ${payload.reservation_date || '-'} ${payload.reservation_time || ''}`.trim(),
+                `Description: ${payload.description || '-'}`
+            ].join('\n');
+        }
+
+        async function sendViaFormspree(eventType, payload = {}) {
+            if (!FORMSPREE_ENDPOINT) return;
+            const subject = eventType === 'order_created'
+                ? 'Nouvelle commande boutique - MaxiPC'
+                : 'Nouvelle réservation - MaxiPC';
+
+            const message = buildOwnerNotificationMessage(eventType, payload);
+
+            await fetch(FORMSPREE_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                body: JSON.stringify({
+                    subject,
+                    message,
+                    eventType,
+                    ...payload
+                })
+            });
+        }
+
+        async function sendViaZapier(eventType, payload = {}) {
+            if (!ZAPIER_WEBHOOK_URL) return;
+
+            await fetch(ZAPIER_WEBHOOK_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    source: 'maxipc_site',
+                    eventType,
+                    payload,
+                    sent_at: new Date().toISOString()
+                })
+            });
+        }
+
         async function sendOwnerNotification(eventType, payload) {
-            if (!window.supabaseClient) return;
             try {
-                const supabaseUrl = window.supabaseClient.supabaseUrl || (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '');
-                if (!supabaseUrl) return;
-
-                const { data: sessionData } = await window.supabaseClient.auth.getSession();
-                const accessToken = sessionData?.session?.access_token;
-                if (!accessToken) return;
-
-                await fetch(`${supabaseUrl}/functions/v1/notify-owner`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${accessToken}`
-                    },
-                    body: JSON.stringify({
-                        eventType,
-                        payload
-                    })
-                });
+                await Promise.allSettled([
+                    sendViaFormspree(eventType, payload),
+                    sendViaZapier(eventType, payload)
+                ]);
             } catch (error) {
                 console.warn('Notification propriétaire non envoyée.', error);
             }
