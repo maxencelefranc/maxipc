@@ -267,6 +267,21 @@ function initPhoneLinks() {
 
 initPhoneLinks();
 
+function injectMobileCallButton() {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    if (currentPage === 'admin.html') return;
+    if (document.querySelector('.mobile-call-fab')) return;
+
+    const button = document.createElement('a');
+    button.className = 'mobile-call-fab';
+    button.href = 'tel:+33682186791';
+    button.setAttribute('aria-label', 'Appeler MaxiPC');
+    button.innerHTML = '<i class="fas fa-phone"></i>';
+    document.body.appendChild(button);
+}
+
+injectMobileCallButton();
+
 /* ===================== */
 /* PERFORMANCE TIPS      */
 /* ===================== */
@@ -308,7 +323,7 @@ function trackEvent(eventName, eventData) {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('MaxPC website loaded successfully');
+    console.log('MaxiPC website loaded successfully');
     
     // Update navigation based on auth status
     await updateNavbar();

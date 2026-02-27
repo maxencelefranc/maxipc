@@ -16,6 +16,33 @@
     --transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
 }
 
+.mobile-call-fab {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: var(--secondary-gradient);
+    color: #fff;
+    text-decoration: none;
+    box-shadow: 0 12px 30px rgba(245, 87, 108, 0.35);
+    z-index: 2000;
+}
+
+.mobile-call-fab i {
+    font-size: 1.25rem;
+}
+
+@media (max-width: 768px) {
+    .mobile-call-fab {
+        display: inline-flex;
+    }
+}
+
 /* ===================== */
 /* ANIMATIONS           */
 /* ===================== */
