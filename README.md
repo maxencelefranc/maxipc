@@ -160,16 +160,16 @@ Pour améliorer le site :
 
 ## ⭐ Avis clients (manuel)
 
-Le site affiche les avis depuis le fichier `reviews.json`.
+Le site affiche les avis depuis le fichier `data/reviews.json`.
 
 ### Mise à jour des avis
-- Ouvrir `reviews.json`
+- Ouvrir `data/reviews.json`
 - Mettre à jour `updated_at`
 - Ajuster `place.rating` et `place.user_ratings_total`
 - Ajouter/modifier les objets dans `reviews`
 
 ### Affichage
-- La page d'accueil lit `reviews.json`
+- La page d'accueil lit `data/reviews.json`
 - Aucun secret GitHub ni clé API n'est nécessaire
 
 ## 🔔 Notifications admin (Formspree)

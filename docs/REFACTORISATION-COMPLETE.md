@@ -213,7 +213,7 @@ Les fichiers suivants ont été créés/mis à jour:
 - **components/showcase.html** - Galerie interactive de tous les composants
 
 ### Snippets
-- **structured-data-snippets.html** - JSON-LD pour SEO
+- **docs/structured-data-snippets.html** - JSON-LD pour SEO
 
 ---
 

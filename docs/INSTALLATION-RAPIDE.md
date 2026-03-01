@@ -80,7 +80,7 @@ Ouvrir : http://localhost:8000
 ```powershell
 # Windows PowerShell
 cd "C:\Users\User\OneDrive\DEV\Projets\MaxiPc"
-.\apply-optimizations.ps1
+.\tools\apply-optimizations.ps1
 ```
 
 Ce script va :

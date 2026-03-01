@@ -127,8 +127,8 @@ styles/
 ├── OPTIMIZATIONS.md          (9.5 KB) - Guide complet
 ├── LIGHTHOUSE-CHECKLIST.md   (8.2 KB) - Checklist audit
 ├── README-V2.md              (7.8 KB) - README mis à jour
-├── structured-data-snippets.html (5.1 KB) - SEO snippets
-└── apply-optimizations.ps1   (1.8 KB) - Script automation
+├── docs/structured-data-snippets.html  (5.1 KB) - SEO snippets
+└── tools/apply-optimizations.ps1       (1.8 KB) - Script automation
 ```
 
 **Total :** 13 nouveaux fichiers créés, **~52 KB** de nouveaux assets

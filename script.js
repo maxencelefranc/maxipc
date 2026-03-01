@@ -1,4 +1,4 @@
-/* ===================== */
+﻿/* ===================== */
 /* ENHANCED NAVIGATION    */
 /* ===================== */
 
@@ -717,7 +717,7 @@ async function loadShopProducts() {
     }
 
     try {
-        const response = await fetch('shop-products.json');
+        const response = await fetch('data/shop-products.json');
         if (!response.ok) throw new Error('Failed to fetch products');
         const data = await response.json();
         if (!Array.isArray(data)) throw new Error('Invalid product format');
@@ -2639,8 +2639,8 @@ async function initializeAdminDashboardPage() {
         modalSave.addEventListener('click', async () => {
             if (reviewEditMode) {
                 const reviewPayload = getReviewPayloadFromForm();
-                if (!reviewPayload.author_name || !reviewPayload.text) {
-                    showToast('Auteur et texte de l’avis sont requis.');
+                if (!reviewPayload.author_name) {
+                    showToast("L'auteur de l'avis est requis.");
                     return;
                 }
                 if (!reviewPayload.time) {
@@ -2966,8 +2966,8 @@ async function initializeGoogleReviewsSection() {
         }
 
         if (!payload) {
-            const response = await fetch('reviews.json', { cache: 'no-store' });
-            if (!response.ok) throw new Error('reviews.json introuvable');
+            const response = await fetch('data/reviews.json', { cache: 'no-store' });
+            if (!response.ok) throw new Error('data/reviews.json introuvable');
             payload = await response.json();
         }
 

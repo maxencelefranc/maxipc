@@ -66,7 +66,7 @@ MaxiPC/
 ├── 📄 README.md               # Ce fichier
 ├── 📄 OPTIMIZATIONS.md        # Guide optimisations ⭐ NEW
 ├── 📄 LIGHTHOUSE-CHECKLIST.md # Checklist audit ⭐ NEW
-└── 📄 apply-optimizations.ps1 # Script automation ⭐ NEW
+└── 📄 tools/apply-optimizations.ps1 # Script automation ⭐ NEW
 ```
 
 ## 🚀 Démarrage Rapide
@@ -97,7 +97,7 @@ npx http-server
 ### 4. Appliquer les optimisations aux autres pages
 ```powershell
 # Windows PowerShell
-.\apply-optimizations.ps1
+.\tools\apply-optimizations.ps1
 ```
 
 ## 📊 Tests & Audits
