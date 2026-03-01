@@ -1528,7 +1528,7 @@ function normalizeReviewsPayload(payload = {}) {
     const reviews = Array.isArray(payload.reviews)
         ? payload.reviews
             .map((review) => normalizeReviewItem(review))
-            .filter((review) => review.author_name && review.text)
+            .filter((review) => review.author_name)
         : [];
 
     const total = reviews.length;
@@ -2662,9 +2662,10 @@ async function initializeAdminDashboardPage() {
                     return;
                 }
 
+                const isNewReview = editingReviewIndex === 'new';
                 renderReviewsAdminList();
                 closeProductModal();
-                showToast(editingReviewIndex === 'new' ? 'Avis ajouté.' : 'Avis mis à jour.');
+                showToast(isNewReview ? 'Avis ajouté.' : 'Avis mis à jour.');
                 return;
             }
 
