@@ -2648,12 +2648,15 @@ async function initializeAdminDashboardPage() {
                     return;
                 }
 
-                if (editingReviewIndex === 'new') {
+                const parsedReviewIndex = Number(editingReviewIndex);
+                const isCreatingReview = editingReviewIndex === 'new'
+                    || !Number.isInteger(parsedReviewIndex)
+                    || parsedReviewIndex < 0;
+
+                if (isCreatingReview) {
                     adminReviewsPayload.reviews.unshift(reviewPayload);
                 } else {
-                    const index = Number(editingReviewIndex);
-                    if (!Number.isInteger(index) || index < 0) return;
-                    adminReviewsPayload.reviews[index] = reviewPayload;
+                    adminReviewsPayload.reviews[parsedReviewIndex] = reviewPayload;
                 }
 
                 const saved = await saveReviewsToSiteContent();
@@ -2662,10 +2665,9 @@ async function initializeAdminDashboardPage() {
                     return;
                 }
 
-                const isNewReview = editingReviewIndex === 'new';
                 renderReviewsAdminList();
                 closeProductModal();
-                showToast(isNewReview ? 'Avis ajouté.' : 'Avis mis à jour.');
+                showToast(isCreatingReview ? 'Avis ajouté.' : 'Avis mis à jour.');
                 return;
             }
 
