@@ -4,345 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Découvrez nos tarifs et forfaits pour le dépannage, optimisation et montage de PC à Lannion.">
-    <title>Tarifs - MaxiPC</title>
+    <title>Tarifs - MaxPC</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles/variables.css">
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/components.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="Assets/Logo.png">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <style>
-        .pricing-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 60px 20px;
-        }
-
-        .pricing-header {
-            text-align: center;
-            margin-bottom: 60px;
-            animation: slideInUp 0.8s ease-out;
-        }
-
-        .pricing-header h1 {
-            font-size: 3rem;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        .pricing-header p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
-
-        /* PRICING CARDS */
-        .pricing-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 30px;
-            margin-bottom: 80px;
-        }
-
-        .pricing-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 40px 30px;
-            text-align: center;
-            transition: all 0.3s ease;
-            animation: slideInUp 0.8s ease-out;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .pricing-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--primary-gradient);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .pricing-card:hover {
-            border-color: var(--accent-color);
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(167, 107, 207, 0.2);
-        }
-
-        .pricing-card:hover::before {
-            opacity: 1;
-        }
-
-        .pricing-card.featured {
-            border-color: var(--accent-color);
-            transform: scale(1.05);
-        }
-
-        .pricing-card.featured::before {
-            opacity: 1;
-        }
-
-        .pricing-badge {
-            display: inline-block;
-            background: var(--primary-gradient);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-
-        .pricing-icon {
-            font-size: 3rem;
-            color: var(--accent-color);
-            margin-bottom: 15px;
-        }
-
-        .pricing-card h3 {
-            color: var(--text-light);
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .pricing-card .subtitle {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            margin-bottom: 20px;
-        }
-
-        .price {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin: 20px 0;
-        }
-
-        .price-period {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        .features-list {
-            text-align: left;
-            margin: 30px 0;
-            list-style: none;
-            padding: 0;
-        }
-
-        .features-list li {
-            color: var(--text-light);
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .features-list li:last-child {
-            border-bottom: none;
-        }
-
-        .features-list i {
-            color: var(--accent-color);
-            margin-right: 12px;
-            font-size: 1.1rem;
-        }
-
-        .cta-btn {
-            display: inline-block;
-            margin-top: 30px;
-            padding: 14px 30px;
-            background: var(--primary-gradient);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            font-size: 1rem;
-        }
-
-        .cta-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(167, 107, 207, 0.4);
-        }
-
-        /* DETAILED SERVICES */
-        .services-section {
-            margin-bottom: 80px;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 2rem;
-            color: var(--text-light);
-            margin-bottom: 50px;
-            font-weight: 700;
-        }
-
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-        }
-
-        .service-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 30px;
-            animation: slideInUp 0.8s ease-out;
-            transition: all 0.3s ease;
-        }
-
-        .service-card:hover {
-            background: rgba(167, 107, 207, 0.1);
-            border-color: rgba(167, 107, 207, 0.3);
-            transform: translateY(-5px);
-        }
-
-        .service-icon {
-            font-size: 2.5rem;
-            color: var(--accent-color);
-            margin-bottom: 15px;
-        }
-
-        .service-card h4 {
-            color: var(--text-light);
-            margin: 15px 0 10px 0;
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-
-        .service-description {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            margin-bottom: 12px;
-            line-height: 1.6;
-        }
-
-        .service-price {
-            color: var(--accent-color);
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        /* INFO BOX */
-        .info-box {
-            background: rgba(167, 107, 207, 0.1);
-            border-left: 4px solid var(--accent-color);
-            border-radius: 10px;
-            padding: 25px;
-            margin-top: 60px;
-            animation: slideInUp 0.8s ease-out;
-        }
-
-        .info-box h4 {
-            color: var(--text-light);
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-        }
-
-        .info-box p {
-            color: var(--text-muted);
-            margin: 8px 0;
-            line-height: 1.6;
-        }
-
-        .info-box i {
-            color: var(--accent-color);
-            margin-right: 8px;
-        }
-
-        @media (max-width: 768px) {
-            .pricing-container {
-                padding: 40px 20px;
-            }
-
-            .pricing-header h1 {
-                font-size: 2rem;
-            }
-
-            .pricing-cards {
-                gap: 20px;
-            }
-
-            .pricing-card {
-                padding: 30px 20px;
-            }
-
-            .pricing-card.featured {
-                transform: scale(1);
-            }
-
-            .price {
-                font-size: 2rem;
-            }
-
-            .services-grid {
-                gap: 20px;
-            }
-
-            .section-title {
-                font-size: 1.5rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .pricing-container {
-                padding: 20px 15px;
-            }
-
-            .pricing-header h1 {
-                font-size: 1.5rem;
-            }
-
-            .pricing-header p {
-                font-size: 0.95rem;
-            }
-
-            .pricing-card {
-                padding: 20px 15px;
-            }
-
-            .price {
-                font-size: 1.8rem;
-            }
-
-            .features-list li {
-                padding: 10px 0;
-                font-size: 0.9rem;
-            }
-
-            .cta-btn {
-                width: 100%;
-                padding: 12px 20px;
-                font-size: 0.95rem;
-            }
-
-            .service-card {
-                padding: 20px;
-            }
-
-            .section-title {
-                font-size: 1.3rem;
-                margin-bottom: 30px;
-            }
-        }
-    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -370,102 +40,103 @@
     </nav>
 
     <!-- Main Content -->
-    <div class="pricing-container">
-        <div class="pricing-header">
-            <h1>💰 Nos Tarifs</h1>
-            <p>Des prix justes et transparents pour tous vos besoins informatiques</p>
+    <div class="container" style="padding: 60px 20px;">
+        <div style="text-align: center; margin-bottom: 60px;">
+            <h1 style="font-size: 3rem; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 15px; font-weight: 700;">💰 Nos Tarifs</h1>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Des prix justes et transparents pour tous vos besoins informatiques</p>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 10px;">Tarifs affichés à titre indicatif • Devis gratuit avant intervention • Main-d'œuvre incluse</p>
         </div>
 
         <!-- PACKS PRINCIPAUX -->
-        <div class="pricing-cards">
+        <div class="grid grid-3">
             <!-- Pack Express -->
-            <div class="pricing-card">
-                <div class="pricing-icon">
+            <div class="card">
+                <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
                     <i class="fas fa-bolt"></i>
                 </div>
-                <div class="pricing-badge">PACK EXPRESS</div>
-                <h3>Dépannage Express</h3>
-                <p class="subtitle">Intervention rapide et efficace</p>
-                <div class="price">49<span style="font-size: 1.5rem;">€</span></div>
-                <p class="price-period">intervention complète</p>
-                <ul class="features-list">
-                    <li><i class="fas fa-check"></i> Diagnostic complet</li>
-                    <li><i class="fas fa-check"></i> Intervention rapide (≤1h)</li>
-                    <li><i class="fas fa-check"></i> Frais de déplacement inclus</li>
-                    <li><i class="fas fa-check"></i> Idéal pour les petits problèmes</li>
+                <div class="badge badge-primary" style="margin-bottom: 15px;">PACK EXPRESS</div>
+                <h3 style="color: var(--text-light); font-size: 1.5rem; margin-bottom: 10px; font-weight: 600;">Dépannage Express</h3>
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">Intervention rapide et efficace</p>
+                <div style="font-size: 2.5rem; font-weight: 700; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 20px 0;">À partir de 49€</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">diagnostic + intervention standard inclus</p>
+                <ul style="text-align: left; margin: 30px 0; list-style: none; padding: 0;">
+                    <li style="color: var(--text-light); padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.95rem; display: flex; align-items: center;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 12px; font-size: 1.1rem;"></i> Diagnostic complet</li>
+                    <li style="color: var(--text-light); padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.95rem; display: flex; align-items: center;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 12px; font-size: 1.1rem;"></i> Intervention rapide (≤1h)</li>
+                    <li style="color: var(--text-light); padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.95rem; display: flex; align-items: center;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 12px; font-size: 1.1rem;"></i> Frais de déplacement inclus</li>
+                    <li style="color: var(--text-light); padding: 12px 0; font-size: 0.95rem; display: flex; align-items: center;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 12px; font-size: 1.1rem;"></i> Idéal pour les petits problèmes</li>
                 </ul>
-                <a href="reservation.html" class="cta-btn">Réserver</a>
+                <a href="reservation.html" class="btn btn-primary">Réserver</a>
             </div>
 
             <!-- Pack Optimisation -->
-            <div class="pricing-card featured">
-                <div class="pricing-badge" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); margin-bottom: 20px;">⭐ RECOMMANDÉ</div>
-                <div class="pricing-icon">
+            <div class="card card-gradient">
+                <div class="badge badge-accent" style="margin-bottom: 20px;">⭐ RECOMMANDÉ</div>
+                <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
                     <i class="fas fa-broom"></i>
                 </div>
-                <h3>Optimisation Complète</h3>
-                <p class="subtitle">Nettoyage en profondeur</p>
-                <div class="price">65<span style="font-size: 1.5rem;">€</span></div>
-                <p class="price-period">forfait unique</p>
-                <ul class="features-list">
-                    <li><i class="fas fa-check"></i> Suppression virus/malware</li>
-                    <li><i class="fas fa-check"></i> Nettoyage logiciel complet</li>
-                    <li><i class="fas fa-check"></i> Mises à jour système</li>
-                    <li><i class="fas fa-check"></i> Vérification disque dur</li>
-                    <li><i class="fas fa-check"></i> Conseils d'utilisation</li>
+                <h3 style="color: var(--text-light); font-size: 1.5rem; margin-bottom: 10px; font-weight: 600;">Optimisation Complète</h3>
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">Nettoyage en profondeur</p>
+                <div style="font-size: 2.5rem; font-weight: 700; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 20px 0;">À partir de 65€</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">forfait optimisation complet inclus</p>
+                <ul style="text-align: left; margin: 30px 0; list-style: none; padding: 0;">
+                    <li style="color: var(--text-light); padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.95rem; display: flex; align-items: center;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 12px; font-size: 1.1rem;"></i> Suppression virus/malware</li>
+                    <li style="color: var(--text-light); padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.95rem; display: flex; align-items: center;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 12px; font-size: 1.1rem;"></i> Nettoyage logiciel complet</li>
+                    <li style="color: var(--text-light); padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.95rem; display: flex; align-items: center;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 12px; font-size: 1.1rem;"></i> Mises à jour système</li>
+                    <li style="color: var(--text-light); padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.95rem; display: flex; align-items: center;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 12px; font-size: 1.1rem;"></i> Vérification disque dur</li>
+                    <li style="color: var(--text-light); padding: 12px 0; font-size: 0.95rem; display: flex; align-items: center;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 12px; font-size: 1.1rem;"></i> Conseils d'utilisation</li>
                 </ul>
-                <a href="reservation.html" class="cta-btn">Réserver</a>
+                <a href="reservation.html" class="btn btn-primary">Réserver</a>
             </div>
 
             <!-- Pack Montage -->
-            <div class="pricing-card">
-                <div class="pricing-icon">
+            <div class="card">
+                <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
                     <i class="fas fa-microchip"></i>
                 </div>
-                <div class="pricing-badge">PACK PREMIUM</div>
-                <h3>PC Sur Mesure</h3>
-                <p class="subtitle">Montage professionnel</p>
-                <div class="price">à partir de<span style="font-size: 1.5rem;">120€</span></div>
-                <p class="price-period">+ coût des pièces</p>
-                <ul class="features-list">
-                    <li><i class="fas fa-check"></i> Montage standard : 90€</li>
-                    <li><i class="fas fa-check"></i> + Windows + pilotes : 120€</li>
-                    <li><i class="fas fa-check"></i> Expertise à valoriser</li>
-                    <li><i class="fas fa-check"></i> Conseils et suivi</li>
+                <div class="badge badge-primary" style="margin-bottom: 15px;">PACK PREMIUM</div>
+                <h3 style="color: var(--text-light); font-size: 1.5rem; margin-bottom: 10px; font-weight: 600;">PC Sur Mesure</h3>
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">Montage professionnel</p>
+                <div style="font-size: 2.5rem; font-weight: 700; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 20px 0;">À partir de<br>90€</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">montage seul • 120€ avec Windows/pilotes • pièces en sus</p>
+                <ul style="text-align: left; margin: 30px 0; list-style: none; padding: 0;">
+                    <li style="color: var(--text-light); padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.95rem; display: flex; align-items: center;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 12px; font-size: 1.1rem;"></i> Montage standard : 90€</li>
+                    <li style="color: var(--text-light); padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.95rem; display: flex; align-items: center;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 12px; font-size: 1.1rem;"></i> + Windows + pilotes : 120€</li>
+                    <li style="color: var(--text-light); padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.95rem; display: flex; align-items: center;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 12px; font-size: 1.1rem;"></i> Expertise à valoriser</li>
+                    <li style="color: var(--text-light); padding: 12px 0; font-size: 0.95rem; display: flex; align-items: center;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 12px; font-size: 1.1rem;"></i> Conseils et suivi</li>
                 </ul>
-                <a href="contact.html" class="cta-btn">Nous contacter</a>
+                <a href="contact.html" class="btn btn-primary">Nous contacter</a>
             </div>
         </div>
 
         <!-- SERVICES DÉTAILLÉS -->
-        <div class="services-section">
-            <h2 class="section-title">Services à la Carte</h2>
+        <div style="margin-bottom: 80px;">
+            <h2 style="text-align: center; font-size: 2rem; color: var(--text-light); margin-bottom: 50px; font-weight: 700; margin-top: 80px;">Services à la Carte</h2>
             
-            <div class="services-grid">
+            <div class="grid grid-auto">
                 <!-- Dépannage à domicile -->
-                <div class="service-card">
-                    <div class="service-icon">
+                <div class="card">
+                    <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
                         <i class="fas fa-house"></i>
                     </div>
-                    <h4>💻 Dépannage à Domicile</h4>
-                    <div class="service-description">
+                    <h4 style="color: var(--text-light); margin: 15px 0 10px 0; font-size: 1.2rem; font-weight: 600;">💻 Dépannage à Domicile</h4>
+                    <div style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px; line-height: 1.6;">
                         <strong>Diagnostic simple :</strong><br>
-                        <span class="service-price">30 €</span><br><br>
+                        <span style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">30 €</span><br><br>
                         <strong>Intervention :</strong><br>
-                        <span class="service-price">45 € / heure</span><br><br>
+                        <span style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">à partir de 45 € / heure</span><br><br>
                         <strong>Frais de déplacement :</strong><br>
-                        Lannion centre : <span class="service-price">5 €</span><br>
-                        Extérieur : <span class="service-price">10 €</span>
+                        Lannion centre : <span style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">5 €</span><br>
+                        Extérieur : <span style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">10 €</span>
                     </div>
                 </div>
 
                 <!-- Optimisation -->
-                <div class="service-card">
-                    <div class="service-icon">
+                <div class="card">
+                    <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
                         <i class="fas fa-rocket"></i>
                     </div>
-                    <h4>🧹 Optimisation Complète</h4>
-                    <div class="service-description">
+                    <h4 style="color: var(--text-light); margin: 15px 0 10px 0; font-size: 1.2rem; font-weight: 600;">🧹 Optimisation Complète</h4>
+                    <div style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px; line-height: 1.6;">
                         <strong>Forfait tout-en-un</strong><br><br>
                         ✓ Suppression virus<br>
                         ✓ Nettoyage logiciel<br>
@@ -473,83 +144,83 @@
                         ✓ Vérification disque<br>
                         ✓ Conseils
                     </div>
-                    <div class="service-price" style="font-size: 1.8rem;">65 €</div>
+                    <div style="color: var(--accent-color); font-weight: 600; font-size: 1.8rem;">à partir de 65 €</div>
                 </div>
 
                 <!-- Remplacement composant -->
-                <div class="service-card">
-                    <div class="service-icon">
+                <div class="card">
+                    <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
                         <i class="fas fa-tools"></i>
                     </div>
-                    <h4>🔧 Remplacement Composant</h4>
-                    <div class="service-description">
+                    <h4 style="color: var(--text-light); margin: 15px 0 10px 0; font-size: 1.2rem; font-weight: 600;">🔧 Remplacement Composant</h4>
+                    <div style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px; line-height: 1.6;">
                         <strong>Intervention simple</strong><br><br>
                         RAM, SSD, disque dur,<br>
                         ventilateur, etc.<br><br>
-                        <span class="service-price">40–60 €</span><br>
+                        <span style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">40–60 €</span><br>
                         selon complexité
                     </div>
                 </div>
 
                 <!-- Installation Windows -->
-                <div class="service-card">
-                    <div class="service-icon">
+                <div class="card">
+                    <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
                         <i class="fas fa-window-restore"></i>
                     </div>
-                    <h4>💾 Installation Windows</h4>
-                    <div class="service-description">
+                    <h4 style="color: var(--text-light); margin: 15px 0 10px 0; font-size: 1.2rem; font-weight: 600;">💾 Installation Windows</h4>
+                    <div style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px; line-height: 1.6;">
                         <strong>Installation + pilotes</strong><br><br>
                         Windows propre<br>
                         Pilotes optimisés<br>
                         Conseils sur paramètres
                     </div>
-                    <div class="service-price">à partir de 40 €</div>
+                    <div style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">à partir de 40 €</div>
                 </div>
 
                 <!-- Montage standard -->
-                <div class="service-card">
-                    <div class="service-icon">
+                <div class="card">
+                    <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
                         <i class="fas fa-cube"></i>
                     </div>
-                    <h4>🖥️ Montage Standard</h4>
-                    <div class="service-description">
+                    <h4 style="color: var(--text-light); margin: 15px 0 10px 0; font-size: 1.2rem; font-weight: 600;">🖥️ Montage Standard</h4>
+                    <div style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px; line-height: 1.6;">
                         <strong>Assembly professionnel</strong><br><br>
                         Vérification compatibilité<br>
                         Montage précis<br>
                         Tests de fonctionnement
                     </div>
-                    <div class="service-price">90 €</div>
+                    <div style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">à partir de 90 €</div>
                 </div>
 
                 <!-- Montage Complet -->
-                <div class="service-card">
-                    <div class="service-icon">
+                <div class="card">
+                    <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
                         <i class="fas fa-computer"></i>
                     </div>
-                    <h4>🎮 Montage + Installation</h4>
-                    <div class="service-description">
+                    <h4 style="color: var(--text-light); margin: 15px 0 10px 0; font-size: 1.2rem; font-weight: 600;">🎮 Montage + Installation</h4>
+                    <div style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px; line-height: 1.6;">
                         <strong>Package complet</strong><br><br>
                         Montage + Windows<br>
                         + pilotes + logiciels<br>
                         + configuration gaming
                     </div>
-                    <div class="service-price">120 €</div>
+                    <div style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">à partir de 120 €</div>
                 </div>
             </div>
         </div>
 
         <!-- INFO BOX -->
-        <div class="info-box">
-            <h4><i class="fas fa-info-circle"></i> Informations importantes</h4>
-            <p><i class="fas fa-check"></i> <strong>Tous nos tarifs sont TTC et incluent la main-d'œuvre</strong></p>
-            <p><i class="fas fa-check"></i> <strong>Frais de déplacement déductibles</strong> du coût total si intervention > 60€</p>
-            <p><i class="fas fa-check"></i> <strong>Diagnostic gratuit</strong> si vous choisissez l'intervention (≥45€)</p>
-            <p><i class="fas fa-check"></i> <strong>Pièces et logiciels en sus</strong> à prix coûtant +5% de marge</p>
-            <p><i class="fas fa-credit-card"></i> <strong>Commande de pièces :</strong> paiement des pièces requis avant validation de la commande fournisseur</p>
-            <p><i class="fas fa-shield-heart"></i> <strong>💻 Réparation :</strong> garantie 3 mois sur l'intervention (hors mauvaise utilisation)</p>
-            <p><i class="fas fa-shield"></i> <strong>🖥️ PC monté sur mesure :</strong> garantie 6 mois sur le montage</p>
-            <p><i class="fas fa-microchip"></i> <strong>Composants :</strong> garantie constructeur applicable sur chaque pièce</p>
-            <p><i class="fas fa-check"></i> Besoin de précisions ? <a href="contact.html" style="color: var(--accent-color); text-decoration: none; font-weight: 600;">Contactez-nous</a></p>
+        <div class="alert alert-info" style="margin-top: 60px;">
+            <h4 style="color: var(--text-light); margin-bottom: 10px; font-size: 1.1rem;"><i class="fas fa-info-circle"></i> Informations importantes</h4>
+            <p style="color: var(--text-muted); margin: 8px 0; line-height: 1.6;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 8px;"></i> <strong>Tous nos tarifs sont TTC et incluent la main-d'œuvre</strong></p>
+            <p style="color: var(--text-muted); margin: 8px 0; line-height: 1.6;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 8px;"></i> <strong>Frais de déplacement déductibles</strong> du coût total si intervention > 60€</p>
+            <p style="color: var(--text-muted); margin: 8px 0; line-height: 1.6;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 8px;"></i> <strong>Diagnostic gratuit</strong> si vous choisissez l'intervention (≥45€)</p>
+            <p style="color: var(--text-muted); margin: 8px 0; line-height: 1.6;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 8px;"></i> <strong>Pièces et logiciels en sus</strong> à prix coûtant +5% de marge</p>
+            <p style="color: var(--text-muted); margin: 8px 0; line-height: 1.6;"><i class="fas fa-credit-card" style="color: var(--accent-color); margin-right: 8px;"></i> <strong>Commande de pièces :</strong> paiement des pièces requis avant validation de la commande fournisseur</p>
+            <p style="color: var(--text-muted); margin: 8px 0; line-height: 1.6;"><i class="fas fa-shield-heart" style="color: var(--accent-color); margin-right: 8px;"></i> <strong>💻 Réparation :</strong> garantie 3 mois sur l'intervention (hors mauvaise utilisation)</p>
+            <p style="color: var(--text-muted); margin: 8px 0; line-height: 1.6;"><i class="fas fa-shield" style="color: var(--accent-color); margin-right: 8px;"></i> <strong>🖥️ PC monté sur mesure :</strong> garantie 6 mois sur le montage</p>
+            <p style="color: var(--text-muted); margin: 8px 0; line-height: 1.6;"><i class="fas fa-microchip" style="color: var(--accent-color); margin-right: 8px;"></i> <strong>Composants :</strong> garantie constructeur applicable sur chaque pièce</p>
+            <p style="color: var(--text-muted); margin: 8px 0; line-height: 1.6;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 8px;"></i> Besoin de précisions ? <a href="contact.html" style="color: var(--accent-color); text-decoration: none; font-weight: 600;">Contactez-nous</a></p>
         </div>
     </div>
 
@@ -558,7 +229,7 @@
         <div class="footer-content">
             <div class="footer-section">
                 <img src="Assets/Logo.png" alt="MaxiPC Logo" class="footer-logo">
-                <h4>MaxiPC</h4>
+                <h4>MaxPC</h4>
                 <p>Réparation et configuration PC à Lannion</p>
             </div>
             <div class="footer-section">
@@ -573,12 +244,12 @@
             </div>
             <div class="footer-section">
                 <h4>Contact</h4>
-                <p>Email: <a href="mailto:lefrancmaxence8@gmail.com">lefrancmaxence8@gmail.com</a></p>
+                <p>Email: <a href="mailto:maxence@maxpc.fr">maxence@maxpc.fr</a></p>
                 <p>Téléphone: <a href="tel:+33626453849">+33 6 26 45 38 49</a></p>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 MaxiPC. Tous droits réservés. | <a href="mentions-legales.html">Mentions légales</a> | <a href="politique-confidentialite.html">Confidentialité</a> | <a href="cgv.html">CGV</a> | <a href="politique-cookies.html">Cookies</a></p>
+            <p>&copy; 2026 MaxPC. Tous droits réservés. | <a href="mentions-legales.html">Mentions légales</a> | <a href="politique-confidentialite.html">Confidentialité</a> | <a href="cgv.html">CGV</a> | <a href="politique-cookies.html">Cookies</a></p>
         </div>
     </footer>
 

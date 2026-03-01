@@ -1,0 +1,37 @@
+/* ===================== */
+/* MODULAR CSS STRUCTURE */
+/* ===================== */
+
+/**
+ * MaxiPC - Modular CSS
+ * Organized structure for better maintainability
+ */
+
+/* Core */
+@import url('variables.css');
+@import url('base.css');
+
+/* Components */
+@import url('reviews.css');
+
+/* 
+ * Note: To fully modularize, you would import:
+ * @import url('navigation.css');
+ * @import url('buttons.css');
+ * @import url('cards.css');
+ * @import url('forms.css');
+ * @import url('footer.css');
+ * @import url('responsive.css');
+ * 
+ * For now, these remain in styles.css for compatibility
+ */
+
+/* Performance optimization */
+@media print {
+    .navbar,
+    .footer,
+    .hero-canvas,
+    .cta-section {
+        display: none;
+    }
+}

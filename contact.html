@@ -6,6 +6,9 @@
     <meta name="description" content="Contactez MaxiPC pour vos besoins en réparation, montage ou optimisation de PC. Devis gratuit à Lannion et environs.">
     <title>Contact – MaxiPC</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles/variables.css">
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/components.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="Assets/Logo.png">
@@ -52,24 +55,24 @@
                 <div class="contact-form-wrapper">
                     <h2>Envoyez-nous un message</h2>
                     <form class="contact-form" id="contactForm">
-                        <div class="form-group">
-                            <label for="name">Nom *</label>
-                            <input type="text" id="name" name="name" required>
+                        <div class="input-group">
+                            <label for="name" class="input-label">Nom *</label>
+                            <input type="text" id="name" name="name" class="input" required>
                         </div>
 
-                        <div class="form-group">
-                            <label for="email">Email *</label>
-                            <input type="email" id="email" name="email" required>
+                        <div class="input-group">
+                            <label for="email" class="input-label">Email *</label>
+                            <input type="email" id="email" name="email" class="input" required>
                         </div>
 
-                        <div class="form-group">
-                            <label for="phone">Téléphone</label>
-                            <input type="tel" id="phone" name="phone">
+                        <div class="input-group">
+                            <label for="phone" class="input-label">Téléphone</label>
+                            <input type="tel" id="phone" name="phone" class="input">
                         </div>
 
-                        <div class="form-group">
-                            <label for="subject">Sujet *</label>
-                            <select id="subject" name="subject" required>
+                        <div class="input-group">
+                            <label for="subject" class="input-label">Sujet *</label>
+                            <select id="subject" name="subject" class="input" required>
                                 <option value="">-- Sélectionnez un sujet --</option>
                                 <option value="devis">Demande de devis</option>
                                 <option value="depannage">Dépannage PC</option>
@@ -80,73 +83,91 @@
                             </select>
                         </div>
 
-                        <div class="form-group">
-                            <label for="message">Message *</label>
-                            <textarea id="message" name="message" rows="5" required></textarea>
+                        <div class="input-group">
+                            <label for="message" class="input-label">Message *</label>
+                            <textarea id="message" name="message" class="input" rows="5" required></textarea>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Envoyer le message</button>
-                        <p class="form-note">* Champs obligatoires</p>
+                        <button type="submit" class="btn btn-primary btn-full">Envoyer le message</button>
+                        <p class="text-sm mt-2"><em>* Champs obligatoires</em></p>
                     </form>
-                    <div id="formMessage" class="form-message" style="display: none;"></div>
+                    <div id="formMessage" class="alert alert-info" style="display: none;"></div>
                 </div>
 
                 <!-- Contact Info -->
                 <div class="contact-info">
                     <h2>Informations de contact</h2>
 
-                    <div class="info-card">
-                        <div class="info-icon">
-                            <i class="fas fa-clock"></i>
+                    <div class="grid grid-1 gap-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="flex align-center">
+                                    <div class="icon icon-lg icon-primary mr-3">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div>
+                                        <h3>Horaires</h3>
+                                        <p>Sur rendez-vous</p>
+                                        <p class="text-sm"><em>Du lundi au samedi, 9h-18h</em></p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="info-content">
-                            <h3>Horaires</h3>
-                            <p>Sur rendez-vous</p>
-                            <p class="info-note">Du lundi au samedi, 9h-18h</p>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="flex align-center">
+                                    <div class="icon icon-lg icon-primary mr-3">
+                                        <i class="fas fa-envelope"></i>
+                                    </div>
+                                    <div>
+                                        <h3>Email</h3>
+                                        <p><a href="mailto:lefrancmaxence8@gmail.com">lefrancmaxence8@gmail.com</a></p>
+                                        <p class="text-sm"><em>Réponse sous 24h</em></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="flex align-center">
+                                    <div class="icon icon-lg icon-primary mr-3">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </div>
+                                    <div>
+                                        <h3>Zone d'intervention</h3>
+                                        <p>Lannion et environs</p>
+                                        <p class="text-sm"><em>Rayon d'intervention: 10-15 km</em></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="flex align-center">
+                                    <div class="icon icon-lg icon-primary mr-3">
+                                        <i class="fas fa-home"></i>
+                                    </div>
+                                    <div>
+                                        <h3>Service</h3>
+                                        <p>Intervention à domicile ou sur site</p>
+                                        <p class="text-sm"><em>Horaires flexibles selon vos disponibilités</em></p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="info-card">
-                        <div class="info-icon">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <div class="info-content">
-                            <h3>Email</h3>
-                            <p><a href="mailto:lefrancmaxence8@gmail.com">lefrancmaxence8@gmail.com</a></p>
-                            <p class="info-note">Réponse sous 24h</p>
-                        </div>
-                    </div>
-
-                    <div class="info-card">
-                        <div class="info-icon">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                        <div class="info-content">
-                            <h3>Zone d'intervention</h3>
-                            <p>Lannion et environs</p>
-                            <p class="info-note">Rayon d'intervention: 10-15 km</p>
-                        </div>
-                    </div>
-
-                    <div class="info-card">
-                        <div class="info-icon">
-                            <i class="fas fa-home"></i>
-                        </div>
-                        <div class="info-content">
-                            <h3>Service</h3>
-                            <p>Intervention à domicile ou sur site</p>
-                            <p class="info-note">Horaires flexibles selon vos disponibilités</p>
-                        </div>
-                    </div>
-
-                    <div class="contact-social">
+                    <div class="contact-social mt-4">
                         <h3>Réseaux directs</h3>
                         <div class="social-buttons">
-                            <a href="https://wa.me/33682186791" target="_blank" class="social-btn whatsapp" title="WhatsApp">
-                                <i class="fab fa-whatsapp"></i>
+                            <a href="https://wa.me/33682186791" target="_blank" class="btn btn-secondary" title="WhatsApp">
+                                <i class="fab fa-whatsapp"></i> WhatsApp
                             </a>
-                            <a href="mailto:lefrancmaxence8@gmail.com" class="social-btn email" title="Email">
-                                <i class="fas fa-envelope"></i>
+                            <a href="mailto:lefrancmaxence8@gmail.com" class="btn btn-secondary" title="Email">
+                                <i class="fas fa-envelope"></i> Email
                             </a>
                         </div>
                     </div>
@@ -159,22 +180,30 @@
     <section class="faq-section">
         <div class="container">
             <h2>Questions fréquentes</h2>
-            <div class="faq-grid">
-                <div class="faq-item">
-                    <h3><i class="fas fa-question-circle"></i> Quel est le coût d'une intervention ?</h3>
-                    <p>Les tarifs varient selon la nature du problème et le temps d'intervention. Je propose un devis gratuit et sans engagement après diagnostic.</p>
+            <div class="grid grid-auto gap-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h3><i class="fas fa-question-circle icon-primary"></i> Quel est le coût d'une intervention ?</h3>
+                        <p>Les tarifs varient selon la nature du problème et le temps d'intervention. Je propose un devis gratuit et sans engagement après diagnostic.</p>
+                    </div>
                 </div>
-                <div class="faq-item">
-                    <h3><i class="fas fa-question-circle"></i> Combien de temps pour une réparation ?</h3>
-                    <p>Cela dépend du problème. Les interventions simples peuvent prendre 30 min à 1h, tandis que les montages complets prennent plus de temps. Je vous fournirai un délai indicatif.</p>
+                <div class="card">
+                    <div class="card-body">
+                        <h3><i class="fas fa-question-circle icon-primary"></i> Combien de temps pour une réparation ?</h3>
+                        <p>Cela dépend du problème. Les interventions simples peuvent prendre 30 min à 1h, tandis que les montages complets prennent plus de temps. Je vous fournirai un délai indicatif.</p>
+                    </div>
                 </div>
-                <div class="faq-item">
-                    <h3><i class="fas fa-question-circle"></i> Proposez-vous une garantie ?</h3>
-                    <p>Oui, garantie sur tous les travaux effectués. Pour les pièces remplacées, elles bénéficient de la garantie du constructeur.</p>
+                <div class="card">
+                    <div class="card-body">
+                        <h3><i class="fas fa-question-circle icon-primary"></i> Proposez-vous une garantie ?</h3>
+                        <p>Oui, garantie sur tous les travaux effectués. Pour les pièces remplacées, elles bénéficient de la garantie du constructeur.</p>
+                    </div>
                 </div>
-                <div class="faq-item">
-                    <h3><i class="fas fa-question-circle"></i> Intervenez-vous le week-end ?</h3>
-                    <p>Oui, sur demande. Contactez-moi pour connaître les disponibilités. Les week-ends peuvent avoir des tarifs ajustés.</p>
+                <div class="card">
+                    <div class="card-body">
+                        <h3><i class="fas fa-question-circle icon-primary"></i> Intervenez-vous le week-end ?</h3>
+                        <p>Oui, sur demande. Contactez-moi pour connaître les disponibilités. Les week-ends peuvent avoir des tarifs ajustés.</p>
+                    </div>
                 </div>
             </div>
         </div>

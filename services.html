@@ -6,6 +6,9 @@
     <meta name="description" content="Découvrez tous les services de MaxiPC : dépannage, montage, optimisation et conseils informatiques à Lannion.">
     <title>Nos Services – MaxiPC</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles/variables.css">
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/components.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="Assets/Logo.png">
@@ -47,89 +50,107 @@
     <!-- Services List -->
     <section class="services-section">
         <div class="container">
-            <div class="services-grid">
+            <div class="grid grid-auto gap-4">
                 <!-- Service 1 -->
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-bug"></i>
+                <div class="card card-gradient">
+                    <div class="card-body">
+                        <div class="icon icon-lg icon-primary mb-3">
+                            <i class="fas fa-bug"></i>
+                        </div>
+                        <span class="badge badge-primary mb-2">Dépannage</span>
+                        <h3>Dépannage PC</h3>
+                        <p>Résolution rapide de pannes, suppression de virus et malwares, amélioration des performances et diagnostics techniques complets.</p>
+                        <ul class="text-sm mt-3">
+                            <li><i class="fas fa-check-circle text-success"></i> Diagnostic gratuit</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Intervention rapide</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Garantie sur travail</li>
+                        </ul>
                     </div>
-                    <h3>Dépannage PC</h3>
-                    <p>Résolution rapide de pannes, suppression de virus et malwares, amélioration des performances et diagnostics techniques complets.</p>
-                    <ul class="service-benefits">
-                        <li><i class="fas fa-check-circle"></i> Diagnostic gratuit</li>
-                        <li><i class="fas fa-check-circle"></i> Intervention rapide</li>
-                        <li><i class="fas fa-check-circle"></i> Garantie sur travail</li>
-                    </ul>
                 </div>
 
                 <!-- Service 2 -->
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-hammer"></i>
+                <div class="card card-gradient">
+                    <div class="card-body">
+                        <div class="icon icon-lg icon-primary mb-3">
+                            <i class="fas fa-hammer"></i>
+                        </div>
+                        <span class="badge badge-secondary mb-2">Montage</span>
+                        <h3>Montage sur mesure</h3>
+                        <p>Création de PC entièrement personnalisés adaptés à vos besoins : bureautique, gaming haute performance, station professionnel.</p>
+                        <ul class="text-sm mt-3">
+                            <li><i class="fas fa-check-circle text-success"></i> Conseil en configuration</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Montage professionnel</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Test complet</li>
+                        </ul>
                     </div>
-                    <h3>Montage sur mesure</h3>
-                    <p>Création de PC entièrement personnalisés adaptés à vos besoins : bureautique, gaming haute performance, station professionnel.</p>
-                    <ul class="service-benefits">
-                        <li><i class="fas fa-check-circle"></i> Conseil en configuration</li>
-                        <li><i class="fas fa-check-circle"></i> Montage professionnel</li>
-                        <li><i class="fas fa-check-circle"></i> Test complet</li>
-                    </ul>
                 </div>
 
                 <!-- Service 3 -->
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-broom"></i>
+                <div class="card card-gradient">
+                    <div class="card-body">
+                        <div class="icon icon-lg icon-primary mb-3">
+                            <i class="fas fa-broom"></i>
+                        </div>
+                        <span class="badge badge-accent mb-2">Optimisation</span>
+                        <h3>Optimisation et nettoyage</h3>
+                        <p>Nettoyage logiciel complet, suppression de malwares et adwares, optimisation des composants, amélioration de la vitesse.</p>
+                        <ul class="text-sm mt-3">
+                            <li><i class="fas fa-check-circle text-success"></i> Nettoyage en profondeur</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Optimisation système</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Amélioration de performance</li>
+                        </ul>
                     </div>
-                    <h3>Optimisation et nettoyage</h3>
-                    <p>Nettoyage logiciel complet, suppression de malwares et adwares, optimisation des composants, amélioration de la vitesse.</p>
-                    <ul class="service-benefits">
-                        <li><i class="fas fa-check-circle"></i> Nettoyage en profondeur</li>
-                        <li><i class="fas fa-check-circle"></i> Optimisation système</li>
-                        <li><i class="fas fa-check-circle"></i> Amélioration de performance</li>
-                    </ul>
                 </div>
 
                 <!-- Service 4 -->
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-download"></i>
+                <div class="card card-gradient">
+                    <div class="card-body">
+                        <div class="icon icon-lg icon-primary mb-3">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <span class="badge badge-primary mb-2">Installation</span>
+                        <h3>Installation de logiciels</h3>
+                        <p>Installation d'OS (Windows, Linux), applications bureautiques, logiciels professionnels et suites de sécurité.</p>
+                        <ul class="text-sm mt-3">
+                            <li><i class="fas fa-check-circle text-success"></i> OS complet</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Configuration initiale</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Support initial</li>
+                        </ul>
                     </div>
-                    <h3>Installation de logiciels</h3>
-                    <p>Installation d'OS (Windows, Linux), applications bureautiques, logiciels professionnels et suites de sécurité.</p>
-                    <ul class="service-benefits">
-                        <li><i class="fas fa-check-circle"></i> OS complet</li>
-                        <li><i class="fas fa-check-circle"></i> Configuration initiale</li>
-                        <li><i class="fas fa-check-circle"></i> Support initial</li>
-                    </ul>
                 </div>
 
                 <!-- Service 5 -->
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-graduation-cap"></i>
+                <div class="card card-gradient">
+                    <div class="card-body">
+                        <div class="icon icon-lg icon-primary mb-3">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <span class="badge badge-secondary mb-2">Conseil</span>
+                        <h3>Conseils techniques</h3>
+                        <p>Aide pour le choix de matériel et périphériques, recommandations personnalisées, explications claires et accessibles.</p>
+                        <ul class="text-sm mt-3">
+                            <li><i class="fas fa-check-circle text-success"></i> Conseil gratuit</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Recommandations perso</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Support après-vente</li>
+                        </ul>
                     </div>
-                    <h3>Conseils techniques</h3>
-                    <p>Aide pour le choix de matériel et périphériques, recommandations personnalisées, explications claires et accessibles.</p>
-                    <ul class="service-benefits">
-                        <li><i class="fas fa-check-circle"></i> Conseil gratuit</li>
-                        <li><i class="fas fa-check-circle"></i> Recommandations perso</li>
-                        <li><i class="fas fa-check-circle"></i> Support après-vente</li>
-                    </ul>
                 </div>
 
                 <!-- Service 6 -->
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-home"></i>
+                <div class="card card-gradient">
+                    <div class="card-body">
+                        <div class="icon icon-lg icon-primary mb-3">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <span class="badge badge-accent mb-2">Déplacement</span>
+                        <h3>Intervention à domicile</h3>
+                        <p>Déplacement chez vous à Lannion et environs pour une intervention confortable et sans stress sur votre lieu de travail.</p>
+                        <ul class="text-sm mt-3">
+                            <li><i class="fas fa-check-circle text-success"></i> Service à domicile</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Horaires flexibles</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Zone: Lannion + 10km</li>
+                        </ul>
                     </div>
-                    <h3>Intervention à domicile</h3>
-                    <p>Déplacement chez vous à Lannion et environs pour une intervention confortable et sans stress sur votre lieu de travail.</p>
-                    <ul class="service-benefits">
-                        <li><i class="fas fa-check-circle"></i> Service à domicile</li>
-                        <li><i class="fas fa-check-circle"></i> Horaires flexibles</li>
-                        <li><i class="fas fa-check-circle"></i> Zone: Lannion + 10km</li>
-                    </ul>
                 </div>
             </div>
         </div>

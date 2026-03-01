@@ -6,6 +6,9 @@
     <meta name="description" content="Maxence Lefranc, technicien indépendant spécialisé en réparation et montage de PC à Lannion. Service professionnel, rapide et transparent.">
     <title>À propos – MaxiPC</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles/variables.css">
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/components.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="Assets/Logo.png">
@@ -73,11 +76,18 @@
     <section class="intervention-zone">
         <div class="container">
             <h2>Zone d'intervention</h2>
-            <div class="zone-content">
-                <div class="zone-card">
-                    <h3>Lannion et environs</h3>
-                    <p>Intervention directe à votre domicile ou sur votre lieu de travail</p>
-                    <p class="zone-info"><i class="fas fa-map-marker-alt"></i> Lannion, Plouaret, Perros-Guirec, Lanvollon, et alentours (rayon ~10-15km)</p>
+            <div class="grid">
+                <div class="card card-gradient">
+                    <div class="card-body">
+                        <h3>Lannion et environs</h3>
+                        <p>Intervention directe à votre domicile ou sur votre lieu de travail</p>
+                        <div class="mt-3">
+                            <span class="badge badge-primary">
+                                <i class="fas fa-map-marker-alt"></i> Lannion, Plouaret, Perros-Guirec, Lanvollon
+                            </span>
+                        </div>
+                        <p class="mt-2 text-sm"><em>Rayon d'intervention: ~10-15km</em></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -87,48 +97,60 @@
     <section class="why-choose">
         <div class="container">
             <h2>Pourquoi choisir MaxiPC ?</h2>
-            <div class="reasons-grid">
-                <div class="reason-card">
-                    <div class="reason-icon">
-                        <i class="fas fa-star"></i>
+            <div class="grid grid-auto gap-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="icon icon-lg icon-primary mb-3">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h3>Expertise reconnue</h3>
+                        <p>Compétences techniques poussées et mise à jour régulière sur les nouvelles technologies</p>
                     </div>
-                    <h3>Expertise reconnue</h3>
-                    <p>Compétences techniques poussées et mise à jour régulière sur les nouvelles technologies</p>
                 </div>
-                <div class="reason-card">
-                    <div class="reason-icon">
-                        <i class="fas fa-handshake"></i>
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="icon icon-lg icon-primary mb-3">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <h3>Confiance établie</h3>
+                        <p>Clients réguliers satisfaits et références disponibles sur demande</p>
                     </div>
-                    <h3>Confiance établie</h3>
-                    <p>Clients réguliers satisfaits et références disponibles sur demande</p>
                 </div>
-                <div class="reason-card">
-                    <div class="reason-icon">
-                        <i class="fas fa-euro-sign"></i>
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="icon icon-lg icon-primary mb-3">
+                            <i class="fas fa-euro-sign"></i>
+                        </div>
+                        <h3>Tarifs justes</h3>
+                        <p>Prix compétitifs et adaptés à vos besoins, sans coûts cachés</p>
                     </div>
-                    <h3>Tarifs justes</h3>
-                    <p>Prix compétitifs et adaptés à vos besoins, sans coûts cachés</p>
                 </div>
-                <div class="reason-card">
-                    <div class="reason-icon">
-                        <i class="fas fa-clock"></i>
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="icon icon-lg icon-primary mb-3">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3>Disponibilité</h3>
+                        <p>Interventions rapides et flexibles selon vos disponibilités</p>
                     </div>
-                    <h3>Disponibilité</h3>
-                    <p>Interventions rapides et flexibles selon vos disponibilités</p>
                 </div>
-                <div class="reason-card">
-                    <div class="reason-icon">
-                        <i class="fas fa-shield-alt"></i>
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="icon icon-lg icon-primary mb-3">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Garantie</h3>
+                        <p>Garantie sur les travaux effectués et support après-intervention</p>
                     </div>
-                    <h3>Garantie</h3>
-                    <p>Garantie sur les travaux effectués et support après-intervention</p>
                 </div>
-                <div class="reason-card">
-                    <div class="reason-icon">
-                        <i class="fas fa-comments"></i>
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="icon icon-lg icon-primary mb-3">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3>Communication</h3>
+                        <p>Explications claires et conseils pour éviter les problèmes futurs</p>
                     </div>
-                    <h3>Communication</h3>
-                    <p>Explications claires et conseils pour éviter les problèmes futurs</p>
                 </div>
             </div>
         </div>

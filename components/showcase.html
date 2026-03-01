@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaxiPC - Bibliothèque de Composants</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../styles/variables.css">
+    <link rel="stylesheet" href="../styles/base.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .showcase-section {
+            padding: 4rem 0;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        }
+        .showcase-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .showcase-grid {
+            display: grid;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .showcase-item {
+            background: rgba(26, 26, 46, 0.3);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+        .code-snippet {
+            background: rgba(15, 15, 30, 0.8);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #a0a0c0;
+            overflow-x: auto;
+        }
+        .demo-space {
+            padding: 2rem;
+            background: rgba(15, 15, 30, 0.5);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" style="padding-top: 3rem; padding-bottom: 3rem;">
+        <header style="text-align: center; margin-bottom: 4rem;">
+            <h1 class="gradient-text-primary">MaxiPC Design System</h1>
+            <p class="text-muted">Bibliothèque de composants réutilisables</p>
+        </header>
+
+        <!-- BUTTONS -->
+        <section class="showcase-section">
+            <h2 class="showcase-title">Boutons</h2>
+            
+            <div class="showcase-item">
+                <h3>Boutons Standard</h3>
+                <div class="demo-space">
+                    <button class="btn btn-primary">Primary Button</button>
+                    <button class="btn btn-secondary">Secondary Button</button>
+                    <button class="btn btn-accent">Accent Button</button>
+                    <button class="btn btn-ghost">Ghost Button</button>
+                </div>
+                <div class="code-snippet">&lt;button class="btn btn-primary"&gt;Primary Button&lt;/button&gt;</div>
+            </div>
+
+            <div class="showcase-item">
+                <h3>Tailles de Boutons</h3>
+                <div class="demo-space">
+                    <button class="btn btn-primary btn-sm">Small</button>
+                    <button class="btn btn-primary">Normal</button>
+                    <button class="btn btn-primary btn-lg">Large</button>
+                </div>
+                <div class="code-snippet">&lt;button class="btn btn-primary btn-sm"&gt;Small&lt;/button&gt;</div>
+            </div>
+
+            <div class="showcase-item">
+                <h3>Bouton Pleine Largeur</h3>
+                <div class="demo-space">
+                    <button class="btn btn-primary btn-full">Full Width Button</button>
+                </div>
+                <div class="code-snippet">&lt;button class="btn btn-primary btn-full"&gt;Full Width&lt;/button&gt;</div>
+            </div>
+        </section>
+
+        <!-- CARDS -->
+        <section class="showcase-section">
+            <h2 class="showcase-title">Cartes</h2>
+            
+            <div class="showcase-item">
+                <h3>Carte Standard</h3>
+                <div class="demo-space">
+                    <div class="card" style="max-width: 400px;">
+                        <div class="card-header">
+                            <h4 class="card-title">Titre de la Carte</h4>
+                            <p class="card-subtitle">Sous-titre optionnel</p>
+                        </div>
+                        <div class="card-body">
+                            <p>Contenu de la carte avec du texte descriptif. Les cartes sont parfaites pour organiser l'information de manière visuelle.</p>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-primary btn-sm">Action</button>
+                            <span class="text-muted">Info</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="code-snippet">&lt;div class="card"&gt;
+  &lt;div class="card-header"&gt;...&lt;/div&gt;
+  &lt;div class="card-body"&gt;...&lt;/div&gt;
+  &lt;div class="card-footer"&gt;...&lt;/div&gt;
+&lt;/div&gt;</div>
+            </div>
+
+            <div class="showcase-item">
+                <h3>Variantes de Cartes</h3>
+                <div class="demo-space">
+                    <div class="grid grid-2" style="gap: 1rem;">
+                        <div class="card card-gradient">
+                            <h4>Carte Gradient</h4>
+                            <p class="text-muted">Avec gradient de fond</p>
+                        </div>
+                        <div class="card card-highlight">
+                            <h4>Carte Highlight</h4>
+                            <p class="text-muted">Mise en évidence</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="code-snippet">&lt;div class="card card-gradient"&gt;...&lt;/div&gt;
+&lt;div class="card card-highlight"&gt;...&lt;/div&gt;</div>
+            </div>
+        </section>
+
+        <!-- BADGES -->
+        <section class="showcase-section">
+            <h2 class="showcase-title">Badges</h2>
+            
+            <div class="showcase-item">
+                <h3>Badges Colorés</h3>
+                <div class="demo-space">
+                    <span class="badge badge-primary">Primary</span>
+                    <span class="badge badge-secondary">Secondary</span>
+                    <span class="badge badge-accent">Accent</span>
+                    <span class="badge badge-outline">Outline</span>
+                </div>
+                <div class="code-snippet">&lt;span class="badge badge-primary"&gt;Primary&lt;/span&gt;</div>
+            </div>
+
+            <div class="showcase-item">
+                <h3>Tailles de Badges</h3>
+                <div class="demo-space">
+                    <span class="badge badge-primary badge-sm">Small</span>
+                    <span class="badge badge-primary">Normal</span>
+                    <span class="badge badge-primary badge-lg">Large</span>
+                </div>
+                <div class="code-snippet">&lt;span class="badge badge-primary badge-sm"&gt;Small&lt;/span&gt;</div>
+            </div>
+        </section>
+
+        <!-- GRADIENTS -->
+        <section class="showcase-section">
+            <h2 class="showcase-title">Gradients</h2>
+            
+            <div class="showcase-item">
+                <h3>Backgrounds Gradient</h3>
+                <div class="demo-space">
+                    <div style="display: grid; gap: 1rem;">
+                        <div class="gradient-primary" style="padding: 2rem; border-radius: 12px; text-align: center;">
+                            <strong>Primary Gradient</strong>
+                        </div>
+                        <div class="gradient-secondary" style="padding: 2rem; border-radius: 12px; text-align: center;">
+                            <strong>Secondary Gradient</strong>
+                        </div>
+                        <div class="gradient-accent" style="padding: 2rem; border-radius: 12px; text-align: center;">
+                            <strong>Accent Gradient</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="code-snippet">&lt;div class="gradient-primary"&gt;...&lt;/div&gt;</div>
+            </div>
+
+            <div class="showcase-item">
+                <h3>Textes Gradient</h3>
+                <div class="demo-space">
+                    <h2 class="gradient-text-primary">Primary Gradient Text</h2>
+                    <h2 class="gradient-text-secondary">Secondary Gradient Text</h2>
+                    <h2 class="gradient-text-accent">Accent Gradient Text</h2>
+                </div>
+                <div class="code-snippet">&lt;h2 class="gradient-text-primary"&gt;Gradient Text&lt;/h2&gt;</div>
+            </div>
+        </section>
+
+        <!-- ICONS -->
+        <section class="showcase-section">
+            <h2 class="showcase-title">Icônes</h2>
+            
+            <div class="showcase-item">
+                <h3>Icônes Colorées</h3>
+                <div class="demo-space">
+                    <div class="icon icon-primary">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="icon icon-secondary">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="icon icon-accent">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <div class="icon icon-outline">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                </div>
+                <div class="code-snippet">&lt;div class="icon icon-primary"&gt;
+  &lt;i class="fas fa-star"&gt;&lt;/i&gt;
+&lt;/div&gt;</div>
+            </div>
+
+            <div class="showcase-item">
+                <h3>Tailles d'Icônes</h3>
+                <div class="demo-space">
+                    <div class="icon icon-primary icon-sm">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="icon icon-primary">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="icon icon-primary icon-lg">
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+                <div class="code-snippet">&lt;div class="icon icon-primary icon-sm"&gt;...&lt;/div&gt;</div>
+            </div>
+        </section>
+
+        <!-- INPUTS -->
+        <section class="showcase-section">
+            <h2 class="showcase-title">Formulaires</h2>
+            
+            <div class="showcase-item">
+                <h3>Champs de Formulaire</h3>
+                <div class="demo-space">
+                    <div class="input-group">
+                        <label class="input-label">Nom</label>
+                        <input type="text" class="input" placeholder="Entrez votre nom">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Email</label>
+                        <input type="email" class="input" placeholder="votre@email.com">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Message</label>
+                        <textarea class="input" rows="4" placeholder="Votre message..."></textarea>
+                    </div>
+                </div>
+                <div class="code-snippet">&lt;div class="input-group"&gt;
+  &lt;label class="input-label"&gt;Nom&lt;/label&gt;
+  &lt;input type="text" class="input" placeholder="..."&gt;
+&lt;/div&gt;</div>
+            </div>
+
+            <div class="showcase-item">
+                <h3>États des Inputs</h3>
+                <div class="demo-space">
+                    <div class="input-group">
+                        <label class="input-label">Input Normal</label>
+                        <input type="text" class="input" value="Contenu normal">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Input Erreur</label>
+                        <input type="text" class="input input-error" value="Valeur invalide">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Input Succès</label>
+                        <input type="text" class="input input-success" value="Valeur valide">
+                    </div>
+                </div>
+                <div class="code-snippet">&lt;input class="input input-error"&gt;
+&lt;input class="input input-success"&gt;</div>
+            </div>
+        </section>
+
+        <!-- ALERTS -->
+        <section class="showcase-section">
+            <h2 class="showcase-title">Alertes</h2>
+            
+            <div class="showcase-item">
+                <h3>Types d'Alertes</h3>
+                <div class="demo-space">
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Opération réussie avec succès!</span>
+                    </div>
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Une erreur s'est produite.</span>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Attention, action requise.</span>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Information importante.</span>
+                    </div>
+                </div>
+                <div class="code-snippet">&lt;div class="alert alert-success"&gt;
+  &lt;i class="fas fa-check-circle"&gt;&lt;/i&gt;
+  &lt;span&gt;Message&lt;/span&gt;
+&lt;/div&gt;</div>
+            </div>
+        </section>
+
+        <!-- GRID -->
+        <section class="showcase-section">
+            <h2 class="showcase-title">Grille</h2>
+            
+            <div class="showcase-item">
+                <h3>Grilles Responsive</h3>
+                <div class="demo-space">
+                    <div class="grid grid-3" style="gap: 1rem;">
+                        <div style="background: var(--primary-gradient); padding: 2rem; border-radius: 8px; text-align: center;">1</div>
+                        <div style="background: var(--secondary-gradient); padding: 2rem; border-radius: 8px; text-align: center;">2</div>
+                        <div style="background: var(--accent-gradient); padding: 2rem; border-radius: 8px; text-align: center;">3</div>
+                    </div>
+                </div>
+                <div class="code-snippet">&lt;div class="grid grid-3"&gt;...&lt;/div&gt;
+&lt;!-- grid-2, grid-3, grid-4, grid-auto disponibles --&gt;</div>
+            </div>
+        </section>
+
+        <!-- UTILITIES -->
+        <section class="showcase-section">
+            <h2 class="showcase-title">Classes Utilitaires</h2>
+            
+            <div class="showcase-item">
+                <h3>Espacement</h3>
+                <div class="demo-space">
+                    <div class="card mb-2">mb-2 (margin-bottom)</div>
+                    <div class="card mt-3">mt-3 (margin-top)</div>
+                    <div class="card p-4">p-4 (padding)</div>
+                </div>
+                <div class="code-snippet">.mt-1, .mt-2, .mt-3, .mt-4, .mt-5
+.mb-1, .mb-2, .mb-3, .mb-4, .mb-5
+.p-1, .p-2, .p-3, .p-4, .p-5</div>
+            </div>
+
+            <div class="showcase-item">
+                <h3>Texte</h3>
+                <div class="demo-space">
+                    <p class="text-center">Texte centré</p>
+                    <p class="text-left">Texte à gauche</p>
+                    <p class="text-right">Texte à droite</p>
+                    <p class="text-sm">Petit texte</p>
+                    <p class="text-lg">Grand texte</p>
+                    <p class="font-bold">Texte gras</p>
+                </div>
+                <div class="code-snippet">.text-center, .text-left, .text-right
+.text-sm, .text-base, .text-lg, .text-xl
+.font-bold, .font-semibold, .font-normal</div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer style="text-align: center; padding: 3rem 0; border-top: 1px solid rgba(102, 126, 234, 0.2); margin-top: 4rem;">
+            <p class="gradient-text-secondary" style="font-size: 1.5rem; margin-bottom: 1rem;">MaxiPC Design System</p>
+            <p class="text-muted">Créé avec ❤️ pour MaxiPC</p>
+            <p class="text-muted text-sm">Version 2.0 - Mars 2026</p>
+        </footer>
+    </div>
+</body>
+</html>
