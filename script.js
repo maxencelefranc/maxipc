@@ -1108,6 +1108,11 @@ async function initializeAdmin() {
         icon.className = 'admin-login-icon';
         icon.title = 'Page administrateur';
         icon.innerHTML = '<i class="fas fa-cog"></i>';
+        icon.style.display = 'none';
+        icon.style.cursor = 'pointer';
+        icon.addEventListener('click', () => {
+            window.location.href = 'admin.html';
+        });
         document.body.appendChild(icon);
     }
 
@@ -1303,6 +1308,7 @@ async function initializeAdmin() {
         if (isAdmin) {
             icon.classList.add('logged-in');
             icon.title = 'Vous êtes connecté';
+            PageBtn.style.display = 'flex';
             loginForm.style.display = 'none';
             userInfo.style.display = 'block';
             emailDisplay.textContent = user.email;
@@ -1313,6 +1319,7 @@ async function initializeAdmin() {
         } else {
             icon.classList.remove('logged-in');
             icon.title = 'Connexion administrateur';
+            PageBtn.style.display = 'none';
             loginForm.style.display = 'flex';
             userInfo.style.display = 'none';
             editBtn.style.display = 'none';
