@@ -1101,6 +1101,16 @@ async function initializeAdmin() {
         document.body.appendChild(icon);
     }
 
+    // Create admin page link if it doesn't exist
+    if (!document.getElementById('adminPageIcon')) {
+        const icon = document.createElement('div');
+        icon.id = 'adminPageIcon';
+        icon.className = 'admin-login-icon';
+        icon.title = 'Page administrateur';
+        icon.innerHTML = '<i class="fas fa-cog"></i>';
+        document.body.appendChild(icon);
+    }
+
     // Create edit mode button
     if (!document.getElementById('adminEditButton')) {
         const editBtn = document.createElement('div');
@@ -1159,6 +1169,7 @@ async function initializeAdmin() {
     }
 
     const icon = document.getElementById('adminLoginIcon');
+    const PageBtn = document.getElementById('adminPageIcon');
     const editBtn = document.getElementById('adminEditButton');
     const modal = document.getElementById('adminLoginModal');
     const loginForm = document.getElementById('adminLoginForm');
