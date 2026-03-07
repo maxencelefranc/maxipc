@@ -13,6 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="Assets/Logo.png">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -88,6 +89,11 @@
                             <textarea id="message" name="message" class="input" rows="5" required></textarea>
                         </div>
 
+                        <!-- Captcha -->
+                        <div style="margin: 16px 0 22px; display: flex; justify-content: center;">
+                            <div class="cf-turnstile" data-sitekey="0x4AAAAAACi148IL4Q061a5I"></div>
+                        </div>
+
                         <button type="submit" class="btn btn-primary btn-full">Envoyer le message</button>
                         <p class="text-sm mt-2"><em>* Champs obligatoires</em></p>
                     </form>
@@ -108,7 +114,7 @@
                                     <div>
                                         <h3>Horaires</h3>
                                         <p>Sur rendez-vous</p>
-                                        <p class="text-sm"><em>Du lundi au samedi, 9h-18h</em></p>
+                                        <p class="text-sm"><em>Du lundi au samedi, 9h-17h</em></p>
                                     </div>
                                 </div>
                             </div>
@@ -161,18 +167,32 @@
                     </div>
 
                     <div class="contact-social mt-4">
-                        <h3>Réseaux directs</h3>
-                        <div class="social-buttons">
+                        <h3>Contactez-nous directement</h3>
+                        <div class="social-buttons" style="display: flex; flex-direction: column; gap: 10px;">
+                            <a href="tel:+33682186791" class="btn btn-primary" title="Appeler">
+                                <i class="fas fa-phone"></i> Appeler : +33 6 82 18 67 91
+                            </a>
                             <a href="https://wa.me/33682186791" target="_blank" class="btn btn-secondary" title="WhatsApp">
                                 <i class="fab fa-whatsapp"></i> WhatsApp
                             </a>
                             <a href="mailto:lefrancmaxence8@gmail.com" class="btn btn-secondary" title="Email">
-                                <i class="fas fa-envelope"></i> Email
+                                <i class="fas fa-envelope"></i> Email direct
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section style="background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%); padding: 60px 20px; margin: 40px 0; border-top: 1px solid rgba(240, 147, 251, 0.2); border-bottom: 1px solid rgba(240, 147, 251, 0.2);">
+        <div class="container" style="text-align: center;">
+            <h2 style="margin-bottom: 20px;">Prêt à faire réparer votre PC ?</h2>
+            <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 30px;">Réservez dès maintenant et bénéficiez d'une intervention rapide et professionnelle.</p>
+            <a href="reservation.html" class="btn btn-primary" style="padding: 14px 40px; font-size: 1.05rem;">
+                <i class="fas fa-calendar-check"></i> Réserver une intervention
+            </a>
         </div>
     </section>
 
@@ -218,10 +238,12 @@
                     <h4>MaxiPC</h4>
                     <p>Réparation et montage de PC à Lannion</p>
                     <div class="footer-social">
-                        <a href="#" class="social-link" title="Facebook" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="social-link" title="LinkedIn" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" class="social-link" title="Twitter" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="social-link" title="GitHub" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                        <a href="tel:+33682186791" class="social-link" title="Appeler" aria-label="Téléphone"><i class="fas fa-phone"></i></a>
+                        <a href="https://wa.me/message/G3Y5TUWZ3XQHI1" class="social-link" title="WhatsApp" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://www.facebook.com/profile.php?id=61584020092162" class="social-link" title="Facebook" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="https://www.instagram.com/maxi._pc/" class="social-link" title="Instagram" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="mailto:lefrancmaxence8@gmail.com" class="social-link" title="Email" aria-label="Email"><i class="fas fa-envelope"></i></a>
+                        <a href="https://maps.app.goo.gl/FCzFxP6mP1r4ruv98" class="social-link" title="Google Maps" aria-label="Localisation"><i class="fas fa-map-location-dot"></i></a>
                     </div>
                 </div>
                 <div class="footer-section">
@@ -250,5 +272,39 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script src="script.js"></script>
+    <script>
+        // Enhanced form validation for contact form
+        document.addEventListener('DOMContentLoaded', function() {
+            const contactForm = document.getElementById('contactForm');
+            if (contactForm) {
+                contactForm.addEventListener('submit', function(e) {
+                    const formMessage = document.getElementById('formMessage');
+                    
+                    // Simple validation
+                    const name = document.getElementById('name').value.trim();
+                    const email = document.getElementById('email').value.trim();
+                    const message = document.getElementById('message').value.trim();
+                    
+                    if (!name || !email || !message) {
+                        e.preventDefault();
+                        formMessage.textContent = 'Veuillez remplir tous les champs obligatoires.';
+                        formMessage.classList.add('error');
+                        formMessage.style.display = 'block';
+                        return false;
+                    }
+                    
+                    // Email validation
+                    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+                    if (!emailRegex.test(email)) {
+                        e.preventDefault();
+                        formMessage.textContent = 'Veuillez entrer une adresse email valide.';
+                        formMessage.classList.add('error');
+                        formMessage.style.display = 'block';
+                        return false;
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

@@ -2331,6 +2331,7 @@ async function initializeAdminDashboardPage() {
         availabilityState.weekly = ensureWeeklyStructure(weekly);
         availabilityState.overrides = overrides || {};
         availabilityState.booked = booked || {};
+        
         renderAvailabilityWeekEditor();
 
         if (availabilityOverrides) {
@@ -2346,24 +2347,31 @@ async function initializeAdminDashboardPage() {
     };
 
     const loadAdminAvailability = async () => {
-        if (!window.supabaseClient) return;
+        if (!window.supabaseClient) {
+            fillAvailabilityForm();
+            initCalendar();
+            return;
+        }
         const { data, error } = await window.supabaseClient
             .from('site_content')
             .select('key, value')
             .in('key', [
                 'reservation.weekly_availability',
                 'reservation.date_overrides',
+                'reservation.daily_slots',
                 'reservation.booked_slots'
             ]);
 
         if (error || !Array.isArray(data)) {
             fillAvailabilityForm();
+            initCalendar();
             return;
         }
 
         const map = new Map(data.map((row) => [row.key, row.value]));
         let weekly = {};
         let overrides = {};
+        let daily_slots = {};
         let booked = {};
 
         try {
@@ -2377,15 +2385,283 @@ async function initializeAdminDashboardPage() {
             overrides = {};
         }
         try {
+            daily_slots = JSON.parse(map.get('reservation.daily_slots') || '{}');
+        } catch {
+            daily_slots = {};
+        }
+        try {
             booked = JSON.parse(map.get('reservation.booked_slots') || '{}');
         } catch {
             booked = {};
         }
 
         fillAvailabilityForm(weekly, overrides, booked);
+        // Charger les créneaux du calendrier séparément
+        dailyAvailability = daily_slots;
+        initCalendar();
     };
 
     setupTabs();
+
+    // ===== CALENDAR INTERACTIVE =====
+    let calendarState = {
+        currentDate: new Date(),
+        selectedDate: null
+    };
+
+    // Structure pour stocker les créneaux par date
+    // Cela permet d'avoir des créneaux différents chaque semaine
+    let dailyAvailability = {};
+
+    const getDaySlotsFromDate = (dateStr) => {
+        // Cherche d'abord dans les créneaux spécifiques à la date
+        if (dailyAvailability[dateStr]) {
+            return dailyAvailability[dateStr];
+        }
+        
+        // Sinon, utilise le modèle par jour de semaine
+        const date = new Date(dateStr);
+        const dayOfWeek = date.getDay();
+        return availabilityState.weekly[dayOfWeek] || [];
+    };
+
+    const setDaySlots = (dateStr, slots) => {
+        dailyAvailability[dateStr] = slots && slots.length > 0 ? slots : undefined;
+        if (!slots || slots.length === 0) {
+            delete dailyAvailability[dateStr];
+        }
+    };
+
+    const initCalendar = () => {
+        const calendarGrid = document.getElementById('calendarGrid');
+        const calendarTitle = document.getElementById('calendarTitle');
+        const calendarPrevMonth = document.getElementById('calendarPrevMonth');
+        const calendarNextMonth = document.getElementById('calendarNextMonth');
+        const calendarToday = document.getElementById('calendarToday');
+        const timeSlotModal = document.getElementById('timeSlotModal');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalSaveBtn = document.getElementById('modalSaveBtn');
+        const addSlotBtn = document.getElementById('addSlotBtn');
+        const slotsList = document.getElementById('slotsList');
+
+        if (!calendarGrid) return;
+
+        const renderCalendar = () => {
+            const year = calendarState.currentDate.getFullYear();
+            const month = calendarState.currentDate.getMonth();
+            
+            // Update title
+            const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                               'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+            calendarTitle.textContent = `${monthNames[month]} ${year}`;
+            
+            // Build calendar
+            let html = '';
+            
+            // Weekday headers
+            const weekDays = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+            weekDays.forEach(day => {
+                html += `<div class="calendar-weekday">${day}</div>`;
+            });
+            
+            // First day of month and number of days
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+            
+            // Previous month days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = daysInPrevMonth - i;
+                html += `<div class="calendar-day other-month">${day}</div>`;
+            }
+            
+            // Current month days
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dateStr = date.toISOString().split('T')[0];
+                
+                // Check if has availability for this specific date
+                const slots = getDaySlotsFromDate(dateStr);
+                const hasSlots = slots && slots.length > 0;
+                
+                const isToday = date.toDateString() === today.toDateString();
+                
+                let classes = 'calendar-day';
+                if (isToday) classes += ' today';
+                if (hasSlots) classes += ' has-availability';
+                
+                const slotCount = hasSlots ? slots.length : 0;
+                
+                html += `<div class="${classes}" data-date="${dateStr}">
+                    <div class="calendar-day-content">
+                        <span class="calendar-day-num">${day}</span>
+                        ${slotCount > 0 ? `<span class="calendar-day-count">${slotCount} créneau${slotCount > 1 ? 'x' : ''}</span>` : ''}
+                    </div>
+                </div>`;
+            }
+            
+            // Next month days
+            const totalCells = firstDay + daysInMonth;
+            const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+            for (let day = 1; day <= remainingCells; day++) {
+                html += `<div class="calendar-day other-month">${day}</div>`;
+            }
+            
+            calendarGrid.innerHTML = html;
+            
+            // Attach click handlers
+            calendarGrid.querySelectorAll('[data-date]').forEach(dayEl => {
+                dayEl.addEventListener('click', () => {
+                    const dateStr = dayEl.dataset.date;
+                    openTimeSlotModal(dateStr);
+                });
+            });
+        };
+
+        const openTimeSlotModal = (dateStr) => {
+            calendarState.selectedDate = dateStr;
+            const date = new Date(dateStr);
+            const dateStr_formatted = date.toLocaleDateString('fr-FR', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            document.getElementById('modalDateTitle').textContent = dateStr_formatted;
+            
+            // Load slots for this specific date
+            const slots = getDaySlotsFromDate(dateStr);
+            renderSlotsList(slots);
+            
+            // Clear inputs
+            document.getElementById('slotStartTime').value = '';
+            document.getElementById('slotEndTime').value = '';
+            
+            timeSlotModal.classList.add('active');
+        };
+
+        const renderSlotsList = (slots) => {
+            if (!slots || slots.length === 0) {
+                slotsList.innerHTML = '<p style="color: #a0a8b8; text-align: center; margin: 1rem 0;">Aucun créneau</p>';
+                return;
+            }
+            
+            slotsList.innerHTML = slots.map(slot => `
+                <div class="slot-item" data-slot="${slot}">
+                    <span>${slot}</span>
+                    <i class="fas fa-trash" style="opacity: 0;"></i>
+                </div>
+            `).join('');
+            
+            // Attach remove handlers
+            slotsList.querySelectorAll('.slot-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const slot = item.dataset.slot;
+                    const currentSlots = getDaySlotsFromDate(calendarState.selectedDate);
+                    const updated = (currentSlots || []).filter(s => s !== slot);
+                    setDaySlots(calendarState.selectedDate, updated);
+                    renderSlotsList(getDaySlotsFromDate(calendarState.selectedDate));
+                });
+            });
+        };
+
+        const closeTimeSlotModal = () => {
+            timeSlotModal.classList.remove('active');
+            calendarState.selectedDate = null;
+            renderCalendar();
+        };
+
+        // Event listeners
+        if (calendarPrevMonth) {
+            calendarPrevMonth.addEventListener('click', () => {
+                calendarState.currentDate.setMonth(calendarState.currentDate.getMonth() - 1);
+                renderCalendar();
+            });
+        }
+
+        if (calendarNextMonth) {
+            calendarNextMonth.addEventListener('click', () => {
+                calendarState.currentDate.setMonth(calendarState.currentDate.getMonth() + 1);
+                renderCalendar();
+            });
+        }
+
+        if (calendarToday) {
+            calendarToday.addEventListener('click', () => {
+                calendarState.currentDate = new Date();
+                renderCalendar();
+            });
+        }
+
+        if (modalCloseBtn) {
+            modalCloseBtn.addEventListener('click', closeTimeSlotModal);
+        }
+
+        if (modalCancelBtn) {
+            modalCancelBtn.addEventListener('click', closeTimeSlotModal);
+        }
+
+        if (addSlotBtn && document.getElementById('slotStartTime')) {
+            addSlotBtn.addEventListener('click', () => {
+                const startTime = document.getElementById('slotStartTime').value;
+                const endTime = document.getElementById('slotEndTime').value;
+                
+                if (!startTime || !endTime) {
+                    showToast('Veuillez entrer les heures de début et de fin.');
+                    return;
+                }
+                
+                if (startTime >= endTime) {
+                    showToast("L'heure de fin doit être après l'heure de début.");
+                    return;
+                }
+                
+                // Create slots from range
+                const slots = [];
+                let current = new Date(`2000-01-01T${startTime}:00`);
+                const end = new Date(`2000-01-01T${endTime}:00`);
+                
+                while (current <= end) {
+                    slots.push(current.toTimeString().slice(0, 5));
+                    current.setMinutes(current.getMinutes() + 30);
+                }
+                
+                // Remove last slot if it equals endTime (we only want slots up to endTime, not including it)
+                if (slots.length > 1 && slots[slots.length - 1] === endTime) {
+                    slots.pop();
+                }
+                
+                // Add new slots for this specific date
+                const currentSlots = getDaySlotsFromDate(calendarState.selectedDate);
+                const updated = [...new Set([...currentSlots, ...slots])].sort();
+                setDaySlots(calendarState.selectedDate, updated);
+                
+                renderSlotsList(getDaySlotsFromDate(calendarState.selectedDate));
+                document.getElementById('slotStartTime').value = '';
+                document.getElementById('slotEndTime').value = '';
+            });
+        }
+
+        if (modalSaveBtn) {
+            modalSaveBtn.addEventListener('click', closeTimeSlotModal);
+        }
+
+        // Close modal on overlay click
+        timeSlotModal.addEventListener('click', (e) => {
+            if (e.target === timeSlotModal) {
+                closeTimeSlotModal();
+            }
+        });
+
+        // Initial render
+        renderCalendar();
+    };
+
+    // Initialize calendar
+
 
     if (availabilityWeekEditor) {
         availabilityWeekEditor.addEventListener('click', (e) => {
@@ -2525,6 +2801,7 @@ async function initializeAdminDashboardPage() {
             const payload = [
                 { key: 'reservation.weekly_availability', value: JSON.stringify(weekly), updated_at: now },
                 { key: 'reservation.date_overrides', value: JSON.stringify(overrides), updated_at: now },
+                { key: 'reservation.daily_slots', value: JSON.stringify(dailyAvailability), updated_at: now },
                 { key: 'reservation.booked_slots', value: JSON.stringify(booked), updated_at: now }
             ];
 

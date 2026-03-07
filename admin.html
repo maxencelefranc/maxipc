@@ -745,6 +745,322 @@
                 flex-wrap: wrap;
             }
         }
+
+        /* Calendar Styles */
+        .calendar-container {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.05) 0%, rgba(79, 172, 254, 0.05) 100%);
+            border: 1px solid rgba(240, 147, 251, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .calendar-nav button {
+            background: rgba(240, 147, 251, 0.15);
+            border: 1px solid rgba(240, 147, 251, 0.3);
+            color: #f093fb;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .calendar-nav button:hover {
+            background: rgba(240, 147, 251, 0.25);
+            transform: scale(1.05);
+        }
+
+        .calendar-title {
+            color: #fff;
+            font-size: 1.3rem;
+            font-weight: 700;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .calendar-weekday {
+            text-align: center;
+            color: #a0a8b8;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.7rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid rgba(240, 147, 251, 0.15);
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(240, 147, 251, 0.2);
+            border-radius: 12px;
+            padding: 0.7rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .calendar-day:hover {
+            background: rgba(240, 147, 251, 0.15);
+            border-color: rgba(240, 147, 251, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.3;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .calendar-day.has-availability {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0.05) 100%);
+            border-color: rgba(76, 175, 80, 0.4);
+        }
+
+        .calendar-day.has-availability::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #4caf50;
+            border-radius: 50%;
+            bottom: 4px;
+            right: 4px;
+        }
+
+        .calendar-day.today {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.2) 0%, rgba(245, 87, 108, 0.1) 100%);
+            border-color: rgba(240, 147, 251, 0.5);
+            font-weight: 700;
+        }
+
+        .calendar-day-num {
+            font-size: 0.95rem;
+            color: #fff;
+            font-weight: 600;
+            width: 100%;
+            text-align: center;
+        }
+
+        .calendar-day-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            gap: 0.25rem;
+        }
+
+        .calendar-day-count {
+            font-size: 0.7rem;
+            color: #a0a8b8;
+        }
+
+        /* Time Slot Manager Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid rgba(240, 147, 251, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(240, 147, 251, 0.2);
+        }
+
+        .modal-header h3 {
+            color: #fff;
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #a0a8b8;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: #f093fb;
+        }
+
+        .slot-input-group {
+            display: flex;
+            gap: 0.8rem;
+            margin-bottom: 0.8rem;
+            align-items: center;
+        }
+
+        .slot-input-group input[type="time"] {
+            flex: 1;
+            padding: 0.6rem;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(240, 147, 251, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        .slot-input-group button {
+            padding: 0.6rem 1rem;
+            background: rgba(240, 147, 251, 0.2);
+            border: 1px solid rgba(240, 147, 251, 0.4);
+            color: #f093fb;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .slot-input-group button:hover {
+            background: rgba(240, 147, 251, 0.3);
+        }
+
+        .slot-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-bottom: 1.5rem;
+            min-height: 36px;
+            align-content: flex-start;
+        }
+
+        .slot-item {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0.05) 100%);
+            border: 1px solid rgba(76, 175, 80, 0.4);
+            color: #86efac;
+            padding: 0.5rem 0.8rem;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .slot-item:hover {
+            background: rgba(220, 38, 38, 0.15);
+            border-color: rgba(220, 38, 38, 0.4);
+            color: #fca5a5;
+        }
+
+        .slot-item i {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .slot-item:hover i {
+            opacity: 1;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: flex-end;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(240, 147, 251, 0.2);
+        }
+
+        .modal-actions button {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-actions .btn-primary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: #fff;
+        }
+
+        .modal-actions .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(240, 147, 251, 0.4);
+        }
+
+        .modal-actions .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(240, 147, 251, 0.2);
+            color: #b0b0b0;
+        }
+
+        .modal-actions .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #f093fb;
+        }
     </style>
 </head>
 <body>
@@ -879,17 +1195,37 @@
                     </div>
                 </div>
                 <p style="margin:0 0 14px; color:#b8bfd3; font-size:0.92rem;">
-                    Ajoute tes créneaux par jour en 2 clics. Clique sur un créneau pour le supprimer.
+                    Clique sur un jour pour ajouter/modifier vos créneaux. Point vert = créneaux disponibles.
                 </p>
-                <div class="availability-toolbar">
-                    <button type="button" class="btn btn-secondary" id="availabilityPresetWeekBtn">Preset semaine soir</button>
-                    <button type="button" class="btn btn-secondary" id="availabilityPresetClearBtn">Tout vider</button>
+                
+                <!-- Calendar Section -->
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <div class="calendar-nav">
+                            <button id="calendarPrevMonth" title="Mois précédent">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button id="calendarToday" title="Mois actuel">
+                                Auj.
+                            </button>
+                            <button id="calendarNextMonth" title="Mois suivant">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="calendar-title" id="calendarTitle">Mars 2026</div>
+                        <div style="width: 140px;"></div>
+                    </div>
+                    
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Populated by JavaScript -->
+                    </div>
                 </div>
 
+                <!-- Quick Actions -->
                 <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(240,147,251,0.18); border-radius:12px; padding:12px; margin-bottom:14px;">
                     <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
                         <strong style="color:#fff;">Générateur rapide</strong>
-                        <span style="color:#b8bfd3; font-size:0.84rem;">Applique des créneaux en une fois</span>
+                        <span style="color:#b8bfd3; font-size:0.84rem;">Applique des créneaux à plusieurs jours</span>
                     </div>
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:8px; margin-bottom:10px;">
                         <label style="display:flex; flex-direction:column; gap:4px; color:#fff; font-size:0.85rem;">
@@ -920,10 +1256,12 @@
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
                         <button type="button" class="btn btn-primary" id="availabilityQuickApplyBtn">Appliquer aux jours cochés</button>
                         <button type="button" class="btn btn-secondary" id="availabilityQuickClearDaysBtn">Vider jours cochés</button>
+                        <button type="button" class="btn btn-secondary" id="availabilityPresetWeekBtn">Preset semaine soir</button>
+                        <button type="button" class="btn btn-secondary" id="availabilityPresetClearBtn">Tout vider</button>
                     </div>
                 </div>
-                <div id="availabilityWeekEditor" class="availability-week-editor"></div>
 
+                <!-- Advanced Settings -->
                 <details class="availability-advanced">
                     <summary style="cursor:pointer; color:#fff; font-weight:600;">Réglages avancés (optionnel)</summary>
                     <p style="margin:8px 0 10px; color:#b8bfd3; font-size:0.86rem;">
@@ -939,6 +1277,42 @@
                         <textarea id="availabilityBooked" rows="4" placeholder='{"2026-02-24": ["19:00"]}'></textarea>
                     </label>
                 </details>
+            </div>
+
+            <!-- Modal for selecting time slots -->
+            <div id="timeSlotModal" class="modal-overlay">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="modalDateTitle"></h3>
+                        <button class="modal-close" id="modalCloseBtn">&times;</button>
+                    </div>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: flex; flex-direction: column; gap: 0.5rem; color: #fff; margin-bottom: 0.8rem;">
+                            <span style="font-weight: 600;">Ajouter un créneau</span>
+                            <div class="slot-input-group">
+                                <input type="time" id="slotStartTime" style="flex: 1;" step="1800">
+                                <input type="time" id="slotEndTime" style="flex: 1;" step="1800">
+                                <button id="addSlotBtn" style="flex: 0 0 auto;">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </label>
+                        <p style="color: #a0a8b8; font-size: 0.85rem; margin: 0;">
+                            <i class="fas fa-info-circle"></i> Clic sur un créneau pour le supprimer
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <p style="color: #b8bfd3; font-size: 0.9rem; margin-bottom: 0.8rem;">Créneaux disponibles :</p>
+                        <div class="slot-list" id="slotsList"></div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button id="modalCancelBtn" class="btn-secondary">Annuler</button>
+                        <button id="modalSaveBtn" class="btn-primary">Enregistrer</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Reservations Tab -->
