@@ -1583,6 +1583,60 @@ function createDefaultReviewsPayload() {
     });
 }
 
+function normalizePromotionItem(item = {}) {
+    const title = String(item.title || '').trim();
+    const code = String(item.code || '').trim();
+    const discountText = String(item.discount_text || '').trim();
+    const description = String(item.description || '').trim();
+    const startsAt = item.starts_at ? String(item.starts_at) : null;
+    const endsAt = item.ends_at ? String(item.ends_at) : null;
+    const active = item.active !== false;
+    const type = String(item.type || 'custom').trim() || 'custom';
+    const appliesTo = String(item.applies_to || 'all').trim() || 'all';
+    const maxUsesRaw = Number(item.max_uses);
+    const usedCountRaw = Number(item.used_count);
+    const maxUses = Number.isFinite(maxUsesRaw) && maxUsesRaw > 0 ? Math.floor(maxUsesRaw) : null;
+    const usedCount = Number.isFinite(usedCountRaw) && usedCountRaw >= 0 ? Math.floor(usedCountRaw) : 0;
+    const autoDeactivate = item.auto_deactivate_on_limit !== false;
+
+    return {
+        title,
+        code,
+        discount_text: discountText,
+        description,
+        starts_at: startsAt,
+        ends_at: endsAt,
+        active,
+        type,
+        applies_to: appliesTo,
+        max_uses: maxUses,
+        used_count: usedCount,
+        auto_deactivate_on_limit: autoDeactivate
+    };
+}
+
+function normalizePromotionsPayload(payload = {}) {
+    const promotions = Array.isArray(payload.promotions)
+        ? payload.promotions
+            .map((promotion) => normalizePromotionItem(promotion))
+            .filter((promotion) => promotion.title || promotion.code)
+        : [];
+
+    return {
+        updated_at: payload.updated_at || new Date().toISOString(),
+        source: 'manual',
+        promotions
+    };
+}
+
+function createDefaultPromotionsPayload() {
+    return normalizePromotionsPayload({
+        updated_at: new Date().toISOString(),
+        source: 'manual',
+        promotions: []
+    });
+}
+
 function renderReservationsTable(rows, tbody, emptyState) {
     if (!tbody || !emptyState) return;
     tbody.innerHTML = '';
@@ -1697,6 +1751,7 @@ let adminReservationsCache = [];
 let adminOrdersCache = [];
 let adminProductsCache = [];
 let adminReviewsPayload = createDefaultReviewsPayload();
+let adminPromotionsPayload = createDefaultPromotionsPayload();
 
 async function loadAdminReservationsAndOrders() {
     if (!window.supabaseClient) return;
@@ -1740,6 +1795,8 @@ async function initializeAdminDashboardPage() {
     const exportOrdersBtn = document.getElementById('exportOrdersBtn');
     const addReviewBtn = document.getElementById('addReviewBtn');
     const reviewsAdminList = document.getElementById('reviewsAdminList');
+    const addPromotionBtn = document.getElementById('addPromotionBtn');
+    const promotionsAdminList = document.getElementById('promotionsAdminList');
     const saveAvailabilityBtn = document.getElementById('saveAvailabilityBtn');
     const availabilityPresetWeekBtn = document.getElementById('availabilityPresetWeekBtn');
     const availabilityPresetClearBtn = document.getElementById('availabilityPresetClearBtn');
@@ -1770,7 +1827,9 @@ async function initializeAdminDashboardPage() {
     let editingProductId = null;
     let productEditMode = false;
     let reviewEditMode = false;
+    let promotionEditMode = false;
     let editingReviewIndex = null;
+    let editingPromotionIndex = null;
     const availabilityWeekEditor = document.getElementById('availabilityWeekEditor');
     const availabilityOverrides = document.getElementById('availabilityOverrides');
     const availabilityBooked = document.getElementById('availabilityBooked');
@@ -1873,6 +1932,12 @@ async function initializeAdminDashboardPage() {
         if (modalInput) modalInput.style.display = enabled ? 'none' : (productEditMode ? 'none' : 'block');
     };
 
+    const setPromotionEditMode = (enabled) => {
+        promotionEditMode = enabled;
+        if (productEditorForm) productEditorForm.style.display = enabled ? 'grid' : (reviewEditMode || productEditMode ? 'grid' : 'none');
+        if (modalInput) modalInput.style.display = enabled ? 'none' : (reviewEditMode || productEditMode ? 'none' : 'block');
+    };
+
     const renderReviewsAdminList = () => {
         if (!reviewsAdminList) return;
         const reviews = Array.isArray(adminReviewsPayload?.reviews) ? adminReviewsPayload.reviews : [];
@@ -1969,6 +2034,200 @@ async function initializeAdminDashboardPage() {
     const closeReviewModal = () => {
         editingReviewIndex = null;
         setReviewEditMode(false);
+    };
+
+    const renderPromotionsAdminList = () => {
+        if (!promotionsAdminList) return;
+        const promotions = Array.isArray(adminPromotionsPayload?.promotions) ? adminPromotionsPayload.promotions : [];
+
+        if (!promotions.length) {
+            promotionsAdminList.innerHTML = `
+                <div class="content-card">
+                    <div class="content-key">Aucune promotion</div>
+                    <div class="content-value">Ajoute ta première offre promotionnelle.</div>
+                </div>
+            `;
+            return;
+        }
+
+        promotionsAdminList.innerHTML = promotions.map((promotion, index) => {
+            const stateLabel = promotion.active ? 'Active' : 'Inactive';
+            const periodLabel = [promotion.starts_at || '', promotion.ends_at || ''].filter(Boolean).join(' → ') || 'Sans date';
+            const quotaLabel = Number.isFinite(Number(promotion.max_uses)) && Number(promotion.max_uses) > 0
+                ? `${Math.max(0, Number(promotion.max_uses) - Number(promotion.used_count || 0))} restant(s) / ${Number(promotion.max_uses)}`
+                : 'Sans limite';
+            return `
+                <div class="content-card" data-promotion-index="${index}">
+                    <div class="content-key">${escapeHtml(promotion.code || 'Sans code')} • ${stateLabel} • ${escapeHtml(String(promotion.type || 'custom'))}</div>
+                    <div class="content-value"><strong>${escapeHtml(promotion.title || 'Promotion')}</strong><br>${escapeHtml((promotion.discount_text || '').trim())}<br><span style="color:#b0b0b0; font-size:0.82rem;">${escapeHtml(periodLabel)} • ${escapeHtml(quotaLabel)}</span></div>
+                    <div class="content-actions">
+                        <button type="button" class="btn btn-secondary" data-promotion-action="edit" data-promotion-index="${index}">Modifier</button>
+                        <button type="button" class="btn btn-delete" data-promotion-action="delete" data-promotion-index="${index}">Supprimer</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    };
+
+    const renderPromotionForm = (promotionData = {}) => {
+        if (!productEditorForm) return;
+        const safe = normalizePromotionItem(promotionData);
+        const startsAt = /^\d{4}-\d{2}-\d{2}$/.test(String(safe.starts_at || '')) ? safe.starts_at : '';
+        const endsAt = /^\d{4}-\d{2}-\d{2}$/.test(String(safe.ends_at || '')) ? safe.ends_at : '';
+
+        productEditorForm.innerHTML = `
+            <label style="display:flex; flex-direction:column; gap:6px; color:#fff; margin-bottom:10px;">
+                <span>Titre</span>
+                <input id="promotionFieldTitle" type="text" value="${escapeHtml(safe.title)}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+            </label>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                    <span>Code promo</span>
+                    <input id="promotionFieldCode" type="text" value="${escapeHtml(safe.code)}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                </label>
+                <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                    <span>Réduction</span>
+                    <input id="promotionFieldDiscount" type="text" value="${escapeHtml(safe.discount_text)}" placeholder="Ex: -10%" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                </label>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                    <span>Type</span>
+                    <select id="promotionFieldType" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                        <option value="custom" ${safe.type === 'custom' ? 'selected' : ''}>Personnalisée</option>
+                        <option value="first_n_clients" ${safe.type === 'first_n_clients' ? 'selected' : ''}>Premiers clients</option>
+                        <option value="percentage" ${safe.type === 'percentage' ? 'selected' : ''}>Pourcentage</option>
+                        <option value="amount" ${safe.type === 'amount' ? 'selected' : ''}>Montant fixe</option>
+                        <option value="bundle" ${safe.type === 'bundle' ? 'selected' : ''}>Pack/Bundle</option>
+                        <option value="free_service" ${safe.type === 'free_service' ? 'selected' : ''}>Service offert</option>
+                        <option value="seasonal" ${safe.type === 'seasonal' ? 'selected' : ''}>Saisonnière</option>
+                    </select>
+                </label>
+                <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                    <span>Applicable à</span>
+                    <select id="promotionFieldAppliesTo" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                        <option value="all" ${safe.applies_to === 'all' ? 'selected' : ''}>Tout</option>
+                        <option value="services" ${safe.applies_to === 'services' ? 'selected' : ''}>Prestations</option>
+                        <option value="shop" ${safe.applies_to === 'shop' ? 'selected' : ''}>Boutique</option>
+                    </select>
+                </label>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                    <span>Début</span>
+                    <input id="promotionFieldStart" type="date" value="${startsAt}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                </label>
+                <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                    <span>Fin</span>
+                    <input id="promotionFieldEnd" type="date" value="${endsAt}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                </label>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                    <span>Quota max (optionnel)</span>
+                    <input id="promotionFieldMaxUses" type="number" min="1" value="${safe.max_uses || ''}" placeholder="Ex: 15" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                </label>
+                <label style="display:flex; flex-direction:column; gap:6px; color:#fff;">
+                    <span>Déjà utilisés</span>
+                    <input id="promotionFieldUsedCount" type="number" min="0" value="${safe.used_count || 0}" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff;">
+                </label>
+            </div>
+            <label style="display:flex; flex-direction:column; gap:6px; color:#fff; margin-bottom:10px;">
+                <span>Description</span>
+                <textarea id="promotionFieldDescription" rows="4" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#131327; color:#fff; resize:vertical;">${escapeHtml(safe.description)}</textarea>
+            </label>
+            <label style="display:inline-flex; align-items:center; gap:8px; color:#fff;">
+                <input id="promotionFieldActive" type="checkbox" ${safe.active ? 'checked' : ''}> Promotion active
+            </label>
+            <label style="display:inline-flex; align-items:center; gap:8px; color:#fff; margin-left:16px;">
+                <input id="promotionFieldAutoDeactivate" type="checkbox" ${safe.auto_deactivate_on_limit ? 'checked' : ''}> Désactiver auto à quota atteint
+            </label>
+        `;
+    };
+
+    const getPromotionPayloadFromForm = () => {
+        const startRaw = document.getElementById('promotionFieldStart')?.value || '';
+        const endRaw = document.getElementById('promotionFieldEnd')?.value || '';
+        const maxUsesRaw = Number(document.getElementById('promotionFieldMaxUses')?.value || 0);
+        const usedCountRaw = Number(document.getElementById('promotionFieldUsedCount')?.value || 0);
+        return normalizePromotionItem({
+            title: document.getElementById('promotionFieldTitle')?.value.trim() || '',
+            code: document.getElementById('promotionFieldCode')?.value.trim() || '',
+            discount_text: document.getElementById('promotionFieldDiscount')?.value.trim() || '',
+            description: document.getElementById('promotionFieldDescription')?.value.trim() || '',
+            starts_at: /^\d{4}-\d{2}-\d{2}$/.test(startRaw) ? startRaw : null,
+            ends_at: /^\d{4}-\d{2}-\d{2}$/.test(endRaw) ? endRaw : null,
+            active: Boolean(document.getElementById('promotionFieldActive')?.checked),
+            type: document.getElementById('promotionFieldType')?.value || 'custom',
+            applies_to: document.getElementById('promotionFieldAppliesTo')?.value || 'all',
+            max_uses: Number.isFinite(maxUsesRaw) && maxUsesRaw > 0 ? Math.floor(maxUsesRaw) : null,
+            used_count: Number.isFinite(usedCountRaw) && usedCountRaw >= 0 ? Math.floor(usedCountRaw) : 0,
+            auto_deactivate_on_limit: Boolean(document.getElementById('promotionFieldAutoDeactivate')?.checked)
+        });
+    };
+
+    const openPromotionModal = (title, index, promotionData) => {
+        if (!editModal || !modalTitle) return;
+        editingPromotionIndex = index;
+        modalTitle.textContent = title;
+        setProductEditMode(false);
+        closeReviewModal();
+        setPromotionEditMode(true);
+        renderPromotionForm(promotionData || {});
+        editModal.classList.add('show');
+        const firstField = document.getElementById('promotionFieldTitle');
+        if (firstField) firstField.focus();
+    };
+
+    const closePromotionModal = () => {
+        editingPromotionIndex = null;
+        setPromotionEditMode(false);
+    };
+
+    const savePromotionsToSiteContent = async () => {
+        const normalized = normalizePromotionsPayload({
+            ...adminPromotionsPayload,
+            updated_at: new Date().toISOString()
+        });
+
+        const { error } = await window.supabaseClient
+            .from('site_content')
+            .upsert(
+                {
+                    key: 'shop.promotions_json',
+                    value: JSON.stringify(normalized),
+                    updated_at: new Date().toISOString()
+                },
+                { onConflict: 'key' }
+            );
+
+        if (error) return false;
+        adminPromotionsPayload = normalized;
+        return true;
+    };
+
+    const loadAdminPromotions = async () => {
+        if (!window.supabaseClient) return;
+        const { data } = await window.supabaseClient
+            .from('site_content')
+            .select('value')
+            .eq('key', 'shop.promotions_json')
+            .single();
+
+        if (!data?.value) {
+            adminPromotionsPayload = createDefaultPromotionsPayload();
+            renderPromotionsAdminList();
+            return;
+        }
+
+        try {
+            const parsed = JSON.parse(data.value);
+            adminPromotionsPayload = normalizePromotionsPayload(parsed);
+        } catch {
+            adminPromotionsPayload = createDefaultPromotionsPayload();
+        }
+
+        renderPromotionsAdminList();
     };
 
     const saveReviewsToSiteContent = async () => {
@@ -2202,6 +2461,7 @@ async function initializeAdminDashboardPage() {
         if (!editModal || !modalTitle) return;
         editingProductId = productId;
         closeReviewModal();
+        closePromotionModal();
         modalTitle.textContent = title;
         setProductEditMode(true);
         renderProductForm(productData);
@@ -2215,6 +2475,7 @@ async function initializeAdminDashboardPage() {
         editModal.classList.remove('show');
         setProductEditMode(false);
         closeReviewModal();
+        closePromotionModal();
         editingProductId = null;
     };
 
@@ -2222,6 +2483,7 @@ async function initializeAdminDashboardPage() {
         await loadAdminProducts();
         await loadAdminContent();
         await loadAdminReviews();
+        await loadAdminPromotions();
         await loadAdminAvailability();
         await loadAdminReservationsAndOrders();
     };
@@ -2945,8 +3207,90 @@ async function initializeAdminDashboardPage() {
         });
     }
 
+    if (addPromotionBtn) {
+        addPromotionBtn.addEventListener('click', () => {
+            openPromotionModal('Ajouter une promotion', 'new', {
+                title: '',
+                code: '',
+                discount_text: '',
+                description: '',
+                starts_at: null,
+                ends_at: null,
+                active: true,
+                type: 'custom',
+                applies_to: 'all',
+                max_uses: null,
+                used_count: 0,
+                auto_deactivate_on_limit: true
+            });
+        });
+    }
+
+    if (promotionsAdminList) {
+        promotionsAdminList.addEventListener('click', async (e) => {
+            const actionButton = e.target.closest('[data-promotion-action]');
+            if (!actionButton) return;
+
+            const action = actionButton.dataset.promotionAction;
+            const index = Number(actionButton.dataset.promotionIndex);
+            const promotion = adminPromotionsPayload.promotions[index];
+
+            if (action === 'edit') {
+                if (!promotion) return;
+                openPromotionModal('Modifier une promotion', index, promotion);
+                return;
+            }
+
+            if (action === 'delete') {
+                if (!promotion) return;
+                const confirmed = confirm('Supprimer cette promotion ?');
+                if (!confirmed) return;
+
+                adminPromotionsPayload.promotions.splice(index, 1);
+                const saved = await savePromotionsToSiteContent();
+                if (!saved) {
+                    showToast('Suppression impossible.');
+                    return;
+                }
+
+                renderPromotionsAdminList();
+                showToast('Promotion supprimée.');
+            }
+        });
+    }
+
     if (modalSave) {
         modalSave.addEventListener('click', async () => {
+            if (promotionEditMode) {
+                const promotionPayload = getPromotionPayloadFromForm();
+                if (!promotionPayload.title && !promotionPayload.code) {
+                    showToast('Titre ou code promo requis.');
+                    return;
+                }
+
+                const parsedPromotionIndex = Number(editingPromotionIndex);
+                const isCreatingPromotion = editingPromotionIndex === 'new'
+                    || !Number.isInteger(parsedPromotionIndex)
+                    || parsedPromotionIndex < 0;
+
+                if (isCreatingPromotion) {
+                    adminPromotionsPayload.promotions.unshift(promotionPayload);
+                } else {
+                    adminPromotionsPayload.promotions[parsedPromotionIndex] = promotionPayload;
+                }
+
+                const saved = await savePromotionsToSiteContent();
+                if (!saved) {
+                    showToast('Enregistrement de la promotion impossible.');
+                    return;
+                }
+
+                renderPromotionsAdminList();
+                closeProductModal();
+                showToast(isCreatingPromotion ? 'Promotion ajoutée.' : 'Promotion mise à jour.');
+                return;
+            }
+
             if (reviewEditMode) {
                 const reviewPayload = getReviewPayloadFromForm();
                 if (!reviewPayload.author_name) {
@@ -3338,11 +3682,136 @@ async function initializeGoogleReviewsSection() {
     }
 }
 
+async function initializeTarifsPromotionsSection() {
+    const section = document.getElementById('tarifsPromotionsSection');
+    const container = document.getElementById('tarifsPromotionsList');
+    if (!container) return;
+
+    try {
+        let payload = null;
+        if (window.supabaseClient) {
+            const { data } = await window.supabaseClient
+                .from('site_content')
+                .select('value')
+                .eq('key', 'shop.promotions_json')
+                .single();
+            if (data?.value) {
+                try {
+                    payload = JSON.parse(data.value);
+                } catch {
+                    payload = null;
+                }
+            }
+        }
+
+        const normalized = normalizePromotionsPayload(payload || {});
+        const today = new Date();
+        const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+        const activePromotions = normalized.promotions.filter((promo) => {
+            if (!promo.active) return false;
+            if (promo.starts_at && todayKey < promo.starts_at) return false;
+            if (promo.ends_at && todayKey > promo.ends_at) return false;
+            if (Number.isFinite(Number(promo.max_uses)) && Number(promo.max_uses) > 0) {
+                if (Number(promo.used_count || 0) >= Number(promo.max_uses)) return false;
+            }
+            return true;
+        });
+
+        const servicePromotions = activePromotions.filter((promo) => promo.applies_to === 'all' || promo.applies_to === 'services');
+
+        const parseDiscountSpec = (promo, basePrice) => {
+            const text = String(promo.discount_text || '').trim();
+            if (!text) return 0;
+
+            const percentMatch = text.match(/(-?\d+(?:[.,]\d+)?)\s*%/);
+            if (percentMatch) {
+                const pct = Number(percentMatch[1].replace(',', '.'));
+                if (Number.isFinite(pct) && pct > 0) {
+                    return (basePrice * pct) / 100;
+                }
+            }
+
+            const euroMatch = text.match(/(-?\d+(?:[.,]\d+)?)\s*(€|eur)/i);
+            if (euroMatch) {
+                const amount = Number(euroMatch[1].replace(',', '.'));
+                if (Number.isFinite(amount) && amount > 0) {
+                    return amount;
+                }
+            }
+
+            return 0;
+        };
+
+        const bestDiscountForPrice = (basePrice) => {
+            let best = { amount: 0, promo: null };
+            servicePromotions.forEach((promo) => {
+                const amount = parseDiscountSpec(promo, basePrice);
+                if (amount > best.amount) {
+                    best = { amount, promo };
+                }
+            });
+            return best;
+        };
+
+        const formatEuro = (value) => `${Math.round(value)} €`;
+
+        document.querySelectorAll('[data-base-price]').forEach((node) => {
+            const basePrice = Number(node.getAttribute('data-base-price') || 0);
+            if (!Number.isFinite(basePrice) || basePrice <= 0) return;
+
+            const prefix = node.getAttribute('data-price-prefix') || 'À partir de ';
+            const suffix = node.getAttribute('data-price-suffix') || '';
+            const best = bestDiscountForPrice(basePrice);
+
+            if (!best.promo || best.amount <= 0) {
+                node.textContent = `${prefix}${formatEuro(basePrice)}${suffix}`;
+                return;
+            }
+
+            const discounted = Math.max(0, basePrice - best.amount);
+            node.innerHTML = `${prefix}<span style="text-decoration:line-through; opacity:0.65; margin-right:8px;">${formatEuro(basePrice)}</span><span style="color:var(--accent-color); font-weight:700;">${formatEuro(discounted)}</span>${suffix}`;
+        });
+
+        if (!activePromotions.length) {
+            if (section) section.style.display = 'none';
+            container.innerHTML = '';
+            return;
+        }
+
+        if (section) section.style.display = '';
+
+        container.innerHTML = activePromotions.map((promo) => {
+            const hasQuota = Number.isFinite(Number(promo.max_uses)) && Number(promo.max_uses) > 0;
+            const remaining = hasQuota ? Math.max(0, Number(promo.max_uses) - Number(promo.used_count || 0)) : null;
+            const period = [promo.starts_at, promo.ends_at].filter(Boolean).join(' → ');
+            const codeLine = promo.code ? `Code: ${escapeHtml(promo.code)}` : 'Sans code';
+            const quotaLine = remaining === null ? 'Offre sans limite de quota' : `${remaining} place(s) restante(s)`;
+
+            return `
+                <article class="card" style="border:1px solid rgba(240,147,251,0.35); background:linear-gradient(135deg, rgba(240,147,251,0.12), rgba(79,172,254,0.12));">
+                    <div class="badge badge-accent" style="margin-bottom:10px;">PROMOTION</div>
+                    <h4 style="margin:0 0 8px; color:var(--text-light);">${escapeHtml(promo.title || 'Offre spéciale')}</h4>
+                    <p style="margin:0 0 8px; color:var(--accent-color); font-weight:700;">${escapeHtml(promo.discount_text || '')}</p>
+                    <p style="margin:0 0 8px; color:var(--text-muted);">${escapeHtml(promo.description || '')}</p>
+                    <p style="margin:0; color:var(--text-light); font-size:0.92rem;"><strong>${codeLine}</strong></p>
+                    <p style="margin:6px 0 0; color:var(--text-muted); font-size:0.86rem;">${escapeHtml(quotaLine)}${period ? ` • ${escapeHtml(period)}` : ''}</p>
+                </article>
+            `;
+        }).join('');
+    } catch (error) {
+        if (section) section.style.display = 'none';
+        container.innerHTML = '';
+        console.warn('Promotions load failed', error);
+    }
+}
+
 function runAppInit() {
     initializeTerminalAnimation();
     initializeShopFeature();
     prefillReservationFromCart();
     initializeGoogleReviewsSection();
+    initializeTarifsPromotionsSection();
     loadSiteContent();
     initializeAdmin();
     initializeAdminDashboardPage();

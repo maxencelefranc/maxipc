@@ -47,6 +47,17 @@
             <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 10px;">Tarifs affichés à titre indicatif • Devis gratuit avant intervention • Main-d'œuvre incluse</p>
         </div>
 
+        <!-- PROMOTIONS ACTIVES -->
+        <section id="tarifsPromotionsSection" style="margin-bottom: 48px; display:none;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
+                <h2 style="margin:0; color: var(--text-light); font-size: 1.6rem;">Promotions en cours</h2>
+                <span class="badge badge-primary">Mise à jour automatique</span>
+            </div>
+            <div id="tarifsPromotionsList" class="grid grid-auto">
+                <div class="card"><p style="margin:0; color: var(--text-muted);">Chargement des promotions...</p></div>
+            </div>
+        </section>
+
         <!-- PACKS PRINCIPAUX -->
         <div class="grid grid-3">
             <!-- Pack Express -->
@@ -57,7 +68,7 @@
                 <div class="badge badge-primary" style="margin-bottom: 15px;">PACK EXPRESS</div>
                 <h3 style="color: var(--text-light); font-size: 1.5rem; margin-bottom: 10px; font-weight: 600;">Dépannage Express</h3>
                 <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">Intervention rapide et efficace</p>
-                <div style="font-size: 2.5rem; font-weight: 700; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 20px 0;">À partir de 49€</div>
+                <div style="font-size: 2.5rem; font-weight: 700; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 20px 0;" data-base-price="49" data-price-prefix="À partir de ">À partir de 49 €</div>
                 <p style="color: var(--text-muted); font-size: 0.9rem;">diagnostic + intervention standard inclus</p>
                 <ul style="text-align: left; margin: 30px 0; list-style: none; padding: 0;">
                     <li style="color: var(--text-light); padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.95rem; display: flex; align-items: center;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 12px; font-size: 1.1rem;"></i> Diagnostic complet</li>
@@ -76,7 +87,7 @@
                 </div>
                 <h3 style="color: var(--text-light); font-size: 1.5rem; margin-bottom: 10px; font-weight: 600;">Optimisation Complète</h3>
                 <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">Nettoyage en profondeur</p>
-                <div style="font-size: 2.5rem; font-weight: 700; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 20px 0;">À partir de 65€</div>
+                <div style="font-size: 2.5rem; font-weight: 700; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 20px 0;" data-base-price="65" data-price-prefix="À partir de ">À partir de 65 €</div>
                 <p style="color: var(--text-muted); font-size: 0.9rem;">forfait optimisation complet inclus</p>
                 <ul style="text-align: left; margin: 30px 0; list-style: none; padding: 0;">
                     <li style="color: var(--text-light); padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.95rem; display: flex; align-items: center;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 12px; font-size: 1.1rem;"></i> Suppression virus/malware</li>
@@ -96,7 +107,7 @@
                 <div class="badge badge-primary" style="margin-bottom: 15px;">PACK PREMIUM</div>
                 <h3 style="color: var(--text-light); font-size: 1.5rem; margin-bottom: 10px; font-weight: 600;">PC Sur Mesure</h3>
                 <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">Montage professionnel</p>
-                <div style="font-size: 2.5rem; font-weight: 700; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 20px 0;">À partir de<br>90€</div>
+                <div style="font-size: 2.5rem; font-weight: 700; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 20px 0;" data-base-price="90" data-price-prefix="À partir de ">À partir de 90 €</div>
                 <p style="color: var(--text-muted); font-size: 0.9rem;">montage seul • 120€ avec Windows/pilotes • pièces en sus</p>
                 <ul style="text-align: left; margin: 30px 0; list-style: none; padding: 0;">
                     <li style="color: var(--text-light); padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.95rem; display: flex; align-items: center;"><i class="fas fa-check" style="color: var(--accent-color); margin-right: 12px; font-size: 1.1rem;"></i> Montage standard : 90€</li>
@@ -123,7 +134,7 @@
                         <strong>Diagnostic simple :</strong><br>
                         <span style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">30 €</span><br><br>
                         <strong>Intervention :</strong><br>
-                        <span style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">à partir de 45 € / heure</span><br><br>
+                        <span style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;" data-base-price="45" data-price-prefix="à partir de " data-price-suffix=" / heure">à partir de 45 € / heure</span><br><br>
                         <strong>Frais de déplacement :</strong><br>
                         Lannion centre : <span style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">5 €</span><br>
                         Extérieur : <span style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">10 €</span>
@@ -144,7 +155,7 @@
                         ✓ Vérification disque<br>
                         ✓ Conseils
                     </div>
-                    <div style="color: var(--accent-color); font-weight: 600; font-size: 1.8rem;">à partir de 65 €</div>
+                    <div style="color: var(--accent-color); font-weight: 600; font-size: 1.8rem;" data-base-price="65" data-price-prefix="à partir de ">à partir de 65 €</div>
                 </div>
 
                 <!-- Remplacement composant -->
@@ -174,7 +185,7 @@
                         Pilotes optimisés<br>
                         Conseils sur paramètres
                     </div>
-                    <div style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">à partir de 40 €</div>
+                    <div style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;" data-base-price="40" data-price-prefix="à partir de ">à partir de 40 €</div>
                 </div>
 
                 <!-- Montage standard -->
@@ -189,7 +200,7 @@
                         Montage précis<br>
                         Tests de fonctionnement
                     </div>
-                    <div style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">à partir de 90 €</div>
+                    <div style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;" data-base-price="90" data-price-prefix="à partir de ">à partir de 90 €</div>
                 </div>
 
                 <!-- Montage Complet -->
@@ -204,7 +215,7 @@
                         + pilotes + logiciels<br>
                         + configuration gaming
                     </div>
-                    <div style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">à partir de 120 €</div>
+                    <div style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;" data-base-price="120" data-price-prefix="à partir de ">à partir de 120 €</div>
                 </div>
             </div>
         </div>
@@ -253,6 +264,8 @@
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

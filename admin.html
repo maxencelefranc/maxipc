@@ -1141,6 +1141,9 @@
                 <button class="tab-btn" data-tab="reviews">
                     <i class="fas fa-star"></i> Avis
                 </button>
+                <button class="tab-btn" data-tab="promotions">
+                    <i class="fas fa-tags"></i> Promotions
+                </button>
                 <button class="tab-btn" data-tab="availability">
                     <i class="fas fa-clock"></i> Planning
                 </button>
@@ -1182,6 +1185,22 @@
                     Gère les avis affichés sur la page d'accueil.
                 </p>
                 <div class="content-list" id="reviewsAdminList"></div>
+            </div>
+
+            <!-- Promotions Tab -->
+            <div id="promotionsTab" class="tab-content">
+                <div class="tab-header">
+                    <h3 style="margin:0; color:#fff;">Promotions</h3>
+                    <div class="tab-actions">
+                        <button class="btn btn-primary" id="addPromotionBtn">
+                            <i class="fas fa-plus"></i> Ajouter une promotion
+                        </button>
+                    </div>
+                </div>
+                <p style="margin:0 0 14px; color:#b8bfd3; font-size:0.92rem;">
+                    Gère les offres promotionnelles (code, réduction, période, statut).
+                </p>
+                <div class="content-list" id="promotionsAdminList"></div>
             </div>
 
             <!-- Availability Tab -->

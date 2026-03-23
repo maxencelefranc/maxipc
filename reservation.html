@@ -175,6 +175,8 @@
             <p data-content-key="reservation.header.subtitle" style="color: var(--text-muted); font-size: 1.1rem;">Choisissez une date et une heure disponibles pour votre intervention</p>
         </section>
 
+        <section id="reservationPromoSummary" class="alert alert-info" style="margin-bottom: 24px; display:none;"></section>
+
         <!-- Info Section - Using Component Grid -->
         <div class="grid grid-auto mb-5">
             <div class="card text-center">
@@ -397,6 +399,7 @@
         // Exemple: '2026-02-24': ['19:00']
         let BOOKED_SLOTS = {};
         let AUTO_BOOKED_SLOTS = {};
+        const PROMOTIONS_CONTENT_KEY = 'shop.promotions_json';
         let formLoadTimestamp = Date.now();
 
         const BOOKING_WINDOW = getBookingWindowBounds();
@@ -411,6 +414,7 @@
             formLoadTimestamp = Date.now();
             emailjs.init('c4iw2Wxz3QnEZYi7S');
             await loadAvailabilityFromAdmin();
+            await loadReservationPromotionsSummary();
             await loadBookedSlotsFromReservations();
             renderCalendar();
             updateMonthNavState();
@@ -524,6 +528,181 @@
             if (!map[dateKey].includes(time)) map[dateKey].push(time);
         }
 
+        function getTodayKeyLocal() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function normalizePromotionItem(item = {}) {
+            const maxUsesRaw = Number(item.max_uses);
+            const usedCountRaw = Number(item.used_count);
+            return {
+                title: String(item.title || '').trim(),
+                code: String(item.code || '').trim(),
+                discount_text: String(item.discount_text || '').trim(),
+                description: String(item.description || '').trim(),
+                starts_at: item.starts_at ? String(item.starts_at) : null,
+                ends_at: item.ends_at ? String(item.ends_at) : null,
+                active: item.active !== false,
+                type: String(item.type || 'custom').trim() || 'custom',
+                applies_to: String(item.applies_to || 'all').trim() || 'all',
+                max_uses: Number.isFinite(maxUsesRaw) && maxUsesRaw > 0 ? Math.floor(maxUsesRaw) : null,
+                used_count: Number.isFinite(usedCountRaw) && usedCountRaw >= 0 ? Math.floor(usedCountRaw) : 0,
+                auto_deactivate_on_limit: item.auto_deactivate_on_limit !== false
+            };
+        }
+
+        function normalizePromotionsPayload(payload = {}) {
+            const promotions = Array.isArray(payload.promotions)
+                ? payload.promotions
+                    .map((promotion) => normalizePromotionItem(promotion))
+                    .filter((promotion) => promotion.title || promotion.code)
+                : [];
+
+            return {
+                updated_at: payload.updated_at || new Date().toISOString(),
+                source: 'manual',
+                promotions
+            };
+        }
+
+        function isPromotionActiveNow(promotion) {
+            if (!promotion || !promotion.active) return false;
+            const todayKey = getTodayKeyLocal();
+            if (promotion.starts_at && todayKey < promotion.starts_at) return false;
+            if (promotion.ends_at && todayKey > promotion.ends_at) return false;
+            if (Number.isFinite(Number(promotion.max_uses)) && Number(promotion.max_uses) > 0) {
+                if (Number(promotion.used_count || 0) >= Number(promotion.max_uses)) return false;
+            }
+            return true;
+        }
+
+        function renderReservationPromotionsSummary(payload) {
+            const box = document.getElementById('reservationPromoSummary');
+            if (!box) return;
+
+            const activeServicePromotions = (payload?.promotions || []).filter((promotion) => {
+                if (!isPromotionActiveNow(promotion)) return false;
+                return promotion.applies_to === 'all' || promotion.applies_to === 'services';
+            });
+
+            if (!activeServicePromotions.length) {
+                box.style.display = 'none';
+                box.innerHTML = '';
+                return;
+            }
+
+            const lines = activeServicePromotions.map((promotion) => {
+                const hasQuota = Number.isFinite(Number(promotion.max_uses)) && Number(promotion.max_uses) > 0;
+                const remaining = hasQuota ? Math.max(0, Number(promotion.max_uses) - Number(promotion.used_count || 0)) : null;
+                const quotaLabel = remaining === null ? 'offre sans limite de places' : `${remaining} place(s) restante(s)`;
+                const code = promotion.code ? `Code ${promotion.code}` : 'Sans code';
+                return `<p style="margin:6px 0;"><strong>${code}</strong> • ${promotion.discount_text || ''} • ${quotaLabel}</p>`;
+            }).join('');
+
+            box.innerHTML = `<h4 style="margin:0 0 8px; color:var(--text-light);">Promotions prestations en cours</h4>${lines}`;
+            box.style.display = 'block';
+        }
+
+        async function loadReservationPromotionsSummary() {
+            if (!window.supabaseClient) return;
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from('site_content')
+                    .select('value')
+                    .eq('key', PROMOTIONS_CONTENT_KEY)
+                    .single();
+
+                if (error || !data?.value) {
+                    renderReservationPromotionsSummary({ promotions: [] });
+                    return;
+                }
+
+                let parsed = null;
+                try {
+                    parsed = JSON.parse(data.value);
+                } catch {
+                    parsed = null;
+                }
+
+                const payload = normalizePromotionsPayload(parsed || {});
+                renderReservationPromotionsSummary(payload);
+            } catch (error) {
+                console.warn('Résumé promotions indisponible.', error);
+            }
+        }
+
+        async function consumePromotionsForServiceReservation() {
+            if (!window.supabaseClient) return;
+
+            try {
+                const { data: row, error } = await window.supabaseClient
+                    .from('site_content')
+                    .select('value')
+                    .eq('key', PROMOTIONS_CONTENT_KEY)
+                    .single();
+
+                if (error || !row?.value) return;
+
+                let parsed = null;
+                try {
+                    parsed = JSON.parse(row.value);
+                } catch {
+                    parsed = null;
+                }
+
+                const payload = normalizePromotionsPayload(parsed || {});
+                if (!Array.isArray(payload.promotions) || !payload.promotions.length) return;
+
+                let changed = false;
+                payload.promotions = payload.promotions.map((promotion) => {
+                    const applies = promotion.applies_to === 'all' || promotion.applies_to === 'services';
+                    const autoCount = promotion.type === 'first_n_clients';
+                    if (!applies || !autoCount || !isPromotionActiveNow(promotion)) {
+                        return promotion;
+                    }
+
+                    const nextUsed = Number(promotion.used_count || 0) + 1;
+                    const nextPromotion = {
+                        ...promotion,
+                        used_count: nextUsed
+                    };
+
+                    if (
+                        Number.isFinite(Number(nextPromotion.max_uses))
+                        && Number(nextPromotion.max_uses) > 0
+                        && nextUsed >= Number(nextPromotion.max_uses)
+                        && nextPromotion.auto_deactivate_on_limit
+                    ) {
+                        nextPromotion.active = false;
+                    }
+
+                    changed = true;
+                    return nextPromotion;
+                });
+
+                if (!changed) return;
+
+                payload.updated_at = new Date().toISOString();
+
+                await window.supabaseClient
+                    .from('site_content')
+                    .upsert(
+                        {
+                            key: PROMOTIONS_CONTENT_KEY,
+                            value: JSON.stringify(payload),
+                            updated_at: payload.updated_at
+                        },
+                        { onConflict: 'key' }
+                    );
+            } catch (error) {
+                console.warn('Compteur promotion non mis à jour.', error);
+            }
+        }
+
         async function loadBookedSlotsFromReservations() {
             if (!window.supabaseClient) return;
             try {
@@ -619,13 +798,23 @@
             return new Date(year, month - 1, day);
         }
 
+        function isPastSlot(date, time) {
+            const normalizedTime = normalizeSlotTime(time);
+            if (!normalizedTime) return true;
+            const [hours, minutes] = normalizedTime.split(':').map(Number);
+            const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes, 0, 0);
+            return slotDate.getTime() <= Date.now();
+        }
+
         function getAvailableHoursForDate(date) {
             const dateString = toDateString(date);
             const configured = getConfiguredHoursForDate(date)
                 .map((slot) => normalizeSlotTime(slot))
                 .filter(Boolean);
             const blocked = getBlockedTimesForDate(dateString);
-            return configured.filter((slot) => !blocked.includes(slot));
+            return configured
+                .filter((slot) => !blocked.includes(slot))
+                .filter((slot) => !isPastSlot(date, slot));
         }
 
         // Disable past dates and anything outside the next 7 days window
@@ -709,10 +898,12 @@
 
             for (let time of configuredHours) {
                 const isBusy = busyTimes.includes(time);
+                const isPast = isPastSlot(selectedDateObject, time);
                 const isSelected = selectedTime === time;
+                const isUnavailable = isBusy || isPast;
 
-                html += `<div class="time-slot ${isBusy ? 'unavailable' : ''} ${isSelected ? 'selected' : ''}" 
-                    ${!isBusy ? `onclick="selectTime('${time}')"` : ''}>
+                html += `<div class="time-slot ${isUnavailable ? 'unavailable' : ''} ${isSelected ? 'selected' : ''}" 
+                    ${!isUnavailable ? `onclick="selectTime('${time}')"` : ''}>
                     ${time}
                 </div>`;
             }
@@ -1077,6 +1268,9 @@
                 if (!dbResult.success) {
                     throw new Error(dbResult.error);
                 }
+
+                await consumePromotionsForServiceReservation();
+                await loadReservationPromotionsSummary();
 
                 // Create order if this reservation comes from the shop cart
                 if (isCartSummary(reservationData.description) && window.orderManager) {
