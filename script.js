@@ -2485,7 +2485,8 @@ async function initializeAdminDashboardPage() {
             const today = new Date();
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month, day);
-                const dateStr = date.toISOString().split('T')[0];
+                // Créer la date en format ISO SANS conversion UTC (garder l'heure locale)
+                const dateStr = String(year).padStart(4, '0') + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
                 
                 // Check if has availability for this specific date
                 const slots = getDaySlotsFromDate(dateStr);
