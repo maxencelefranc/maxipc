@@ -463,6 +463,7 @@
                     .in('key', [
                         'reservation.weekly_availability',
                         'reservation.date_overrides',
+                        'reservation.daily_slots',
                         'reservation.booked_slots'
                     ]);
 
@@ -471,6 +472,7 @@
                 const contentMap = new Map(data.map((row) => [row.key, row.value]));
                 const weeklyRaw = contentMap.get('reservation.weekly_availability');
                 const overridesRaw = contentMap.get('reservation.date_overrides');
+                const dailySlotsRaw = contentMap.get('reservation.daily_slots');
                 const bookedRaw = contentMap.get('reservation.booked_slots');
 
                 if (weeklyRaw) {
@@ -484,6 +486,15 @@
                     const parsedOverrides = JSON.parse(overridesRaw);
                     if (parsedOverrides && typeof parsedOverrides === 'object') {
                         DATE_AVAILABILITY_OVERRIDES = parsedOverrides;
+                    }
+                }
+
+                // Charger les créneaux spécifiques par date depuis daily_slots (prioritaires)
+                if (dailySlotsRaw) {
+                    const parsedDailySlots = JSON.parse(dailySlotsRaw);
+                    if (parsedDailySlots && typeof parsedDailySlots === 'object') {
+                        // Fusionner daily_slots avec date_overrides
+                        DATE_AVAILABILITY_OVERRIDES = { ...DATE_AVAILABILITY_OVERRIDES, ...parsedDailySlots };
                     }
                 }
 
@@ -546,7 +557,9 @@
         function getConfiguredHoursForDate(date) {
             const dateString = toDateString(date);
             if (Object.prototype.hasOwnProperty.call(DATE_AVAILABILITY_OVERRIDES, dateString)) {
-                return DATE_AVAILABILITY_OVERRIDES[dateString] || [];
+                const override = DATE_AVAILABILITY_OVERRIDES[dateString];
+                // null = jour explicitement fermé, [] = aucun créneau configuré
+                return override === null ? [] : (override || []);
             }
             return WEEKLY_AVAILABILITY[date.getDay()] || [];
         }

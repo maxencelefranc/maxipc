@@ -2561,13 +2561,22 @@ async function initializeAdminDashboardPage() {
                 </div>
             `).join('');
             
-            // Attach remove handlers
+            // Attach remove handlers - Supprimer les anciens listeners
+            const oldSlotItems = slotsList.querySelectorAll('.slot-item');
+            oldSlotItems.forEach(item => {
+                const newItem = item.cloneNode(true);
+                item.parentNode.replaceChild(newItem, item);
+            });
+            
             slotsList.querySelectorAll('.slot-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const slot = item.dataset.slot;
-                    const currentSlots = getDaySlotsFromDate(calendarState.selectedDate);
-                    const updated = (currentSlots || []).filter(s => s !== slot);
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const slot = this.dataset.slot;
+                    const currentSlots = getDaySlotsFromDate(calendarState.selectedDate) || [];
+                    const updated = currentSlots.filter(s => s !== slot);
+                    // Enregistrer explicitement en tant que jour fermé si tableau vide
                     setDaySlots(calendarState.selectedDate, updated);
+                    // Recharger et réafficher
                     renderSlotsList(getDaySlotsFromDate(calendarState.selectedDate));
                 });
             });
