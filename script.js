@@ -2415,8 +2415,10 @@ async function initializeAdminDashboardPage() {
 
     const getDaySlotsFromDate = (dateStr) => {
         // Cherche d'abord dans les créneaux spécifiques à la date
-        if (dailyAvailability[dateStr]) {
-            return dailyAvailability[dateStr];
+        if (dateStr in dailyAvailability) {
+            const slots = dailyAvailability[dateStr];
+            // null = jour explicitement fermé, [] = aucun créneau
+            return slots === null ? [] : slots;
         }
         
         // Sinon, utilise le modèle par jour de semaine
@@ -2426,9 +2428,12 @@ async function initializeAdminDashboardPage() {
     };
 
     const setDaySlots = (dateStr, slots) => {
-        dailyAvailability[dateStr] = slots && slots.length > 0 ? slots : undefined;
+        // null = jour fermé, [] ou undefined = utiliser les créneaux par défaut
         if (!slots || slots.length === 0) {
-            delete dailyAvailability[dateStr];
+            // Marquer explicitement comme fermé avec null
+            dailyAvailability[dateStr] = null;
+        } else {
+            dailyAvailability[dateStr] = slots;
         }
     };
 
