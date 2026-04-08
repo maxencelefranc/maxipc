@@ -1939,7 +1939,113 @@ body {
     animation: slideInRight 0.8s ease-out;
 }
 
-.about-image i {
+.about-profile-card {
+    position: relative;
+    isolation: isolate;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.about-profile-card::before {
+    content: '';
+    position: absolute;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(142, 197, 255, 0.24) 0%, rgba(142, 197, 255, 0) 72%);
+    filter: blur(8px);
+    z-index: -1;
+    animation: float 6s ease-in-out infinite;
+}
+
+.about-portrait {
+    width: min(100%, 320px);
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    object-position: center 22%;
+    border-radius: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.28);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.18) inset;
+    transition: transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+.about-identity-badge {
+    margin: 0;
+    color: #d5dbeb;
+    text-align: center;
+    line-height: 1.35;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 12px;
+    padding: 11px 14px;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.38rem;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24);
+    transition: transform 0.35s ease, border-color 0.35s ease, background 0.35s ease;
+}
+
+.about-identity-badge strong {
+    color: #fff;
+    font-size: 1.04rem;
+    letter-spacing: 0.24px;
+}
+
+.about-identity-badge .role-line {
+    font-size: 0.9rem;
+    opacity: 0.92;
+}
+
+.about-identity-badge .location-line {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    font-size: 0.88rem;
+    opacity: 0.95;
+}
+
+.about-identity-badge .location-line i {
+    color: #8ec5ff;
+}
+
+.about-identity-badge .availability-line {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.42rem;
+    font-size: 0.82rem;
+    color: #cce7ff;
+    background: rgba(142, 197, 255, 0.12);
+    border: 1px solid rgba(142, 197, 255, 0.24);
+    border-radius: 999px;
+    padding: 4px 10px;
+    margin-top: 2px;
+}
+
+.about-identity-badge .availability-line i {
+    font-size: 0.85rem;
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    animation: none;
+    filter: none;
+    color: #95d0ff;
+}
+
+.about-profile-card:hover .about-portrait {
+    transform: translateY(-5px) scale(1.02);
+    border-color: rgba(142, 197, 255, 0.55);
+    box-shadow: 0 22px 44px rgba(0, 0, 0, 0.38), 0 0 0 1px rgba(0, 0, 0, 0.18) inset;
+}
+
+.about-profile-card:hover .about-identity-badge {
+    transform: translateY(-3px);
+    border-color: rgba(142, 197, 255, 0.45);
+    background: linear-gradient(180deg, rgba(142, 197, 255, 0.13), rgba(255, 255, 255, 0.04));
+}
+
+.about-image > i {
     font-size: 18rem;
     background: var(--primary-gradient);
     -webkit-background-clip: text;
@@ -3386,7 +3492,16 @@ body {
         order: -1;
     }
 
-    .about-image i {
+    .about-portrait {
+        width: min(100%, 280px);
+    }
+
+    .about-identity-badge {
+        width: min(100%, 280px);
+        padding: 10px 12px;
+    }
+
+    .about-image > i {
         font-size: 10rem;
     }
 
@@ -3808,7 +3923,7 @@ body {
         min-height: 250px;
     }
 
-    .about-image i {
+    .about-image > i {
         font-size: 8rem;
     }
 
@@ -4123,7 +4238,7 @@ body {
         min-height: 200px;
     }
 
-    .about-image i {
+    .about-image > i {
         font-size: 7rem;
     }
 
