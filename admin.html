@@ -833,6 +833,17 @@
             transform: translateY(-2px);
         }
 
+        .calendar-day.bulk-selected {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.22) 0%, rgba(255, 152, 0, 0.12) 100%);
+            border-color: rgba(255, 193, 7, 0.65);
+            box-shadow: inset 0 0 0 1px rgba(255, 193, 7, 0.45);
+        }
+
+        .calendar-day.bulk-selected .calendar-day-num,
+        .calendar-day.bulk-selected .calendar-day-count {
+            color: #ffe082;
+        }
+
         .calendar-day.other-month {
             opacity: 0.3;
             cursor: default;
@@ -1238,6 +1249,17 @@
                     <div class="calendar-grid" id="calendarGrid">
                         <!-- Populated by JavaScript -->
                     </div>
+
+                    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:6px;">
+                        <label style="display:flex; align-items:center; gap:8px; color:#fff; font-size:0.9rem;">
+                            <input type="checkbox" id="bulkSelectionModeToggle">
+                            <span>Mode sélection multiple</span>
+                        </label>
+                        <button type="button" class="btn btn-secondary" id="bulkSelectMonthBtn">Sélectionner tout le mois</button>
+                        <button type="button" class="btn btn-primary" id="bulkMarkClosedBtn">Sans horaires (sélection)</button>
+                        <button type="button" class="btn btn-secondary" id="bulkClearSelectionBtn">Vider la sélection</button>
+                        <span id="bulkSelectionCount" style="color:#b8bfd3; font-size:0.84rem; margin-left:auto;">0 date sélectionnée</span>
+                    </div>
                 </div>
 
                 <!-- Quick Actions -->
@@ -1249,11 +1271,11 @@
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:8px; margin-bottom:10px;">
                         <label style="display:flex; flex-direction:column; gap:4px; color:#fff; font-size:0.85rem;">
                             <span>Début</span>
-                            <input id="availabilityQuickStart" type="time" value="13:00" step="1800" style="padding:8px; border-radius:8px; border:1px solid rgba(240,147,251,0.3); background:rgba(255,255,255,0.06); color:#fff;">
+                            <input id="availabilityQuickStart" type="time" value="" step="1800" style="padding:8px; border-radius:8px; border:1px solid rgba(240,147,251,0.3); background:rgba(255,255,255,0.06); color:#fff;">
                         </label>
                         <label style="display:flex; flex-direction:column; gap:4px; color:#fff; font-size:0.85rem;">
                             <span>Fin</span>
-                            <input id="availabilityQuickEnd" type="time" value="19:00" step="1800" style="padding:8px; border-radius:8px; border:1px solid rgba(240,147,251,0.3); background:rgba(255,255,255,0.06); color:#fff;">
+                            <input id="availabilityQuickEnd" type="time" value="" step="1800" style="padding:8px; border-radius:8px; border:1px solid rgba(240,147,251,0.3); background:rgba(255,255,255,0.06); color:#fff;">
                         </label>
                         <label style="display:flex; flex-direction:column; gap:4px; color:#fff; font-size:0.85rem;">
                             <span>Pas</span>
@@ -1275,8 +1297,15 @@
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
                         <button type="button" class="btn btn-primary" id="availabilityQuickApplyBtn">Appliquer aux jours cochés</button>
                         <button type="button" class="btn btn-secondary" id="availabilityQuickClearDaysBtn">Vider jours cochés</button>
-                        <button type="button" class="btn btn-secondary" id="availabilityPresetWeekBtn">Preset semaine soir</button>
+                        <button type="button" class="btn btn-secondary" id="availabilityPresetWeekBtn">Vider la semaine</button>
                         <button type="button" class="btn btn-secondary" id="availabilityPresetClearBtn">Tout vider</button>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+                        <label style="display:flex; align-items:center; gap:6px; color:#d7ddf2; font-size:0.84rem;">
+                            <span>Supprimer les créneaux après le</span>
+                            <input id="availabilityPurgeAfterDate" type="date" style="padding:8px; border-radius:8px; border:1px solid rgba(240,147,251,0.3); background:rgba(255,255,255,0.06); color:#fff;">
+                        </label>
+                        <button type="button" class="btn btn-secondary" id="availabilityPurgeAfterDateBtn">Supprimer après date</button>
                     </div>
                 </div>
 
@@ -1320,6 +1349,10 @@
                         <p style="color: #a0a8b8; font-size: 0.85rem; margin: 0;">
                             <i class="fas fa-info-circle"></i> Clic sur un créneau pour le supprimer
                         </p>
+                        <label style="display:flex; align-items:center; gap:8px; color:#fff; margin-top:0.9rem; font-size:0.92rem;">
+                            <input type="checkbox" id="modalDayClosedCheckbox">
+                            <span>Jour sans horaire pour le moment</span>
+                        </label>
                     </div>
                     
                     <div>

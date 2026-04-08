@@ -1805,6 +1805,8 @@ async function initializeAdminDashboardPage() {
     const availabilityQuickStep = document.getElementById('availabilityQuickStep');
     const availabilityQuickApplyBtn = document.getElementById('availabilityQuickApplyBtn');
     const availabilityQuickClearDaysBtn = document.getElementById('availabilityQuickClearDaysBtn');
+    const availabilityPurgeAfterDate = document.getElementById('availabilityPurgeAfterDate');
+    const availabilityPurgeAfterDateBtn = document.getElementById('availabilityPurgeAfterDateBtn');
     const productsGrid = document.getElementById('productsGrid');
     const reservationsTable = document.getElementById('reservationsTableBody');
     const ordersTable = document.getElementById('ordersTableBody');
@@ -1847,6 +1849,61 @@ async function initializeAdminDashboardPage() {
         overrides: {},
         booked: {}
     };
+
+    const LEGACY_DEFAULTS_CUTOFF = new Date(2026, 4, 1);
+    const LEGACY_DEFAULT_WEEKLY_AVAILABILITY = {
+        1: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+        2: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+        3: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+        4: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+        5: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+        6: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00']
+    };
+
+    function normalizeLegacySlot(value) {
+        return String(value || '').trim().replace(/h/gi, ':').replace(/[.]/g, ':').slice(0, 5);
+    }
+
+    function isOnOrAfterLegacyCutoffDateKey(dateKey) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateKey || ''))) return false;
+        const [year, month, day] = String(dateKey).split('-').map(Number);
+        return new Date(year, month - 1, day).getTime() >= LEGACY_DEFAULTS_CUTOFF.getTime();
+    }
+
+    function matchesLegacyWeeklySlots(dayOfWeek, slots) {
+        const expected = LEGACY_DEFAULT_WEEKLY_AVAILABILITY[Number(dayOfWeek)] || [];
+        if (!Array.isArray(slots)) return false;
+        const normalized = slots.map((slot) => normalizeLegacySlot(slot)).filter(Boolean);
+        if (normalized.length !== expected.length) return false;
+        return normalized.every((slot, index) => slot === expected[index]);
+    }
+
+    function stripLegacyAvailabilityDefaults(weekly = {}, dailySlots = {}) {
+        const sanitizedWeekly = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+
+        Object.keys(sanitizedWeekly).forEach((day) => {
+            const daySlots = Array.isArray(weekly[day]) ? weekly[day] : [];
+            sanitizedWeekly[day] = matchesLegacyWeeklySlots(day, daySlots)
+                ? []
+                : daySlots.map((slot) => normalizeLegacySlot(slot)).filter(Boolean);
+        });
+
+        const sanitizedDailySlots = {};
+        Object.entries(dailySlots || {}).forEach(([dateKey, slots]) => {
+            if (isOnOrAfterLegacyCutoffDateKey(dateKey) && matchesLegacyWeeklySlots(new Date(dateKey).getDay(), slots)) {
+                sanitizedDailySlots[dateKey] = [];
+                return;
+            }
+            sanitizedDailySlots[dateKey] = Array.isArray(slots)
+                ? slots.map((slot) => normalizeLegacySlot(slot)).filter(Boolean)
+                : slots;
+        });
+
+        return {
+            weekly: sanitizedWeekly,
+            dailySlots: sanitizedDailySlots
+        };
+    }
 
     const showMessage = (type, text) => {
         if (!adminMessage) return;
@@ -2621,7 +2678,8 @@ async function initializeAdminDashboardPage() {
                 'reservation.weekly_availability',
                 'reservation.date_overrides',
                 'reservation.daily_slots',
-                'reservation.booked_slots'
+                'reservation.booked_slots',
+                'reservation.purge_after_date'
             ]);
 
         if (error || !Array.isArray(data)) {
@@ -2635,6 +2693,7 @@ async function initializeAdminDashboardPage() {
         let overrides = {};
         let daily_slots = {};
         let booked = {};
+        let purgeAfterDate = '';
 
         try {
             weekly = JSON.parse(map.get('reservation.weekly_availability') || '{}');
@@ -2657,9 +2716,35 @@ async function initializeAdminDashboardPage() {
             booked = {};
         }
 
+        purgeAfterDate = String(map.get('reservation.purge_after_date') || '').trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(purgeAfterDate)) {
+            purgeAfterDate = '';
+        }
+
+        const cleanedAvailability = stripLegacyAvailabilityDefaults(weekly, daily_slots);
+        const weeklyWasCleaned = JSON.stringify(cleanedAvailability.weekly) !== JSON.stringify(weekly);
+        const dailyWasCleaned = JSON.stringify(cleanedAvailability.dailySlots) !== JSON.stringify(daily_slots);
+        weekly = cleanedAvailability.weekly;
+        daily_slots = cleanedAvailability.dailySlots;
+        availabilityPurgeCutoffDate = purgeAfterDate;
+
+        if (availabilityPurgeAfterDate) {
+            availabilityPurgeAfterDate.value = availabilityPurgeCutoffDate;
+        }
+
         fillAvailabilityForm(weekly, overrides, booked);
         // Charger les créneaux du calendrier séparément
         dailyAvailability = daily_slots;
+        if ((weeklyWasCleaned || dailyWasCleaned) && window.supabaseClient) {
+            const now = new Date().toISOString();
+            await window.supabaseClient
+                .from('site_content')
+                .upsert([
+                    { key: 'reservation.weekly_availability', value: JSON.stringify(weekly), updated_at: now },
+                    { key: 'reservation.daily_slots', value: JSON.stringify(daily_slots), updated_at: now },
+                    { key: 'reservation.purge_after_date', value: availabilityPurgeCutoffDate || '', updated_at: now }
+                ], { onConflict: 'key' });
+        }
         initCalendar();
     };
 
@@ -2674,8 +2759,13 @@ async function initializeAdminDashboardPage() {
     // Structure pour stocker les créneaux par date
     // Cela permet d'avoir des créneaux différents chaque semaine
     let dailyAvailability = {};
+    let availabilityPurgeCutoffDate = '';
 
     const getDaySlotsFromDate = (dateStr) => {
+        if (availabilityPurgeCutoffDate && dateStr > availabilityPurgeCutoffDate) {
+            return [];
+        }
+
         // Cherche d'abord dans les créneaux spécifiques à la date
         if (dateStr in dailyAvailability) {
             const slots = dailyAvailability[dateStr];
@@ -2711,8 +2801,37 @@ async function initializeAdminDashboardPage() {
         const modalSaveBtn = document.getElementById('modalSaveBtn');
         const addSlotBtn = document.getElementById('addSlotBtn');
         const slotsList = document.getElementById('slotsList');
+        const modalDayClosedCheckbox = document.getElementById('modalDayClosedCheckbox');
+        const slotStartInput = document.getElementById('slotStartTime');
+        const slotEndInput = document.getElementById('slotEndTime');
+        const bulkSelectionModeToggle = document.getElementById('bulkSelectionModeToggle');
+        const bulkSelectMonthBtn = document.getElementById('bulkSelectMonthBtn');
+        const bulkMarkClosedBtn = document.getElementById('bulkMarkClosedBtn');
+        const bulkClearSelectionBtn = document.getElementById('bulkClearSelectionBtn');
+        const bulkSelectionCount = document.getElementById('bulkSelectionCount');
+        const selectedBulkDates = new Set();
+        let isBulkSelectionMode = false;
 
         if (!calendarGrid) return;
+
+        const updateBulkSelectionStatus = () => {
+            if (!bulkSelectionCount) return;
+            const count = selectedBulkDates.size;
+            bulkSelectionCount.textContent = count <= 1
+                ? `${count} date sélectionnée`
+                : `${count} dates sélectionnées`;
+        };
+
+        const clearBulkSelection = () => {
+            selectedBulkDates.clear();
+            updateBulkSelectionStatus();
+        };
+
+        const updateDayClosedInputsState = (isClosed) => {
+            if (slotStartInput) slotStartInput.disabled = isClosed;
+            if (slotEndInput) slotEndInput.disabled = isClosed;
+            if (addSlotBtn) addSlotBtn.disabled = isClosed;
+        };
 
         const renderCalendar = () => {
             const year = calendarState.currentDate.getFullYear();
@@ -2759,6 +2878,7 @@ async function initializeAdminDashboardPage() {
                 let classes = 'calendar-day';
                 if (isToday) classes += ' today';
                 if (hasSlots) classes += ' has-availability';
+                if (selectedBulkDates.has(dateStr)) classes += ' bulk-selected';
                 
                 const slotCount = hasSlots ? slots.length : 0;
                 
@@ -2783,6 +2903,16 @@ async function initializeAdminDashboardPage() {
             calendarGrid.querySelectorAll('[data-date]').forEach(dayEl => {
                 dayEl.addEventListener('click', () => {
                     const dateStr = dayEl.dataset.date;
+                    if (isBulkSelectionMode) {
+                        if (selectedBulkDates.has(dateStr)) {
+                            selectedBulkDates.delete(dateStr);
+                        } else {
+                            selectedBulkDates.add(dateStr);
+                        }
+                        updateBulkSelectionStatus();
+                        renderCalendar();
+                        return;
+                    }
                     openTimeSlotModal(dateStr);
                 });
             });
@@ -2799,14 +2929,21 @@ async function initializeAdminDashboardPage() {
             });
             
             document.getElementById('modalDateTitle').textContent = dateStr_formatted;
+
+            const isExplicitlyClosed = Object.prototype.hasOwnProperty.call(dailyAvailability, dateStr)
+                && dailyAvailability[dateStr] === null;
+            if (modalDayClosedCheckbox) {
+                modalDayClosedCheckbox.checked = isExplicitlyClosed;
+                updateDayClosedInputsState(isExplicitlyClosed);
+            }
             
             // Load slots for this specific date
             const slots = getDaySlotsFromDate(dateStr);
             renderSlotsList(slots);
             
             // Clear inputs
-            document.getElementById('slotStartTime').value = '';
-            document.getElementById('slotEndTime').value = '';
+            if (slotStartInput) slotStartInput.value = '';
+            if (slotEndInput) slotEndInput.value = '';
             
             timeSlotModal.classList.add('active');
         };
@@ -2873,6 +3010,64 @@ async function initializeAdminDashboardPage() {
             });
         }
 
+        if (bulkSelectionModeToggle) {
+            bulkSelectionModeToggle.addEventListener('change', () => {
+                isBulkSelectionMode = Boolean(bulkSelectionModeToggle.checked);
+                if (!isBulkSelectionMode) {
+                    clearBulkSelection();
+                }
+                renderCalendar();
+            });
+        }
+
+        if (bulkSelectMonthBtn) {
+            bulkSelectMonthBtn.addEventListener('click', () => {
+                const year = calendarState.currentDate.getFullYear();
+                const month = calendarState.currentDate.getMonth();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dateStr = String(year).padStart(4, '0') + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+                    selectedBulkDates.add(dateStr);
+                }
+
+                if (bulkSelectionModeToggle && !bulkSelectionModeToggle.checked) {
+                    bulkSelectionModeToggle.checked = true;
+                    isBulkSelectionMode = true;
+                }
+
+                updateBulkSelectionStatus();
+                renderCalendar();
+            });
+        }
+
+        if (bulkMarkClosedBtn) {
+            bulkMarkClosedBtn.addEventListener('click', () => {
+                if (!selectedBulkDates.size) {
+                    showToast('Aucune date sélectionnée.');
+                    return;
+                }
+
+                selectedBulkDates.forEach((dateStr) => {
+                    setDaySlots(dateStr, []);
+                });
+
+                const count = selectedBulkDates.size;
+                clearBulkSelection();
+                renderCalendar();
+                showToast(count <= 1
+                    ? '1 date marquée sans horaires.'
+                    : `${count} dates marquées sans horaires.`);
+            });
+        }
+
+        if (bulkClearSelectionBtn) {
+            bulkClearSelectionBtn.addEventListener('click', () => {
+                clearBulkSelection();
+                renderCalendar();
+            });
+        }
+
         if (modalCloseBtn) {
             modalCloseBtn.addEventListener('click', closeTimeSlotModal);
         }
@@ -2883,8 +3078,13 @@ async function initializeAdminDashboardPage() {
 
         if (addSlotBtn && document.getElementById('slotStartTime')) {
             addSlotBtn.addEventListener('click', () => {
-                const startTime = document.getElementById('slotStartTime').value;
-                const endTime = document.getElementById('slotEndTime').value;
+                if (modalDayClosedCheckbox?.checked) {
+                    showToast('Ce jour est marqué sans horaire pour le moment.');
+                    return;
+                }
+
+                const startTime = slotStartInput ? slotStartInput.value : '';
+                const endTime = slotEndInput ? slotEndInput.value : '';
                 
                 if (!startTime || !endTime) {
                     showToast('Veuillez entrer les heures de début et de fin.');
@@ -2915,10 +3115,31 @@ async function initializeAdminDashboardPage() {
                 const currentSlots = getDaySlotsFromDate(calendarState.selectedDate);
                 const updated = [...new Set([...currentSlots, ...slots])].sort();
                 setDaySlots(calendarState.selectedDate, updated);
+                if (modalDayClosedCheckbox) {
+                    modalDayClosedCheckbox.checked = false;
+                    updateDayClosedInputsState(false);
+                }
                 
                 renderSlotsList(getDaySlotsFromDate(calendarState.selectedDate));
-                document.getElementById('slotStartTime').value = '';
-                document.getElementById('slotEndTime').value = '';
+                if (slotStartInput) slotStartInput.value = '';
+                if (slotEndInput) slotEndInput.value = '';
+            });
+        }
+
+        if (modalDayClosedCheckbox) {
+            modalDayClosedCheckbox.addEventListener('change', () => {
+                if (!calendarState.selectedDate) return;
+                if (modalDayClosedCheckbox.checked) {
+                    setDaySlots(calendarState.selectedDate, []);
+                    renderSlotsList([]);
+                } else {
+                    if (Object.prototype.hasOwnProperty.call(dailyAvailability, calendarState.selectedDate)
+                        && dailyAvailability[calendarState.selectedDate] === null) {
+                        delete dailyAvailability[calendarState.selectedDate];
+                    }
+                    renderSlotsList(getDaySlotsFromDate(calendarState.selectedDate));
+                }
+                updateDayClosedInputsState(modalDayClosedCheckbox.checked);
             });
         }
 
@@ -2934,6 +3155,7 @@ async function initializeAdminDashboardPage() {
         });
 
         // Initial render
+        updateBulkSelectionStatus();
         renderCalendar();
     };
 
@@ -2982,17 +3204,9 @@ async function initializeAdminDashboardPage() {
 
     if (availabilityPresetWeekBtn) {
         availabilityPresetWeekBtn.addEventListener('click', () => {
-            availabilityState.weekly = {
-                0: [],
-                1: ['18:30', '19:00', '19:30'],
-                2: ['18:30', '19:00', '19:30'],
-                3: ['18:30', '19:00', '19:30'],
-                4: ['18:30', '19:00', '19:30'],
-                5: ['18:30', '19:00', '19:30'],
-                6: ['09:30', '10:00', '10:30', '11:00', '14:00', '14:30', '15:00']
-            };
+            availabilityState.weekly = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
             renderAvailabilityWeekEditor();
-            showToast('Preset semaine appliqué.');
+            showToast('Semaine vidée.');
         });
     }
 
@@ -3049,6 +3263,49 @@ async function initializeAdminDashboardPage() {
         });
     }
 
+    if (availabilityPurgeAfterDateBtn) {
+        availabilityPurgeAfterDateBtn.addEventListener('click', () => {
+            const cutoff = String(availabilityPurgeAfterDate?.value || '').trim();
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(cutoff)) {
+                showToast('Choisis une date valide.');
+                return;
+            }
+
+            availabilityPurgeCutoffDate = cutoff;
+
+            let updatedDays = 0;
+
+            Object.keys(dailyAvailability).forEach((dateKey) => {
+                if (dateKey > cutoff) {
+                    if (Array.isArray(dailyAvailability[dateKey]) && dailyAvailability[dateKey].length > 0) {
+                        updatedDays += 1;
+                    }
+                    delete dailyAvailability[dateKey];
+                }
+            });
+
+            Object.keys(availabilityState.overrides || {}).forEach((dateKey) => {
+                if (dateKey > cutoff) {
+                    if (Array.isArray(availabilityState.overrides[dateKey]) && availabilityState.overrides[dateKey].length > 0) {
+                        updatedDays += 1;
+                    }
+                    delete availabilityState.overrides[dateKey];
+                }
+            });
+
+            if (availabilityOverrides) {
+                availabilityOverrides.value = Object.keys(availabilityState.overrides).length
+                    ? JSON.stringify(availabilityState.overrides, null, 2)
+                    : '';
+            }
+
+            initCalendar();
+            showToast(updatedDays > 0
+                ? `Créneaux supprimés après ${cutoff} (coupure active).`
+                : `Coupure active après ${cutoff}.`);
+        });
+    }
+
     if (saveAvailabilityBtn) {
         saveAvailabilityBtn.addEventListener('click', async () => {
             if (!window.supabaseClient) return;
@@ -3074,12 +3331,16 @@ async function initializeAdminDashboardPage() {
             }
 
             const weekly = ensureWeeklyStructure(availabilityState.weekly);
+            const cleanedAvailability = stripLegacyAvailabilityDefaults(weekly, dailyAvailability);
+            const sanitizedWeekly = cleanedAvailability.weekly;
+            const sanitizedDailySlots = cleanedAvailability.dailySlots;
             const now = new Date().toISOString();
             const payload = [
-                { key: 'reservation.weekly_availability', value: JSON.stringify(weekly), updated_at: now },
+                { key: 'reservation.weekly_availability', value: JSON.stringify(sanitizedWeekly), updated_at: now },
                 { key: 'reservation.date_overrides', value: JSON.stringify(overrides), updated_at: now },
-                { key: 'reservation.daily_slots', value: JSON.stringify(dailyAvailability), updated_at: now },
-                { key: 'reservation.booked_slots', value: JSON.stringify(booked), updated_at: now }
+                { key: 'reservation.daily_slots', value: JSON.stringify(sanitizedDailySlots), updated_at: now },
+                { key: 'reservation.booked_slots', value: JSON.stringify(booked), updated_at: now },
+                { key: 'reservation.purge_after_date', value: availabilityPurgeCutoffDate || '', updated_at: now }
             ];
 
             const { error } = await window.supabaseClient
