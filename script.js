@@ -1664,7 +1664,7 @@ function renderReservationsTable(rows, tbody, emptyState) {
             </td>
             <td>${formatCreatedAt(row.created_at)}</td>
             <td class="reservation-actions-cell">
-                <button type="button" class="btn btn-delete btn-small reservation-delete-btn" data-reservation-action="delete" data-id="${escapeHtml(row.id)}" aria-label="Supprimer la réservation">
+                <button type="button" class="btn btn-delete btn-small reservation-delete-btn" data-reservation-action="delete" data-id="${escapeHtml(row.id)}" onclick="return window.__deleteReservationFromAdmin && window.__deleteReservationFromAdmin(event, '${escapeHtml(row.id)}')" aria-label="Supprimer la réservation">
                     <i class="fas fa-trash"></i>
                     <span>Supprimer</span>
                 </button>
@@ -1959,6 +1959,49 @@ async function initializeAdminDashboardPage() {
         setTimeout(() => {
             toast.remove();
         }, 4000);
+    };
+
+    window.__deleteReservationFromAdmin = async (event, reservationId) => {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        const id = String(reservationId || '').trim();
+        if (!id) {
+            showToast('Identifiant de réservation manquant.');
+            return false;
+        }
+
+        const confirmed = confirm('Supprimer définitivement cette réservation ?');
+        if (!confirmed) return false;
+
+        showToast('Suppression en cours...');
+
+        const { data, error } = await window.supabaseClient
+            .from('reservations')
+            .delete()
+            .eq('id', id)
+            .select('id');
+
+        if (error) {
+            const errorMessage = String(error.message || '');
+            if (errorMessage.toLowerCase().includes('policy')) {
+                showToast('Suppression refusée par la base. Applique la migration SQL admin puis réessaie.');
+                return false;
+            }
+            showToast('Suppression impossible.');
+            return false;
+        }
+
+        if (!Array.isArray(data) || data.length === 0) {
+            showToast('La réservation n’a pas été supprimée.');
+            return false;
+        }
+
+        showToast('Réservation supprimée.');
+        await loadAdminReservationsAndOrders();
+        return false;
     };
 
     const canUseBrowserNotification = () => typeof window !== 'undefined' && 'Notification' in window;
@@ -3811,30 +3854,6 @@ async function initializeAdminDashboardPage() {
         reservationsTable.addEventListener('click', async (e) => {
             const actionBtn = e.target.closest('[data-reservation-action="delete"]');
             if (!actionBtn) return;
-
-            const id = actionBtn.dataset.id;
-            if (!id) return;
-
-            const confirmed = confirm('Supprimer définitivement cette réservation ?');
-            if (!confirmed) return;
-
-            const { error } = await window.supabaseClient
-                .from('reservations')
-                .delete()
-                .eq('id', id);
-
-            if (error) {
-                const errorMessage = String(error.message || '');
-                if (errorMessage.toLowerCase().includes('policy')) {
-                    showToast('Suppression refusée par la base. Applique la migration SQL admin puis réessaie.');
-                    return;
-                }
-                showToast('Suppression impossible.');
-                return;
-            }
-
-            showToast('Réservation supprimée.');
-            await loadAdminReservationsAndOrders();
         });
 
         reservationsTable.addEventListener('change', async (e) => {
