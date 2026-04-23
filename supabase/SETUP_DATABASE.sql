@@ -3,7 +3,7 @@
 -- Create reservations table
 CREATE TABLE IF NOT EXISTS public.reservations (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     service VARCHAR(255) NOT NULL,
     reservation_date DATE NOT NULL,
     reservation_time TIME NOT NULL,
@@ -45,6 +45,15 @@ CREATE POLICY "Users can insert their own reservations"
     ON public.reservations
     FOR INSERT
     WITH CHECK (auth.uid() = user_id);
+
+-- Admins can insert guest/manual reservations (user_id can be NULL)
+DROP POLICY IF EXISTS "Admins can insert reservations" ON public.reservations;
+CREATE POLICY "Admins can insert reservations"
+    ON public.reservations
+    FOR INSERT
+    WITH CHECK (EXISTS (
+        SELECT 1 FROM public.admin_users au WHERE au.user_id = auth.uid()
+    ));
 
 -- Users can only update their own reservations
 DROP POLICY IF EXISTS "Users can update their own reservations" ON public.reservations;

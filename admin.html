@@ -410,6 +410,30 @@
             display: none;
         }
 
+        .manual-reservation-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(240, 147, 251, 0.22);
+            border-radius: 14px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .manual-reservation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0.8rem;
+        }
+
+        .manual-reservation-grid .form-group {
+            margin-bottom: 0;
+        }
+
+        .manual-reservation-note {
+            margin: 0.75rem 0 0;
+            color: #b8bfd3;
+            font-size: 0.85rem;
+        }
+
         .admin-toast-container {
             position: fixed;
             right: 20px;
@@ -1271,17 +1295,16 @@
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:8px; margin-bottom:10px;">
                         <label style="display:flex; flex-direction:column; gap:4px; color:#fff; font-size:0.85rem;">
                             <span>Début</span>
-                            <input id="availabilityQuickStart" type="time" value="" step="1800" style="padding:8px; border-radius:8px; border:1px solid rgba(240,147,251,0.3); background:rgba(255,255,255,0.06); color:#fff;">
+                            <input id="availabilityQuickStart" type="time" value="" step="3600" style="padding:8px; border-radius:8px; border:1px solid rgba(240,147,251,0.3); background:rgba(255,255,255,0.06); color:#fff;">
                         </label>
                         <label style="display:flex; flex-direction:column; gap:4px; color:#fff; font-size:0.85rem;">
                             <span>Fin</span>
-                            <input id="availabilityQuickEnd" type="time" value="" step="1800" style="padding:8px; border-radius:8px; border:1px solid rgba(240,147,251,0.3); background:rgba(255,255,255,0.06); color:#fff;">
+                            <input id="availabilityQuickEnd" type="time" value="" step="3600" style="padding:8px; border-radius:8px; border:1px solid rgba(240,147,251,0.3); background:rgba(255,255,255,0.06); color:#fff;">
                         </label>
                         <label style="display:flex; flex-direction:column; gap:4px; color:#fff; font-size:0.85rem;">
                             <span>Pas</span>
                             <select id="availabilityQuickStep" style="padding:8px; border-radius:8px; border:1px solid rgba(240,147,251,0.3); background:#131327; color:#fff;">
-                                <option value="30" selected>30 min</option>
-                                <option value="60">60 min</option>
+                                <option value="60" selected>60 min</option>
                             </select>
                         </label>
                     </div>
@@ -1339,8 +1362,8 @@
                         <label style="display: flex; flex-direction: column; gap: 0.5rem; color: #fff; margin-bottom: 0.8rem;">
                             <span style="font-weight: 600;">Ajouter un créneau</span>
                             <div class="slot-input-group">
-                                <input type="time" id="slotStartTime" style="flex: 1;" step="1800">
-                                <input type="time" id="slotEndTime" style="flex: 1;" step="1800">
+                                <input type="time" id="slotStartTime" style="flex: 1;" step="3600">
+                                <input type="time" id="slotEndTime" style="flex: 1;" step="3600">
                                 <button id="addSlotBtn" style="flex: 0 0 auto;">
                                     <i class="fas fa-plus"></i>
                                 </button>
@@ -1377,6 +1400,60 @@
                         </button>
                     </div>
                 </div>
+
+                <div class="manual-reservation-panel">
+                    <h4 style="margin:0 0 0.9rem; color:#fff;">Ajouter une réservation manuellement</h4>
+                    <form id="adminManualReservationForm">
+                        <div class="manual-reservation-grid">
+                            <div class="form-group">
+                                <label for="adminManualCustomerName">Nom du client *</label>
+                                <input type="text" id="adminManualCustomerName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="adminManualCustomerEmail">Email *</label>
+                                <input type="email" id="adminManualCustomerEmail" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="adminManualCustomerPhone">Téléphone *</label>
+                                <input type="tel" id="adminManualCustomerPhone" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="adminManualService">Service *</label>
+                                <select id="adminManualService" required>
+                                    <option value="">-- Sélectionnez --</option>
+                                    <option value="dépannage">Dépannage Informatique</option>
+                                    <option value="montage">Montage PC Gaming</option>
+                                    <option value="optimisation">Optimisation Système</option>
+                                    <option value="installation">Installation Logiciels</option>
+                                    <option value="conseils">Conseils & Configuration</option>
+                                    <option value="domicile">Intervention à Domicile</option>
+                                    <option value="autre">Autre</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="adminManualReservationDate">Date *</label>
+                                <input type="date" id="adminManualReservationDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="adminManualReservationTime">Heure *</label>
+                                <input type="time" id="adminManualReservationTime" step="3600" required>
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="adminManualDescription">Description</label>
+                                <textarea id="adminManualDescription" rows="3" placeholder="Détails de l'intervention (optionnel)"></textarea>
+                            </div>
+                        </div>
+                        <div style="margin-top:0.9rem; display:flex; justify-content:flex-end;">
+                            <button class="btn btn-primary" type="submit" id="adminManualReservationSubmitBtn">
+                                <i class="fas fa-plus-circle"></i> Ajouter la réservation
+                            </button>
+                        </div>
+                    </form>
+                    <p class="manual-reservation-note">
+                        Une réservation ajoutée ici bloque automatiquement le créneau côté client tant que son statut n'est pas « annulée ».
+                    </p>
+                </div>
+
                 <div class="table-wrapper">
                     <table class="admin-table">
                         <thead>

@@ -1793,6 +1793,8 @@ async function initializeAdminDashboardPage() {
     const tabButtons = document.querySelectorAll('.tab-btn');
     const exportReservationsBtn = document.getElementById('exportReservationsBtn');
     const exportOrdersBtn = document.getElementById('exportOrdersBtn');
+    const manualReservationForm = document.getElementById('adminManualReservationForm');
+    const manualReservationSubmitBtn = document.getElementById('adminManualReservationSubmitBtn');
     const addReviewBtn = document.getElementById('addReviewBtn');
     const reviewsAdminList = document.getElementById('reviewsAdminList');
     const addPromotionBtn = document.getElementById('addPromotionBtn');
@@ -2561,6 +2563,10 @@ async function initializeAdminDashboardPage() {
         return null;
     };
 
+    const generateAdminReservationReference = () => {
+        return `ADM-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+    };
+
     const sortSlots = (slots) => [...new Set(slots)].sort((a, b) => a.localeCompare(b));
 
     const timeToMinutes = (value) => {
@@ -2637,7 +2643,7 @@ async function initializeAdminDashboardPage() {
                         <label><input type="checkbox" data-day-close="${day}" ${isClosed ? 'checked' : ''}> Fermé</label>
                     </div>
                     <div class="availability-add-row">
-                        <input type="time" data-day-time="${day}" step="1800">
+                        <input type="time" data-day-time="${day}" step="3600">
                         <button type="button" class="btn btn-secondary" data-day-add="${day}">Ajouter</button>
                     </div>
                     <div class="availability-slots">${chips}</div>
@@ -3103,7 +3109,7 @@ async function initializeAdminDashboardPage() {
                 
                 while (current <= end) {
                     slots.push(current.toTimeString().slice(0, 5));
-                    current.setMinutes(current.getMinutes() + 30);
+                    current.setMinutes(current.getMinutes() + 60);
                 }
                 
                 // Remove last slot if it equals endTime (we only want slots up to endTime, not including it)
@@ -3229,7 +3235,7 @@ async function initializeAdminDashboardPage() {
             const slots = buildSlotsFromRange(
                 availabilityQuickStart?.value,
                 availabilityQuickEnd?.value,
-                availabilityQuickStep?.value || '30'
+                availabilityQuickStep?.value || '60'
             );
 
             if (!slots || !slots.length) {
@@ -3683,6 +3689,100 @@ async function initializeAdminDashboardPage() {
                 { label: 'Créée', value: (row) => formatCreatedAt(row.created_at) }
             ]);
             downloadCsv('commandes.csv', csv);
+        });
+    }
+
+    if (manualReservationForm) {
+        manualReservationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!window.supabaseClient || !window.supabaseAuth) return;
+
+            const customerName = document.getElementById('adminManualCustomerName')?.value.trim() || '';
+            const customerEmail = document.getElementById('adminManualCustomerEmail')?.value.trim() || '';
+            const customerPhone = document.getElementById('adminManualCustomerPhone')?.value.trim() || '';
+            const service = document.getElementById('adminManualService')?.value.trim() || '';
+            const reservationDate = document.getElementById('adminManualReservationDate')?.value.trim() || '';
+            const reservationTimeRaw = document.getElementById('adminManualReservationTime')?.value.trim() || '';
+            const reservationTime = normalizeTime(reservationTimeRaw);
+            const description = document.getElementById('adminManualDescription')?.value.trim() || '';
+
+            if (!customerName || !customerEmail || !customerPhone || !service || !reservationDate || !reservationTime) {
+                showToast('Veuillez remplir tous les champs obligatoires.');
+                return;
+            }
+
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(reservationDate)) {
+                showToast('Date de réservation invalide.');
+                return;
+            }
+
+            const currentUser = await window.supabaseAuth.getCurrentUser();
+            if (!currentUser?.id) {
+                showToast('Session admin invalide. Reconnectez-vous.');
+                return;
+            }
+
+            if (manualReservationSubmitBtn) {
+                manualReservationSubmitBtn.disabled = true;
+            }
+
+            try {
+                const { data: existingSlot, error: existingError } = await window.supabaseClient
+                    .from('reservations')
+                    .select('id')
+                    .eq('reservation_date', reservationDate)
+                    .eq('reservation_time', reservationTime)
+                    .in('status', ['confirmed', 'in_progress'])
+                    .limit(1);
+
+                if (existingError) {
+                    showToast('Impossible de vérifier le créneau.');
+                    return;
+                }
+
+                if (Array.isArray(existingSlot) && existingSlot.length > 0) {
+                    showToast('Ce créneau est déjà réservé.');
+                    return;
+                }
+
+                const payload = {
+                    user_id: null,
+                    service,
+                    reservation_date: reservationDate,
+                    reservation_time: reservationTime,
+                    customer_name: customerName,
+                    customer_email: customerEmail,
+                    customer_phone: customerPhone,
+                    description,
+                    confirmation_number: generateAdminReservationReference(),
+                    status: 'confirmed',
+                    created_at: new Date().toISOString()
+                };
+
+                const { error: insertError } = await window.supabaseClient
+                    .from('reservations')
+                    .insert([payload]);
+
+                if (insertError) {
+                    const errorMessage = String(insertError.message || '');
+                    const notNullUserId = errorMessage.includes('null value in column "user_id"')
+                        || errorMessage.includes('violates not-null constraint');
+                    if (notNullUserId) {
+                        showToast('Migration SQL requise: applique supabase/ADMIN_MANUAL_RESERVATIONS_MIGRATION.sql puis réessaie.');
+                        return;
+                    }
+                    showToast('Ajout impossible: ' + (insertError.message || 'erreur inconnue'));
+                    return;
+                }
+
+                manualReservationForm.reset();
+                await loadAdminReservationsAndOrders();
+                showToast('Réservation ajoutée. Le créneau est maintenant indisponible côté client.');
+            } finally {
+                if (manualReservationSubmitBtn) {
+                    manualReservationSubmitBtn.disabled = false;
+                }
+            }
         });
     }
 
