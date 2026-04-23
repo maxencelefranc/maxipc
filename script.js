@@ -1663,9 +1663,10 @@ function renderReservationsTable(rows, tbody, emptyState) {
                 </select>
             </td>
             <td>${formatCreatedAt(row.created_at)}</td>
-            <td>
-                <button type="button" class="btn btn-delete btn-small" data-reservation-action="delete" data-id="${escapeHtml(row.id)}">
-                    Supprimer
+            <td class="reservation-actions-cell">
+                <button type="button" class="btn btn-delete btn-small reservation-delete-btn" data-reservation-action="delete" data-id="${escapeHtml(row.id)}" aria-label="Supprimer la réservation">
+                    <i class="fas fa-trash"></i>
+                    <span>Supprimer</span>
                 </button>
             </td>
         `;
