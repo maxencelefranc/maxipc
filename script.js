@@ -1663,6 +1663,11 @@ function renderReservationsTable(rows, tbody, emptyState) {
                 </select>
             </td>
             <td>${formatCreatedAt(row.created_at)}</td>
+            <td>
+                <button type="button" class="btn btn-delete btn-small" data-reservation-action="delete" data-id="${escapeHtml(row.id)}">
+                    Supprimer
+                </button>
+            </td>
         `;
         tbody.appendChild(tr);
     });
@@ -3706,7 +3711,7 @@ async function initializeAdminDashboardPage() {
             const reservationTime = normalizeTime(reservationTimeRaw);
             const description = document.getElementById('adminManualDescription')?.value.trim() || '';
 
-            if (!customerName || !customerEmail || !customerPhone || !service || !reservationDate || !reservationTime) {
+            if (!customerName || !service || !reservationDate || !reservationTime) {
                 showToast('Veuillez remplir tous les champs obligatoires.');
                 return;
             }
@@ -3745,14 +3750,18 @@ async function initializeAdminDashboardPage() {
                     return;
                 }
 
+                const fallbackId = Date.now();
+                const safeEmail = customerEmail || `client-sans-email+${fallbackId}@maxipc.local`;
+                const safePhone = customerPhone || '00000000';
+
                 const payload = {
                     user_id: null,
                     service,
                     reservation_date: reservationDate,
                     reservation_time: reservationTime,
                     customer_name: customerName,
-                    customer_email: customerEmail,
-                    customer_phone: customerPhone,
+                    customer_email: safeEmail,
+                    customer_phone: safePhone,
                     description,
                     confirmation_number: generateAdminReservationReference(),
                     status: 'confirmed',
@@ -3787,6 +3796,35 @@ async function initializeAdminDashboardPage() {
     }
 
     if (reservationsTable) {
+        reservationsTable.addEventListener('click', async (e) => {
+            const actionBtn = e.target.closest('[data-reservation-action="delete"]');
+            if (!actionBtn) return;
+
+            const id = actionBtn.dataset.id;
+            if (!id) return;
+
+            const confirmed = confirm('Supprimer définitivement cette réservation ?');
+            if (!confirmed) return;
+
+            const { error } = await window.supabaseClient
+                .from('reservations')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                const errorMessage = String(error.message || '');
+                if (errorMessage.toLowerCase().includes('policy')) {
+                    showToast('Suppression refusée par la base. Applique la migration SQL admin puis réessaie.');
+                    return;
+                }
+                showToast('Suppression impossible.');
+                return;
+            }
+
+            showToast('Réservation supprimée.');
+            await loadAdminReservationsAndOrders();
+        });
+
         reservationsTable.addEventListener('change', async (e) => {
             const target = e.target;
             if (!target.classList.contains('status-select')) return;

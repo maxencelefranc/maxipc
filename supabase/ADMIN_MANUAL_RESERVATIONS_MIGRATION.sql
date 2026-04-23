@@ -44,4 +44,13 @@ CREATE POLICY "Admins can insert reservations"
         SELECT 1 FROM public.admin_users au WHERE au.user_id = auth.uid()
     ));
 
+-- 4) Allow admins to delete reservations from admin list
+DROP POLICY IF EXISTS "Admins can delete reservations" ON public.reservations;
+CREATE POLICY "Admins can delete reservations"
+    ON public.reservations
+    FOR DELETE
+    USING (EXISTS (
+        SELECT 1 FROM public.admin_users au WHERE au.user_id = auth.uid()
+    ));
+
 COMMIT;

@@ -157,6 +157,14 @@ CREATE POLICY "Admins can update reservations"
         SELECT 1 FROM public.admin_users au WHERE au.user_id = auth.uid()
     ));
 
+DROP POLICY IF EXISTS "Admins can delete reservations" ON public.reservations;
+CREATE POLICY "Admins can delete reservations"
+    ON public.reservations
+    FOR DELETE
+    USING (EXISTS (
+        SELECT 1 FROM public.admin_users au WHERE au.user_id = auth.uid()
+    ));
+
 DROP POLICY IF EXISTS "Admins can view all orders" ON public.orders;
 CREATE POLICY "Admins can view all orders"
     ON public.orders
