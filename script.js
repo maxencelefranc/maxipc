@@ -3711,8 +3711,19 @@ async function initializeAdminDashboardPage() {
             const reservationTime = normalizeTime(reservationTimeRaw);
             const description = document.getElementById('adminManualDescription')?.value.trim() || '';
 
-            if (!customerName || !service || !reservationDate || !reservationTime) {
-                showToast('Veuillez remplir tous les champs obligatoires.');
+            const normalizedService = service || 'autre';
+            const missingRequiredFields = [];
+            if (!customerName) missingRequiredFields.push('nom client');
+            if (!reservationDate) missingRequiredFields.push('date');
+            if (!reservationTimeRaw) missingRequiredFields.push('heure');
+
+            if (missingRequiredFields.length > 0) {
+                showToast(`Champs obligatoires manquants : ${missingRequiredFields.join(', ')}.`);
+                return;
+            }
+
+            if (!reservationTime) {
+                showToast('Heure invalide. Utilise le format HH:MM.');
                 return;
             }
 
@@ -3756,7 +3767,7 @@ async function initializeAdminDashboardPage() {
 
                 const payload = {
                     user_id: null,
-                    service,
+                    service: normalizedService,
                     reservation_date: reservationDate,
                     reservation_time: reservationTime,
                     customer_name: customerName,
