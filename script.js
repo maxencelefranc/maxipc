@@ -2708,48 +2708,79 @@ async function initializeAdminDashboardPage() {
         
         renderAvailabilityWeekEditor();
 
-        if (availabilityOverrides) {
-            availabilityOverrides.value = Object.keys(availabilityState.overrides).length
-                ? JSON.stringify(availabilityState.overrides, null, 2)
-                : '';
-        }
-        if (availabilityBooked) {
-            availabilityBooked.value = Object.keys(availabilityState.booked).length
-                ? JSON.stringify(availabilityState.booked, null, 2)
-                : '';
-        }
-    };
+        if (availabilityPurgeAfterDateBtn) {
+            availabilityPurgeAfterDateBtn.addEventListener('click', async () => {
+                const cutoff = String(availabilityPurgeAfterDate?.value || '').trim();
 
-    const loadAdminAvailability = async () => {
-        if (!window.supabaseClient) {
-            fillAvailabilityForm();
-            initCalendar();
-            return;
+                // If input is empty, disable the purge cutoff
+                if (!cutoff) {
+                    availabilityPurgeCutoffDate = '';
+                    // Persist empty cutoff if Supabase client is available
+                    if (window.supabaseClient) {
+                        try {
+                            await window.supabaseClient
+                                .from('site_content')
+                                .upsert([{ key: 'reservation.purge_after_date', value: '', updated_at: new Date().toISOString() }], { onConflict: 'key' });
+                        } catch (err) {
+                            // ignore persistence errors; UI still reflects the change
+                        }
+                    }
+                    initCalendar();
+                    showToast('Coupure de suppression désactivée.');
+                    return;
+                }
+
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(cutoff)) {
+                    showToast('Choisis une date valide.');
+                    return;
+                }
+
+                availabilityPurgeCutoffDate = cutoff;
+
+                let updatedDays = 0;
+
+                Object.keys(dailyAvailability).forEach((dateKey) => {
+                    if (dateKey > cutoff) {
+                        if (Array.isArray(dailyAvailability[dateKey]) && dailyAvailability[dateKey].length > 0) {
+                            updatedDays += 1;
+                        }
+                        delete dailyAvailability[dateKey];
+                    }
+                });
+
+                Object.keys(availabilityState.overrides || {}).forEach((dateKey) => {
+                    if (dateKey > cutoff) {
+                        if (Array.isArray(availabilityState.overrides[dateKey]) && availabilityState.overrides[dateKey].length > 0) {
+                            updatedDays += 1;
+                        }
+                        delete availabilityState.overrides[dateKey];
+                    }
+                });
+
+                if (availabilityOverrides) {
+                    availabilityOverrides.value = Object.keys(availabilityState.overrides).length
+                        ? JSON.stringify(availabilityState.overrides, null, 2)
+                        : '';
+                }
+
+                // Persist the cutoff date in Supabase if possible
+                if (window.supabaseClient) {
+                    try {
+                        await window.supabaseClient
+                            .from('site_content')
+                            .upsert([{ key: 'reservation.purge_after_date', value: availabilityPurgeCutoffDate || '', updated_at: new Date().toISOString() }], { onConflict: 'key' });
+                    } catch (err) {
+                        // ignore persistence errors
+                    }
+                }
+
+                initCalendar();
+                showToast(updatedDays > 0
+                    ? `Créneaux supprimés après ${cutoff} (coupure active).`
+                    : `Coupure active après ${cutoff}.`);
+
+            });
         }
-        const { data, error } = await window.supabaseClient
-            .from('site_content')
-            .select('key, value')
-            .in('key', [
-                'reservation.weekly_availability',
-                'reservation.date_overrides',
-                'reservation.daily_slots',
-                'reservation.booked_slots',
-                'reservation.purge_after_date'
-            ]);
-
-        if (error || !Array.isArray(data)) {
-            fillAvailabilityForm();
-            initCalendar();
-            return;
-        }
-
-        const map = new Map(data.map((row) => [row.key, row.value]));
-        let weekly = {};
-        let overrides = {};
-        let daily_slots = {};
-        let booked = {};
-        let purgeAfterDate = '';
-
         try {
             weekly = JSON.parse(map.get('reservation.weekly_availability') || '{}');
         } catch {
@@ -3403,7 +3434,12 @@ async function initializeAdminDashboardPage() {
                 .upsert(payload, { onConflict: 'key' });
 
             if (error) {
-                showToast('Impossible d’enregistrer le planning.');
+                console.error('Impossible d’enregistrer le planning.', error);
+                const errorMessage = String(error.message || '').trim();
+                const isSchemaProblem = /site_content|row-level security|permission|does not exist|relation/i.test(errorMessage);
+                showToast(isSchemaProblem
+                    ? `Impossible d’enregistrer le planning: ${errorMessage || 'vérifie la migration Supabase site_content.'}`
+                    : 'Impossible d’enregistrer le planning.');
                 return;
             }
 
