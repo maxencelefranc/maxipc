@@ -2945,73 +2945,59 @@ async function initializeAdminDashboardPage() {
         };
 
         const renderCalendar = () => {
+            const year = calendarState.currentDate.getFullYear();
+            const month = calendarState.currentDate.getMonth();
             const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
                                'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
             const weekDays = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
             const today = new Date();
 
-            const renderMonthBlock = (year, month) => {
-                let monthHtml = `<div class="calendar-month" style="grid-column: 1 / -1; margin-bottom: 18px;">
-                    <div class="calendar-title" style="margin: 0 0 10px; text-align: left;">${monthNames[month]} ${year}</div>
-                    <div class="calendar-grid">`;
+            calendarTitle.textContent = `${monthNames[month]} ${year}`;
 
-                weekDays.forEach((day) => {
-                    monthHtml += `<div class="calendar-weekday">${day}</div>`;
-                });
+            let html = '';
 
-                const firstDay = new Date(year, month, 1).getDay();
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-                const daysInPrevMonth = new Date(year, month, 0).getDate();
+            weekDays.forEach((day) => {
+                html += `<div class="calendar-weekday">${day}</div>`;
+            });
 
-                for (let i = firstDay - 1; i >= 0; i--) {
-                    const day = daysInPrevMonth - i;
-                    monthHtml += `<div class="calendar-day other-month">${day}</div>`;
-                }
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
 
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const date = new Date(year, month, day);
-                    const dateStr = String(year).padStart(4, '0') + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
-                    const slots = getDaySlotsFromDate(dateStr);
-                    const hasSlots = slots && slots.length > 0;
-                    const isToday = date.toDateString() === today.toDateString();
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = daysInPrevMonth - i;
+                html += `<div class="calendar-day other-month">${day}</div>`;
+            }
 
-                    let classes = 'calendar-day';
-                    if (isToday) classes += ' today';
-                    if (hasSlots) classes += ' has-availability';
-                    if (selectedBulkDates.has(dateStr)) classes += ' bulk-selected';
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dateStr = String(year).padStart(4, '0') + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+                const slots = getDaySlotsFromDate(dateStr);
+                const hasSlots = slots && slots.length > 0;
+                const isToday = date.toDateString() === today.toDateString();
 
-                    const slotCount = hasSlots ? slots.length : 0;
+                let classes = 'calendar-day';
+                if (isToday) classes += ' today';
+                if (hasSlots) classes += ' has-availability';
+                if (selectedBulkDates.has(dateStr)) classes += ' bulk-selected';
 
-                    monthHtml += `<div class="${classes}" data-date="${dateStr}">
-                        <div class="calendar-day-content">
-                            <span class="calendar-day-num">${day}</span>
-                            ${slotCount > 0 ? `<span class="calendar-day-count">${slotCount} créneau${slotCount > 1 ? 'x' : ''}</span>` : ''}
-                        </div>
-                    </div>`;
-                }
+                const slotCount = hasSlots ? slots.length : 0;
 
-                const totalCells = firstDay + daysInMonth;
-                const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
-                for (let day = 1; day <= remainingCells; day++) {
-                    monthHtml += `<div class="calendar-day other-month">${day}</div>`;
-                }
+                html += `<div class="${classes}" data-date="${dateStr}">
+                    <div class="calendar-day-content">
+                        <span class="calendar-day-num">${day}</span>
+                        ${slotCount > 0 ? `<span class="calendar-day-count">${slotCount} créneau${slotCount > 1 ? 'x' : ''}</span>` : ''}
+                    </div>
+                </div>`;
+            }
 
-                monthHtml += `</div></div>`;
-                return monthHtml;
-            };
+            const totalCells = firstDay + daysInMonth;
+            const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+            for (let day = 1; day <= remainingCells; day++) {
+                html += `<div class="calendar-day other-month">${day}</div>`;
+            }
 
-            const startYear = calendarState.currentDate.getFullYear();
-            const startMonth = calendarState.currentDate.getMonth();
-            const nextMonthDate = new Date(startYear, startMonth + 2, 1);
-            const endYear = nextMonthDate.getFullYear();
-            const endMonth = nextMonthDate.getMonth();
-
-            calendarTitle.textContent = `${monthNames[startMonth]} ${startYear} - ${monthNames[endMonth]} ${endYear}`;
-            calendarGrid.innerHTML = [
-                renderMonthBlock(startYear, startMonth),
-                renderMonthBlock(new Date(startYear, startMonth + 1, 1).getFullYear(), new Date(startYear, startMonth + 1, 1).getMonth()),
-                renderMonthBlock(endYear, endMonth)
-            ].join('');
+            calendarGrid.innerHTML = html;
 
             calendarGrid.querySelectorAll('[data-date]').forEach((dayEl) => {
                 dayEl.addEventListener('click', () => {
