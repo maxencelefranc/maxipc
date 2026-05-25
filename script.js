@@ -1768,11 +1768,10 @@ async function loadAdminContent() {
             ]);
 
         if (error) {
-            console.error('Impossible de charger les disponibilités admin.', error);
-            return;
+            console.warn('Impossible de charger les disponibilités admin, affichage des valeurs par défaut.', error);
         }
 
-        const map = new Map((data || []).map((row) => [row.key, row.value]));
+        const map = new Map((Array.isArray(data) ? data : []).map((row) => [row.key, row.value]));
         let weekly = {};
         let overrides = {};
         let daily_slots = {};
