@@ -1752,6 +1752,71 @@ async function loadAdminContent() {
     const statTexts = document.getElementById('statTexts');
     if (statTexts) statTexts.textContent = Array.isArray(data) ? data.length : 0;
 }
+    
+    const loadAdminAvailability = async () => {
+        if (!window.supabaseClient) return;
+
+        const { data, error } = await window.supabaseClient
+            .from('site_content')
+            .select('key, value')
+            .in('key', [
+                'reservation.weekly_availability',
+                'reservation.date_overrides',
+                'reservation.daily_slots',
+                'reservation.booked_slots',
+                'reservation.purge_after_date'
+            ]);
+
+        if (error) {
+            console.error('Impossible de charger les disponibilités admin.', error);
+            return;
+        }
+
+        const map = new Map((data || []).map((row) => [row.key, row.value]));
+        let weekly = {};
+        let overrides = {};
+        let daily_slots = {};
+        let booked = {};
+
+        try {
+            weekly = JSON.parse(map.get('reservation.weekly_availability') || '{}');
+        } catch {
+            weekly = {};
+        }
+
+        try {
+            overrides = JSON.parse(map.get('reservation.date_overrides') || '{}');
+        } catch {
+            overrides = {};
+        }
+
+        try {
+            daily_slots = JSON.parse(map.get('reservation.daily_slots') || '{}');
+        } catch {
+            daily_slots = {};
+        }
+
+        try {
+            booked = JSON.parse(map.get('reservation.booked_slots') || '{}');
+        } catch {
+            booked = {};
+        }
+
+        const purgeAfterDate = String(map.get('reservation.purge_after_date') || '').trim();
+        const cleanedAvailability = stripLegacyAvailabilityDefaults(weekly, daily_slots);
+
+        weekly = cleanedAvailability.weekly;
+        daily_slots = cleanedAvailability.dailySlots;
+        availabilityPurgeCutoffDate = /^\d{4}-\d{2}-\d{2}$/.test(purgeAfterDate) ? purgeAfterDate : '';
+
+        if (availabilityPurgeAfterDate) {
+            availabilityPurgeAfterDate.value = availabilityPurgeCutoffDate;
+        }
+
+        fillAvailabilityForm(weekly, overrides, booked);
+        dailyAvailability = daily_slots;
+        initCalendar();
+    };
 
 let adminReservationsCache = [];
 let adminOrdersCache = [];
