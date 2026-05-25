@@ -1816,7 +1816,15 @@ async function loadAdminContent() {
 
         fillAvailabilityForm(weekly, overrides, booked);
         dailyAvailability = daily_slots;
-        initCalendar();
+        if (typeof window.initCalendar === 'function') {
+            try {
+                window.initCalendar();
+            } catch (err) {
+                console.warn('Erreur lors de l\u0027appel de initCalendar()', err);
+            }
+        } else {
+            console.warn('initCalendar() non défini au moment du chargement des disponibilit\u00e9s.');
+        }
     };
 
 let adminReservationsCache = [];
@@ -2891,7 +2899,7 @@ async function initializeAdminDashboardPage() {
         }
     };
 
-    const initCalendar = () => {
+    window.initCalendar = () => {
         const calendarGrid = document.getElementById('calendarGrid');
         const calendarTitle = document.getElementById('calendarTitle');
         const calendarPrevMonth = document.getElementById('calendarPrevMonth');
