@@ -3503,20 +3503,28 @@ async function initializeAdminDashboardPage() {
                 { key: 'reservation.purge_after_date', value: availabilityPurgeCutoffDate || '', updated_at: now }
             ];
 
-            const { error } = await window.supabaseClient
-                .from('site_content')
-                .upsert(payload, { onConflict: 'key' });
+            const saveErrors = [];
+            for (const row of payload) {
+                const { error } = await window.supabaseClient
+                    .from('site_content')
+                    .upsert(row, { onConflict: 'key' });
 
-            if (error) {
-                console.error('Impossible d’enregistrer le planning.', error);
-                const errorMessage = String(error.message || '').trim();
+                if (error) {
+                    saveErrors.push(`${row.key}: ${error.message || 'erreur inconnue'}`);
+                }
+            }
+
+            if (saveErrors.length > 0) {
+                const errorMessage = saveErrors.join(' | ');
+                console.error('Impossible d’enregistrer le planning.', errorMessage);
                 const isSchemaProblem = /site_content|row-level security|permission|does not exist|relation/i.test(errorMessage);
                 showToast(isSchemaProblem
-                    ? `Impossible d’enregistrer le planning: ${errorMessage || 'vérifie la migration Supabase site_content.'}`
+                    ? `Impossible d’enregistrer le planning: ${errorMessage}`
                     : 'Impossible d’enregistrer le planning.');
                 return;
             }
 
+            await loadAdminAvailability();
             showToast('Planning enregistré.');
         });
     }
