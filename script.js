@@ -3249,28 +3249,24 @@ async function initializeAdminDashboardPage() {
                 const endTime = slotEndInput ? slotEndInput.value : '';
                 
                 if (!startTime || !endTime) {
-                    showToast('Veuillez entrer les heures de début et de fin.');
-                    return;
+                    if (!startTime) {
+                        showToast('Veuillez entrer une heure.');
+                        return;
+                    }
                 }
-                
-                if (startTime >= endTime) {
+
+                if (endTime && startTime >= endTime) {
                     showToast("L'heure de fin doit être après l'heure de début.");
                     return;
                 }
-                
-                // Create slots from range
-                const slots = [];
-                let current = new Date(`2000-01-01T${startTime}:00`);
-                const end = new Date(`2000-01-01T${endTime}:00`);
-                
-                while (current <= end) {
-                    slots.push(current.toTimeString().slice(0, 5));
-                    current.setMinutes(current.getMinutes() + 60);
-                }
-                
-                // Remove last slot if it equals endTime (we only want slots up to endTime, not including it)
-                if (slots.length > 1 && slots[slots.length - 1] === endTime) {
-                    slots.pop();
+
+                const slots = endTime
+                    ? buildSlotsFromRange(startTime, endTime, availabilityQuickStep?.value || '60') || []
+                    : [startTime];
+
+                if (!slots.length) {
+                    showToast('Créneau invalide.');
+                    return;
                 }
                 
                 // Add new slots for this specific date
