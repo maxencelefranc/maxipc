@@ -2776,7 +2776,7 @@ async function initializeAdminDashboardPage() {
         }).join('');
     };
 
-    function fillAvailabilityForm(weekly = {}, overrides = {}, booked = {}) {
+    window.fillAvailabilityForm = function(weekly = {}, overrides = {}, booked = {}) {
         availabilityState.weekly = ensureWeeklyStructure(weekly);
         availabilityState.overrides = overrides || {};
         availabilityState.booked = booked || {};
@@ -2856,7 +2856,7 @@ async function initializeAdminDashboardPage() {
 
             });
         }
-    }
+    };
 
     setupTabs();
 
