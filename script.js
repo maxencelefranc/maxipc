@@ -701,20 +701,20 @@ function formatPrice(amount) {
 
 async function loadShopProducts() {
     const supabaseClient = window.supabaseClient;
-    if (supabaseClient) {
-        try {
-            const { data, error } = await supabaseClient
-                .from('products')
-                .select('*')
-                .order('id', { ascending: true });
-            if (!error && Array.isArray(data)) {
-                shopProductsSource = 'supabase';
-                return data;
+        if (supabaseClient) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('site_content')
+                    .select('*')
+                    .order('key', { ascending: true });
+                if (!error && Array.isArray(data)) {
+                    shopProductsSource = 'supabase';
+                    return data;
+                }
+            } catch (err) {
+                console.warn('Chargement Supabase échoué, fallback JSON', err);
             }
-        } catch (err) {
-            console.warn('Chargement Supabase échoué, fallback JSON', err);
         }
-    }
 
     try {
         const response = await fetch('data/shop-products.json');
@@ -1032,22 +1032,22 @@ let lastFocusedElement = null;
 
 async function loadSiteContent() {
     const supabaseClient = window.supabaseClient;
-    if (!supabaseClient) return;
-    try {
-        const { data, error } = await supabaseClient
-            .from('site_content')
-            .select('*');
-        if (error || !Array.isArray(data)) return;
-        const contentMap = new Map(data.map((row) => [row.key, row.value]));
-        document.querySelectorAll('[data-content-key]').forEach((el) => {
-            const key = el.getAttribute('data-content-key');
-            if (contentMap.has(key)) {
-                el.textContent = contentMap.get(key);
-            }
-        });
-    } catch (err) {
-        console.warn('Chargement contenu site échoué', err);
-    }
+        if (!supabaseClient) return;
+        try {
+            const { data, error } = await supabaseClient
+                .from('products')
+                .select('*');
+            if (error || !Array.isArray(data)) return;
+            const contentMap = new Map(data.map((row) => [row.key, row.value]));
+            document.querySelectorAll('[data-content-key]').forEach((el) => {
+                const key = el.getAttribute('data-content-key');
+                if (contentMap.has(key)) {
+                    el.textContent = contentMap.get(key);
+                }
+            });
+        } catch (err) {
+            console.warn('Chargement contenu site échoué', err);
+        }
 }
 
 /* ===================== */
@@ -3495,9 +3495,12 @@ async function initializeAdminDashboardPage() {
 
             const saveErrors = [];
             for (const row of payload) {
-                const { error } = await window.supabaseClient
+                const { data, error } = await window.supabaseClient
                     .from('site_content')
                     .upsert(row, { onConflict: 'key' });
+
+                // Log the full response for debugging (visible in browser console)
+                console.log('site_content upsert result', { key: row.key, data, error });
 
                 if (error) {
                     saveErrors.push(`${row.key}: ${error.message || 'erreur inconnue'}`);
@@ -3515,6 +3518,8 @@ async function initializeAdminDashboardPage() {
             }
 
             await loadAdminAvailability();
+            // Confirm reload in console
+            console.log('loadAdminAvailability completed after save');
             showToast('Planning enregistré.');
         });
     }
