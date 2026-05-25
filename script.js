@@ -2908,60 +2908,6 @@ async function initializeAdminDashboardPage() {
 
             });
         }
-        try {
-            weekly = JSON.parse(map.get('reservation.weekly_availability') || '{}');
-        } catch {
-            weekly = {};
-        }
-        try {
-            overrides = JSON.parse(map.get('reservation.date_overrides') || '{}');
-        } catch {
-            overrides = {};
-        }
-        try {
-            daily_slots = JSON.parse(map.get('reservation.daily_slots') || '{}');
-        } catch {
-            daily_slots = {};
-        }
-        try {
-            booked = JSON.parse(map.get('reservation.booked_slots') || '{}');
-        } catch {
-            booked = {};
-        }
-
-        purgeAfterDate = String(map.get('reservation.purge_after_date') || '').trim();
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(purgeAfterDate)) {
-            purgeAfterDate = '';
-        }
-
-        const cleanedAvailability = stripLegacyAvailabilityDefaults(weekly, daily_slots);
-        const weeklyWasCleaned = JSON.stringify(cleanedAvailability.weekly) !== JSON.stringify(weekly);
-        const dailyWasCleaned = JSON.stringify(cleanedAvailability.dailySlots) !== JSON.stringify(daily_slots);
-        weekly = cleanedAvailability.weekly;
-        daily_slots = cleanedAvailability.dailySlots;
-        availabilityPurgeCutoffDate = purgeAfterDate;
-
-        if (availabilityPurgeAfterDate) {
-            availabilityPurgeAfterDate.value = availabilityPurgeCutoffDate;
-        }
-
-        fillAvailabilityForm(weekly, overrides, booked);
-        // Charger les créneaux du calendrier séparément
-        dailyAvailability = daily_slots;
-        if ((weeklyWasCleaned || dailyWasCleaned) && window.supabaseClient) {
-            const now = new Date().toISOString();
-            window.supabaseClient
-                .from('site_content')
-                .upsert([
-                    { key: 'reservation.weekly_availability', value: JSON.stringify(weekly), updated_at: now },
-                    { key: 'reservation.daily_slots', value: JSON.stringify(daily_slots), updated_at: now },
-                    { key: 'reservation.purge_after_date', value: availabilityPurgeCutoffDate || '', updated_at: now }
-                ], { onConflict: 'key' })
-                .catch((err) => {
-                    console.warn('Impossible de mettre à jour les disponibilités nettoyées.', err);
-                });
-        }
-        initCalendar();
     };
 
     setupTabs();
