@@ -1802,10 +1802,6 @@ async function loadAdminContent() {
         }
 
         const purgeAfterDate = String(map.get('reservation.purge_after_date') || '').trim();
-        const cleanedAvailability = stripLegacyAvailabilityDefaults(weekly, daily_slots);
-
-        weekly = cleanedAvailability.weekly;
-        daily_slots = cleanedAvailability.dailySlots;
         availabilityPurgeCutoffDate = /^\d{4}-\d{2}-\d{2}$/.test(purgeAfterDate) ? purgeAfterDate : '';
 
         if (availabilityPurgeAfterDate) {
@@ -2026,10 +2022,6 @@ async function initializeAdminDashboardPage() {
         }
 
         const purgeAfterDate = String(map.get('reservation.purge_after_date') || '').trim();
-        const cleanedAvailability = stripLegacyAvailabilityDefaults(weekly, daily_slots);
-
-        weekly = cleanedAvailability.weekly;
-        daily_slots = cleanedAvailability.dailySlots;
         availabilityPurgeCutoffDate = /^\d{4}-\d{2}-\d{2}$/.test(purgeAfterDate) ? purgeAfterDate : '';
 
         if (availabilityPurgeAfterDate) {
@@ -3490,10 +3482,8 @@ async function initializeAdminDashboardPage() {
                 return;
             }
 
-            const weekly = ensureWeeklyStructure(availabilityState.weekly);
-            const cleanedAvailability = stripLegacyAvailabilityDefaults(weekly, dailyAvailability);
-            const sanitizedWeekly = cleanedAvailability.weekly;
-            const sanitizedDailySlots = cleanedAvailability.dailySlots;
+            const sanitizedWeekly = ensureWeeklyStructure(availabilityState.weekly);
+            const sanitizedDailySlots = dailyAvailability || {};
             const now = new Date().toISOString();
             const payload = [
                 { key: 'reservation.weekly_availability', value: JSON.stringify(sanitizedWeekly), updated_at: now },

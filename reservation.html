@@ -779,15 +779,7 @@
                 return override === null ? [] : (override || []);
             }
 
-            if (isOnOrAfterLegacyCutoff(date)) {
-                return [];
-            }
-
-            const weeklySlots = WEEKLY_AVAILABILITY[date.getDay()] || [];
-            if (isOnOrAfterLegacyCutoff(date) && slotsMatchLegacyDefaults(date.getDay(), weeklySlots)) {
-                return [];
-            }
-            return weeklySlots;
+            return WEEKLY_AVAILABILITY[date.getDay()] || [];
         }
 
         function getBookingWindowBounds() {
