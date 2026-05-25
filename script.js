@@ -2823,13 +2823,16 @@ async function initializeAdminDashboardPage() {
         dailyAvailability = daily_slots;
         if ((weeklyWasCleaned || dailyWasCleaned) && window.supabaseClient) {
             const now = new Date().toISOString();
-            await window.supabaseClient
+            window.supabaseClient
                 .from('site_content')
                 .upsert([
                     { key: 'reservation.weekly_availability', value: JSON.stringify(weekly), updated_at: now },
                     { key: 'reservation.daily_slots', value: JSON.stringify(daily_slots), updated_at: now },
                     { key: 'reservation.purge_after_date', value: availabilityPurgeCutoffDate || '', updated_at: now }
-                ], { onConflict: 'key' });
+                ], { onConflict: 'key' })
+                .catch((err) => {
+                    console.warn('Impossible de mettre à jour les disponibilités nettoyées.', err);
+                });
         }
         initCalendar();
     };
