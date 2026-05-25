@@ -3278,7 +3278,8 @@ async function initializeAdminDashboardPage() {
                     updateDayClosedInputsState(false);
                 }
                 
-                renderSlotsList(getDaySlotsFromDate(calendarState.selectedDate));
+                renderSlotsList(updated);
+                renderCalendar();
                 if (slotStartInput) slotStartInput.value = '';
                 if (slotEndInput) slotEndInput.value = '';
             });
@@ -3298,6 +3299,7 @@ async function initializeAdminDashboardPage() {
                     renderSlotsList(getDaySlotsFromDate(calendarState.selectedDate));
                 }
                 updateDayClosedInputsState(modalDayClosedCheckbox.checked);
+                renderCalendar();
             });
         }
 
