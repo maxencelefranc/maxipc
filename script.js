@@ -1771,7 +1771,13 @@ async function loadAdminContent() {
             console.warn('Impossible de charger les disponibilités admin, affichage des valeurs par défaut.', error);
         }
 
+        // Debug: log the raw response from Supabase when loading admin availability
+        console.log('loadAdminAvailability response', { data, error });
+
         const map = new Map((Array.isArray(data) ? data : []).map((row) => [row.key, row.value]));
+
+        // Debug: log the map created from site_content rows
+        console.log('loadAdminAvailability map keys', Array.from(map.keys()));
         let weekly = {};
         let overrides = {};
         let daily_slots = {};
