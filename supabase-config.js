@@ -10,7 +10,7 @@ const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Admin allowlist (optionnel) - ajoute ton email ici
-window.ADMIN_EMAILS = window.ADMIN_EMAILS || [];
+window.ADMIN_EMAILS = window.ADMIN_EMAILS || ['lefrancmaxence8@gmail.com'];
 
 // Export for use in other files
 window.supabaseClient = supabaseClient;

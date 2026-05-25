@@ -117,6 +117,59 @@ CREATE INDEX IF NOT EXISTS idx_orders_reference ON public.orders(reference);
 
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 
+-- Admin users table used by UI and RLS checks
+CREATE TABLE IF NOT EXISTS public.admin_users (
+    user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
+
+CREATE OR REPLACE FUNCTION public.is_admin_user()
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+AS $$
+    SELECT COALESCE(auth.jwt() ->> 'email', '') = 'lefrancmaxence8@gmail.com'
+        OR EXISTS (
+            SELECT 1 FROM public.admin_users au WHERE au.user_id = auth.uid()
+        );
+$$;
+
+DROP POLICY IF EXISTS "Admins can view admin users" ON public.admin_users;
+CREATE POLICY "Admins can view admin users"
+    ON public.admin_users
+    FOR SELECT
+    USING (public.is_admin_user());
+
+DROP POLICY IF EXISTS "Admins can self-register" ON public.admin_users;
+CREATE POLICY "Admins can self-register"
+    ON public.admin_users
+    FOR INSERT
+    WITH CHECK (auth.jwt() ->> 'email' = 'lefrancmaxence8@gmail.com');
+
+-- Site content table used for public content and admin-managed settings
+CREATE TABLE IF NOT EXISTS public.site_content (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL DEFAULT '',
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE public.site_content ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public can read site content" ON public.site_content;
+CREATE POLICY "Public can read site content"
+    ON public.site_content
+    FOR SELECT
+    USING (true);
+
+DROP POLICY IF EXISTS "Admins can manage site content" ON public.site_content;
+CREATE POLICY "Admins can manage site content"
+    ON public.site_content
+    FOR ALL
+    USING (public.is_admin_user())
+    WITH CHECK (public.is_admin_user());
+
 -- Orders RLS policies
 DROP POLICY IF EXISTS "Users can view their own orders" ON public.orders;
 CREATE POLICY "Users can view their own orders"
@@ -142,47 +195,33 @@ DROP POLICY IF EXISTS "Admins can view all reservations" ON public.reservations;
 CREATE POLICY "Admins can view all reservations"
     ON public.reservations
     FOR SELECT
-    USING (EXISTS (
-        SELECT 1 FROM public.admin_users au WHERE au.user_id = auth.uid()
-    ));
+    USING (public.is_admin_user());
 
 DROP POLICY IF EXISTS "Admins can update reservations" ON public.reservations;
 CREATE POLICY "Admins can update reservations"
     ON public.reservations
     FOR UPDATE
-    USING (EXISTS (
-        SELECT 1 FROM public.admin_users au WHERE au.user_id = auth.uid()
-    ))
-    WITH CHECK (EXISTS (
-        SELECT 1 FROM public.admin_users au WHERE au.user_id = auth.uid()
-    ));
+    USING (public.is_admin_user())
+    WITH CHECK (public.is_admin_user());
 
 DROP POLICY IF EXISTS "Admins can delete reservations" ON public.reservations;
 CREATE POLICY "Admins can delete reservations"
     ON public.reservations
     FOR DELETE
-    USING (EXISTS (
-        SELECT 1 FROM public.admin_users au WHERE au.user_id = auth.uid()
-    ));
+    USING (public.is_admin_user());
 
 DROP POLICY IF EXISTS "Admins can view all orders" ON public.orders;
 CREATE POLICY "Admins can view all orders"
     ON public.orders
     FOR SELECT
-    USING (EXISTS (
-        SELECT 1 FROM public.admin_users au WHERE au.user_id = auth.uid()
-    ));
+    USING (public.is_admin_user());
 
 DROP POLICY IF EXISTS "Admins can update orders" ON public.orders;
 CREATE POLICY "Admins can update orders"
     ON public.orders
     FOR UPDATE
-    USING (EXISTS (
-        SELECT 1 FROM public.admin_users au WHERE au.user_id = auth.uid()
-    ))
-    WITH CHECK (EXISTS (
-        SELECT 1 FROM public.admin_users au WHERE au.user_id = auth.uid()
-    ));
+    USING (public.is_admin_user())
+    WITH CHECK (public.is_admin_user());
 
 -- Update updated_at for orders
 DROP TRIGGER IF EXISTS update_orders_updated_at ON public.orders;
