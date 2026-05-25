@@ -1979,65 +1979,7 @@ async function initializeAdminDashboardPage() {
         };
     }
 
-    const loadAdminAvailability = async () => {
-        if (!window.supabaseClient) return;
-
-        const { data, error } = await window.supabaseClient
-            .from('site_content')
-            .select('key, value')
-            .in('key', [
-                'reservation.weekly_availability',
-                'reservation.date_overrides',
-                'reservation.daily_slots',
-                'reservation.booked_slots',
-                'reservation.purge_after_date'
-            ]);
-
-        if (error) {
-            console.warn('Impossible de charger les disponibilités admin, affichage des valeurs par défaut.', error);
-        }
-
-        const map = new Map((Array.isArray(data) ? data : []).map((row) => [row.key, row.value]));
-        let weekly = {};
-        let overrides = {};
-        let daily_slots = {};
-        let booked = {};
-
-        try {
-            weekly = JSON.parse(map.get('reservation.weekly_availability') || '{}');
-        } catch {
-            weekly = {};
-        }
-
-        try {
-            overrides = JSON.parse(map.get('reservation.date_overrides') || '{}');
-        } catch {
-            overrides = {};
-        }
-
-        try {
-            daily_slots = JSON.parse(map.get('reservation.daily_slots') || '{}');
-        } catch {
-            daily_slots = {};
-        }
-
-        try {
-            booked = JSON.parse(map.get('reservation.booked_slots') || '{}');
-        } catch {
-            booked = {};
-        }
-
-        const purgeAfterDate = String(map.get('reservation.purge_after_date') || '').trim();
-        availabilityPurgeCutoffDate = /^\d{4}-\d{2}-\d{2}$/.test(purgeAfterDate) ? purgeAfterDate : '';
-
-        if (availabilityPurgeAfterDate) {
-            availabilityPurgeAfterDate.value = availabilityPurgeCutoffDate;
-        }
-
-        fillAvailabilityForm(weekly, overrides, booked);
-        dailyAvailability = daily_slots;
-        initCalendar();
-    };
+    /* Duplicate definition removed — single `loadAdminAvailability` is defined earlier with debug logs. */
 
     const showMessage = (type, text) => {
         if (!adminMessage) return;
@@ -3271,6 +3213,8 @@ async function initializeAdminDashboardPage() {
                 const currentSlots = getDaySlotsFromDate(calendarState.selectedDate);
                 const updated = [...new Set([...currentSlots, ...slots])].sort();
                 setDaySlots(calendarState.selectedDate, updated);
+                // Debug: show the updated dailyAvailability for this date
+                console.log('setDaySlots', calendarState.selectedDate, updated, dailyAvailability[calendarState.selectedDate]);
                 if (modalDayClosedCheckbox) {
                     modalDayClosedCheckbox.checked = false;
                     updateDayClosedInputsState(false);
