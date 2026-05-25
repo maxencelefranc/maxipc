@@ -2945,73 +2945,75 @@ async function initializeAdminDashboardPage() {
         };
 
         const renderCalendar = () => {
-            const year = calendarState.currentDate.getFullYear();
-            const month = calendarState.currentDate.getMonth();
-            
-            // Update title
-            const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+            const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
                                'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-            calendarTitle.textContent = `${monthNames[month]} ${year}`;
-            
-            // Build calendar
-            let html = '';
-            
-            // Weekday headers
             const weekDays = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-            weekDays.forEach(day => {
-                html += `<div class="calendar-weekday">${day}</div>`;
-            });
-            
-            // First day of month and number of days
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const daysInPrevMonth = new Date(year, month, 0).getDate();
-            
-            // Previous month days
-            for (let i = firstDay - 1; i >= 0; i--) {
-                const day = daysInPrevMonth - i;
-                html += `<div class="calendar-day other-month">${day}</div>`;
-            }
-            
-            // Current month days
             const today = new Date();
-            for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(year, month, day);
-                // Créer la date en format ISO SANS conversion UTC (garder l'heure locale)
-                const dateStr = String(year).padStart(4, '0') + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
-                
-                // Check if has availability for this specific date
-                const slots = getDaySlotsFromDate(dateStr);
-                const hasSlots = slots && slots.length > 0;
-                
-                const isToday = date.toDateString() === today.toDateString();
-                
-                let classes = 'calendar-day';
-                if (isToday) classes += ' today';
-                if (hasSlots) classes += ' has-availability';
-                if (selectedBulkDates.has(dateStr)) classes += ' bulk-selected';
-                
-                const slotCount = hasSlots ? slots.length : 0;
-                
-                html += `<div class="${classes}" data-date="${dateStr}">
-                    <div class="calendar-day-content">
-                        <span class="calendar-day-num">${day}</span>
-                        ${slotCount > 0 ? `<span class="calendar-day-count">${slotCount} créneau${slotCount > 1 ? 'x' : ''}</span>` : ''}
-                    </div>
-                </div>`;
-            }
-            
-            // Next month days
-            const totalCells = firstDay + daysInMonth;
-            const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
-            for (let day = 1; day <= remainingCells; day++) {
-                html += `<div class="calendar-day other-month">${day}</div>`;
-            }
-            
-            calendarGrid.innerHTML = html;
-            
-            // Attach click handlers
-            calendarGrid.querySelectorAll('[data-date]').forEach(dayEl => {
+
+            const renderMonthBlock = (year, month) => {
+                let monthHtml = `<div class="calendar-month" style="grid-column: 1 / -1; margin-bottom: 18px;">
+                    <div class="calendar-title" style="margin: 0 0 10px; text-align: left;">${monthNames[month]} ${year}</div>
+                    <div class="calendar-grid">`;
+
+                weekDays.forEach((day) => {
+                    monthHtml += `<div class="calendar-weekday">${day}</div>`;
+                });
+
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+                for (let i = firstDay - 1; i >= 0; i--) {
+                    const day = daysInPrevMonth - i;
+                    monthHtml += `<div class="calendar-day other-month">${day}</div>`;
+                }
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(year, month, day);
+                    const dateStr = String(year).padStart(4, '0') + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+                    const slots = getDaySlotsFromDate(dateStr);
+                    const hasSlots = slots && slots.length > 0;
+                    const isToday = date.toDateString() === today.toDateString();
+
+                    let classes = 'calendar-day';
+                    if (isToday) classes += ' today';
+                    if (hasSlots) classes += ' has-availability';
+                    if (selectedBulkDates.has(dateStr)) classes += ' bulk-selected';
+
+                    const slotCount = hasSlots ? slots.length : 0;
+
+                    monthHtml += `<div class="${classes}" data-date="${dateStr}">
+                        <div class="calendar-day-content">
+                            <span class="calendar-day-num">${day}</span>
+                            ${slotCount > 0 ? `<span class="calendar-day-count">${slotCount} créneau${slotCount > 1 ? 'x' : ''}</span>` : ''}
+                        </div>
+                    </div>`;
+                }
+
+                const totalCells = firstDay + daysInMonth;
+                const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+                for (let day = 1; day <= remainingCells; day++) {
+                    monthHtml += `<div class="calendar-day other-month">${day}</div>`;
+                }
+
+                monthHtml += `</div></div>`;
+                return monthHtml;
+            };
+
+            const startYear = calendarState.currentDate.getFullYear();
+            const startMonth = calendarState.currentDate.getMonth();
+            const nextMonthDate = new Date(startYear, startMonth + 2, 1);
+            const endYear = nextMonthDate.getFullYear();
+            const endMonth = nextMonthDate.getMonth();
+
+            calendarTitle.textContent = `${monthNames[startMonth]} ${startYear} - ${monthNames[endMonth]} ${endYear}`;
+            calendarGrid.innerHTML = [
+                renderMonthBlock(startYear, startMonth),
+                renderMonthBlock(new Date(startYear, startMonth + 1, 1).getFullYear(), new Date(startYear, startMonth + 1, 1).getMonth()),
+                renderMonthBlock(endYear, endMonth)
+            ].join('');
+
+            calendarGrid.querySelectorAll('[data-date]').forEach((dayEl) => {
                 dayEl.addEventListener('click', () => {
                     const dateStr = dayEl.dataset.date;
                     if (isBulkSelectionMode) {
