@@ -142,6 +142,15 @@
         }
     </style>
 </head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-M2L7HS2DSJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-M2L7HS2DSJ');
+</script>
 <body>
     <!-- Navigation -->
     <nav class="navbar">
@@ -457,7 +466,7 @@
             if (meetingTypeSelect) {
                 meetingTypeSelect.addEventListener('change', updateReservationModeUI);
             }
-            
+
             // Attach event listeners
             document.getElementById('prevMonth').addEventListener('click', () => {
                 const previousMonth = new Date(currentMonth);
