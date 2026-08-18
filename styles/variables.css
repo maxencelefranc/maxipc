@@ -7,7 +7,8 @@
     --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    
+    --accent-color: #4facfe;
+
     /* Colors - Base */
     --dark-bg: #0f0f1e;
     --dark-secondary: #1a1a2e;

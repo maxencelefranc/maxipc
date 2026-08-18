@@ -642,7 +642,9 @@ class HologramAnimation {
 let hologramAnimation = null;
 function initializeTerminalAnimation() {
     const canvas = document.getElementById('heroCanvas');
-    if (canvas && !hologramAnimation) {
+    // three.js/GLTFLoader are only loaded on wide viewports (see index.html) and load
+    // asynchronously, so they may not be ready yet when this first runs.
+    if (canvas && !hologramAnimation && window.THREE && window.THREE.GLTFLoader) {
         hologramAnimation = new HologramAnimation();
     }
 }

@@ -7,11 +7,11 @@
     <meta name="keywords" content="réparation PC, montage ordinateur, dépannage informatique, Lannion, informatique, services informatiques, optimisation PC, intervention à domicile, service professionnel">
     <meta name="author" content="MaxiPC">
     <meta name="google-site-verification" content="9DpHon4g5wJCf1XQ6gs5XG75kSuzEmLNRicFvQCLBSQ" />
-    <link rel="canonical" href="https://maxencelefranc.github.io/maxipc/">
+    <link rel="canonical" href="https://maxipc.fr/">
     <meta property="og:title" content="MaxiPC – Réparation et montage PC à Lannion">
     <meta property="og:description" content="Dépannage, montage et optimisation PC à Lannion. Intervention à domicile ou sur site.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://maxencelefranc.github.io/maxipc/">
+    <meta property="og:url" content="https://maxipc.fr/">
     <meta property="og:image" content="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="MaxiPC – Réparation et montage PC à Lannion">
@@ -29,8 +29,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="Assets/Logo.png">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/loaders/GLTFLoader.js" defer></script>
+    <script>
+        // The 3D hero animation (three.js + a 13MB .glb model) is hidden below 768px
+        // (see .hero-canvas in the responsive CSS) — skip downloading it on mobile.
+        if (window.innerWidth > 768) {
+            var threeScript = document.createElement('script');
+            threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+            threeScript.onload = function () {
+                var loaderScript = document.createElement('script');
+                loaderScript.src = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/loaders/GLTFLoader.js';
+                loaderScript.onload = function () {
+                    if (typeof initializeTerminalAnimation === 'function') initializeTerminalAnimation();
+                };
+                document.head.appendChild(loaderScript);
+            };
+            document.head.appendChild(threeScript);
+        }
+    </script>
 </head>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-M2L7HS2DSJ"></script>
