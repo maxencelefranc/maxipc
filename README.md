@@ -1,258 +1,132 @@
 <!-- markdownlint-disable MD022 MD031 MD032 MD034 MD040 -->
 
-# MaxPC - Site Web Professionnel
+# MaxiPC - Site Web Professionnel
 
-Site web moderne et responsive pour MaxPC, micro-entreprise spécialisée dans la réparation, montage, optimisation et dépannage de PC à Lannion.
+Site web pour MaxiPC, micro-entreprise spécialisée dans la réparation, montage, optimisation et dépannage de PC à Lannion. Au-delà de la vitrine, le site inclut réservation en ligne, boutique, espace client et back-office admin, appuyés sur Supabase.
 
 ## 📋 Contenu du site
 
-### Pages
-- **Accueil (index.html)** : Hero section, présentation rapide, atouts clés
-- **Services (services.html)** : Détail complet de tous les services proposés
+### Pages publiques
+- **Accueil (index.html)** : Hero (avec animation 3D sur desktop), présentation, atouts, avis Google
+- **Services (services.html)** : Détail complet des services proposés
+- **Tarifs (tarifs.html)** : Packs principaux + services à la carte, promotions dynamiques
 - **À propos (apropos.html)** : Présentation du technicien, approche, zones d'intervention
-- **Contact (contact.html)** : Formulaire de contact, informations, FAQ
+- **Contact (contact.html)** : Formulaire (Turnstile), informations, FAQ
+- **Boutique (boutique.html)** : Composants et prestations à la commande
+- **Réservation (reservation.html)** : Calendrier de disponibilité + formulaire de réservation
+- **Mon espace (my-reservations.html)** : Suivi des réservations/commandes du client connecté
+- **Connexion (auth.html)** : Inscription / connexion (Supabase Auth)
+- **Mentions légales, CGV, Confidentialité, Cookies** : pages légales
 
-### Menu de navigation
-- Accueil
-- Services
-- À propos
-- Contact (bouton CTA visible)
+### Back-office
+- **admin.html** : réservations, commandes, contenu du site, promotions, avis — réservé aux comptes listés dans la table `admin_users` (policies RLS Supabase, pas un simple contrôle côté client)
 
 ## 🎨 Design & Style
 
-**Palette de couleurs :**
-- Bleu primaire : #1e40af (professionnel, confiance)
-- Bleu foncé : #1e3a8a
-- Bleu clair : #3b82f6
-- Gris : #64748b, #f1f5f9
-- Blanc : #ffffff
+**Palette (thème sombre) :**
+- Dégradé primaire : `#667eea → #764ba2`
+- Dégradé secondaire : `#f093fb → #f5576c`
+- Dégradé accent : `#4facfe → #00f2fe`
+- Fond : `#0f0f1e` / `#1a1a2e`
 
-**Typographie :**
-- Police: Poppins (moderne, lisible)
-- Responsive sur tous les appareils
-
-**Icônes :**
-- Font Awesome 6.4.0 (50+ icônes informatique)
+**Typographie :** Poppins · **Icônes :** Font Awesome 6.4.0
 
 ## 📱 Responsive
 
-- ✓ Desktop (1200px+)
-- ✓ Tablette (769px - 1199px)
-- ✓ Mobile (jusqu'à 768px)
-- ✓ Petit mobile (jusqu'à 480px)
+- Desktop (1200px+), tablette, mobile (jusqu'à 768px), petit mobile (jusqu'à 480px)
+- Menu hamburger dès 1100px (le menu complet déborderait sinon entre 769-1100px)
+- L'animation 3D du hero (three.js + modèle `.glb`) ne se charge que sur desktop (>768px) pour ne pas peser sur le mobile
 
-Menu hamburger automatique sur mobile.
-
-## 🚀 Fonctionnalités
-
-### Navigation
-- Menu fixe en haut
-- Navigation fluide entre pages
-- Menu mobile hamburger
-- Indicateur de page active
-- Smooth scroll
-
-### Formulaire de contact
-- Validation côté client
-- Champs: Nom, Email, Téléphone, Sujet, Message
-- Message de confirmation après envoi
-- Gestion des erreurs
-- Console log des données (à connecter à email backend)
-
-### CTA (Call-to-Action)
-- Boutons visibles sur toutes les pages
-- Lien vers formulaire de contact
-- Boutons WhatsApp, Email, Téléphone
-
-### Performance
-- Lazy loading des images (prêt)
-- Animation au scroll
-- Transitions fluides
-- Optimisé pour SEO
-
-## 📂 Structure des fichiers
+## 📂 Structure des fichiers (aperçu)
 
 ```
 MaxiPc/
-├── index.html          # Page d'accueil
-├── services.html       # Services détaillés
-├── apropos.html        # À propos du technicien
-├── contact.html        # Formulaire de contact
-├── styles.css          # Stylisation (complète et responsive)
-├── script.js           # Interactions JavaScript
-└── README.md           # Ce fichier
+├── index.html, services.html, tarifs.html, apropos.html, contact.html
+├── boutique.html, reservation.html, my-reservations.html, auth.html, admin.html
+├── mentions-legales.html, cgv.html, politique-confidentialite.html, politique-cookies.html
+├── styles.css              # Feuille de style principale (utilisée par toutes les pages)
+├── styles/                 # Système modulaire (variables, base, components, reviews)
+│                           #   chargé en plus de styles.css sur une partie des pages
+├── script.js               # Toute la logique JS (nav, boutique, calendrier, admin, avis...)
+├── scripts/                # navigation.js, forms.js, animations.js
+├── supabase-config.js      # Client Supabase + helpers (auth, reservations, orders)
+├── data/                   # reviews.json, shop-products.json
+├── supabase/                # SETUP_DATABASE.sql, migrations, policies RLS
+└── README.md
 ```
 
 ## 🔧 Installation & Utilisation
 
 ### Local
-1. Télécharger ou cloner le dossier MaxiPc
-2. Ouvrir `index.html` dans un navigateur
-3. C'est tout! Le site fonctionne entièrement en statique
+1. Cloner le dépôt
+2. Servir le dossier avec un serveur statique (ouvrir `index.html` directement fonctionne aussi, mais certaines requêtes peuvent nécessiter http/https)
 
-### Serveur (recommandé)
 ```bash
-# Avec Python 3
-python -m http.server 8000
-
-# Avec Node.js et http-server
-npm install -g http-server
-http-server
-
-# Puis accéder à: http://localhost:8000
+npx http-server -p 8000
+# puis http://localhost:8000
 ```
+
+### Backend
+- **Supabase** : base de données + auth. Voir `supabase/SETUP_DATABASE.sql` pour le schéma et les policies RLS (reservations, orders, admin_users, site_content).
+- **Formspree** : notifications du propriétaire à chaque réservation/commande (endpoint dans `reservation.html`).
+- **Cloudflare Turnstile** : captcha sur les formulaires de réservation et contact.
+- **Stripe** : pas d'intégration active actuellement (une tentative liée aux cours en ligne a été retirée — voir historique git si besoin de la réintroduire pour un autre usage).
 
 ## 📋 SEO & Métadonnées
 
-**Métadonnées présentes :**
-- Meta description personnalisée par page
-- Meta keywords
-- Titre optimisé (MaxPC – Réparation et montage PC à Lannion)
-- Structure hiérarchique des titres (H1, H2, H3)
-- Semantic HTML5
+- Meta description/OG/Twitter par page, canonical vers `https://maxipc.fr/`
+- `sitemap.xml` et `robots.txt` à jour sur le domaine `maxipc.fr`
+- Google Analytics (gtag) sur toutes les pages publiques
 
 ## 📞 Informations de contact
 
-À personnaliser dans les fichiers HTML :
-- Email: maxence@maxpc.fr
-- Téléphone: +33 6 26 45 38 49
-- Zone: Lannion et environs
+- Email : lefrancmaxence8@gmail.com
+- Téléphone : +33 6 82 18 67 91
+- Zone : Lannion et environs
 
-## 🔐 Formulaire de contact
+## ⭐ Avis clients
 
-**Options pour la mise en production :**
+Le site affiche les avis Google. Ils peuvent être mis à jour manuellement dans `data/reviews.json` ou via le back-office admin.
 
-1. **Email (simple)**
-   - Utiliser FormSubmit.co ou Formspree
-   - Modifier l'attribut `action` du formulaire
+## 🩺 Vision — Le Passeport Santé du PC
 
-2. **Backend custom (Node.js)**
-   ```javascript
-   // Exemple avec Express + Nodemailer
-   ```
+Direction stratégique envisagée pour différencier MaxiPC d'un simple "dépannage informatique" (discussion du 2026-08-18) : positionner MaxiPC comme **« le médecin de votre ordinateur »**, avec une relation de suivi dans la durée plutôt qu'une intervention ponctuelle.
 
-3. **CMS/Plateforme (simple)**
-   - Netlify Forms
-   - Vercel + API
+Trois éléments qui se renforcent mutuellement :
 
-4. **Service email (recommandé)**
-   - Brevo (ex Sendinblue)
-   - Mailgun
+1. **Passeport Santé du PC** — chaque PC suivi a un dossier avec un numéro unique, un score MaxiPC `/100` par composant (CPU, GPU, SSD, RAM, températures, sécurité, alimentation), un historique d'interventions et des recommandations ("à prévoir"). Offre phare : **Bilan de Santé MaxiPC**.
+2. **Contrôle Technique PC** — prestation vendue séparément (ex. 29,90-39,90 €, ou avec optimisation à 59,90 €), plus facile à vendre qu'un vague "diagnostic". Débouche naturellement sur réparation/optimisation/sauvegarde/sécurisation/suivi annuel.
+3. **PC sauvés** — contenu marketing (avant/après de PC récupérés, format vidéo TikTok/Facebook) ; rejoint l'idée "Portfolio de réparations avant/après" déjà notée plus bas dans ce fichier.
 
-## 🎯 Call-to-Action (CTA)
-
-- "Demandez un devis" (primaire)
-- "Découvrir nos services"
-- Présent sur chaque page
-- Visible et contrastant
+**Principe de mise en œuvre : pas d'application au démarrage.** Commencer simple — fiche client, fiche PC, numéro unique, rapport PDF, QR code, historique — et n'envisager de l'outillage/automatisation qu'une fois un volume significatif de PC suivis (ex. 50-100+). Techniquement, ça s'appuierait sur une extension du modèle Supabase existant (nouvelle table `devices` liée au client, aux réservations et aux scores) plutôt que sur un nouveau système.
 
 ## 🌍 Intégrations futures
 
-Pour améliorer le site :
-- [ ] Google Maps (zone d'intervention)
-- [ ] Google Analytics
-- [ ] Avis clients (Google, Trustpilot)
+- [ ] Passeport Santé du PC (voir section Vision ci-dessus)
+- [ ] Portfolio "PC sauvés" (avant/après)
 - [ ] Blog pour SEO
-- [ ] Portfolio de réparations avant/après
-- [ ] Calendrier de disponibilité
 - [ ] Chatbot pour assistance
 - [ ] WhatsApp Business API
 
-## ⭐ Avis clients (manuel)
-
-Le site affiche les avis depuis le fichier `data/reviews.json`.
-
-### Mise à jour des avis
-- Ouvrir `data/reviews.json`
-- Mettre à jour `updated_at`
-- Ajuster `place.rating` et `place.user_ratings_total`
-- Ajouter/modifier les objets dans `reviews`
-
-### Affichage
-- La page d'accueil lit `data/reviews.json`
-- Aucun secret GitHub ni clé API n'est nécessaire
-
-## 🔔 Notifications admin (Formspree)
-
-Les nouvelles réservations/commandes notifient le propriétaire directement via Formspree, sans CLI ni fonction serveur.
-
-### Configuration
-
-- Ouvrir `reservation.html`
-- Renseigner `FORMSPREE_ENDPOINT` avec ton endpoint Formspree
-- (Sécurité) Remplacer la clé test Turnstile `1x00000000000000000000AA` par ta vraie site key Cloudflare
-
-### Fonctionnement
-
-- À chaque réservation : envoi Formspree
-- À chaque commande boutique : envoi Formspree
-- Le formulaire réservation exige aussi la validation du CAPTCHA avant envoi
-
-## 📊 Pages & Sections
-
-### Accueil
-1. **Hero** : Titre, sous-titre, CTA, image
-2. **À propos** : Intro rapide
-3. **Atouts** : 3 points clés avec icônes
-4. **CTA** : Appel à action
-5. **Footer** : Navigation, contact
-
-### Services
-1. **Header** : Titre page
-2. **Services grid** : 6 services avec descriptions et bénéfices
-3. **Tarifs CTA** : Invitation devis
-4. **Footer**
-
-### À propos
-1. **Header** : Titre page
-2. **À propos** : Bio du technicien, approche
-3. **Zone d'intervention** : Lannion et environs
-4. **Pourquoi MaxPC** : 6 raisons avec icônes
-5. **CTA** : Demander devis
-6. **Footer**
-
-### Contact
-1. **Header** : Titre page
-2. **Formulaire** : 6 champs + bouton
-3. **Infos** : 4 cartes (téléphone, email, zone, service)
-4. **Social** : Boutons WhatsApp, Email, Téléphone
-5. **FAQ** : 4 questions fréquentes
-6. **Footer**
-
 ## 🛠️ Maintenance
 
-### Mettre à jour les informations
-- Email: Chercher `maxence@maxpc.fr`
-- Téléphone: Chercher `+33626453849`
-- Adresse: Chercher `Lannion`
+### Mettre à jour les informations de contact
+Chercher `lefrancmaxence8@gmail.com` et `+33682186791` dans les fichiers HTML.
 
 ### Ajouter une page
-1. Dupliquer une page `.html`
-2. Modifier le contenu
-3. Ajouter le lien dans la nav
-4. Mettre à jour les meta descriptions
+1. Dupliquer une page `.html` existante proche du besoin
+2. Modifier le contenu et les meta
+3. Ajouter le lien dans la nav **et** le footer de chaque page (pas de composant de nav partagé — à répercuter manuellement)
 
 ## 📝 Checklist avant mise en ligne
 
+- [x] Google Analytics
+- [x] Domaine configuré (maxipc.fr + CNAME GitHub Pages)
 - [ ] Vérifier tous les liens fonctionnent
 - [ ] Tester sur mobile/tablette/desktop
-- [ ] Vérifier le formulaire envoie les emails
-- [ ] Ajouter Google Analytics
 - [ ] Configurer Google Search Console
-- [ ] Ajouter favicon
 - [ ] Tester vitesse (PageSpeed Insights)
-- [ ] Vérifier SEO (HubSpot, Yoast)
-- [ ] Mettre à jour URLs réseaux sociaux
-- [ ] Configurer domaine
-
-## 📞 Support
-
-Pour toute question sur le code ou le site :
-- Vérifier les commentaires dans le code
-- Consulter la documentation HTML/CSS
-- Tester dans la console navigateur (F12)
 
 ---
 
-**Créé pour MaxPC - Réparation de PC à Lannion**
-*Site professionnel, moderne et responsive*
+**MaxiPC - Réparation et montage de PC à Lannion**
