@@ -57,9 +57,9 @@
 <div class="grid">
   <div class="card card-gradient">
     <div class="card-body">
-      <h3>Lannion et environs</h3>
+      <h3>Pontivy et environs</h3>
       <span class="badge badge-primary">
-        <i class="fas fa-map-marker-alt"></i> Lannion...
+        <i class="fas fa-map-marker-alt"></i> Pontivy...
       </span>
     </div>
   </div>

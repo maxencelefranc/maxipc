@@ -118,7 +118,7 @@ Par :
   "email": "lefrancmaxence8@gmail.com",
   "address": {
     "@type": "PostalAddress",
-    "addressLocality": "Lannion",
+    "addressLocality": "Pontivy",
     "addressCountry": "FR"
   }
 }

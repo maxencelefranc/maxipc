@@ -1,6 +1,6 @@
 # 🚀 MaxiPC - Version 2.0 (Optimisée)
 
-Site web professionnel et performant pour MaxiPC, spécialiste en réparation, montage et optimisation de PC à Lannion.
+Site web professionnel et performant pour MaxiPC, spécialiste en réparation, montage et optimisation de PC à Pontivy.
 
 [![Performance](https://img.shields.io/badge/Performance-90+-brightgreen)]()
 [![Accessibility](https://img.shields.io/badge/Accessibility-95+-brightgreen)]()
@@ -237,7 +237,7 @@ lighthouse http://localhost:8000 --view
 **MaxiPC**
 - 📧 Email: lefrancmaxence8@gmail.com
 - 📱 Téléphone: +33 6 82 18 67 91
-- 📍 Zone: Lannion et environs
+- 📍 Zone: Pontivy et environs
 - 🌐 Site: [maxencelefranc.github.io/maxipc](https://maxencelefranc.github.io/maxipc/)
 
 ## 📄 Licence

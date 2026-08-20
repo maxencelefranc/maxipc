@@ -85,13 +85,13 @@ lighthouse https://maxencelefranc.github.io/maxipc/ --view
   "email": "lefrancmaxence8@gmail.com",
   "address": {
     "@type": "PostalAddress",
-    "addressLocality": "Lannion",
+    "addressLocality": "Pontivy",
     "addressCountry": "FR"
   },
   "geo": {
     "@type": "GeoCoordinates",
-    "latitude": 48.7325,
-    "longitude": -3.4589
+    "latitude": 48.0686,
+    "longitude": -2.9611
   },
   "openingHoursSpecification": {
     "@type": "OpeningHoursSpecification",

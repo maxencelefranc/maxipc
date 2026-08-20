@@ -2,7 +2,7 @@
 
 # MaxiPC - Site Web Professionnel
 
-Site web pour MaxiPC, micro-entreprise spécialisée dans la réparation, montage, optimisation et dépannage de PC à Lannion. Au-delà de la vitrine, le site inclut réservation en ligne, boutique, espace client et back-office admin, appuyés sur Supabase.
+Site web pour MaxiPC, micro-entreprise spécialisée dans la réparation, montage, optimisation et dépannage de PC à Pontivy. Au-delà de la vitrine, le site inclut réservation en ligne, boutique, espace client et back-office admin, appuyés sur Supabase.
 
 ## 📋 Contenu du site
 
@@ -82,7 +82,7 @@ npx http-server -p 8000
 
 - Email : lefrancmaxence8@gmail.com
 - Téléphone : +33 6 82 18 67 91
-- Zone : Lannion et environs
+- Zone : Pontivy et environs
 
 ## ⭐ Avis clients
 
@@ -129,4 +129,4 @@ Chercher `lefrancmaxence8@gmail.com` et `+33682186791` dans les fichiers HTML.
 
 ---
 
-**MaxiPC - Réparation et montage de PC à Lannion**
+**MaxiPC - Réparation et montage de PC à Pontivy**

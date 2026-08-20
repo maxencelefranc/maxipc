@@ -1,7 +1,34 @@
 ﻿/* ===================== */
 /* ENHANCED NAVIGATION    */
 /* ===================== */
-// Hamburger menu open/close is handled in scripts/navigation.js
+
+const hamburger = document.getElementById('hamburger');
+const navMenu = document.getElementById('navMenu');
+
+if (hamburger && navMenu) {
+    hamburger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hamburger.classList.toggle('active');
+        navMenu.classList.toggle('active');
+    });
+
+    // Close menu when link is clicked
+    const navLinks = navMenu.querySelectorAll('a');
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            hamburger.classList.remove('active');
+            navMenu.classList.remove('active');
+        });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.navbar')) {
+            hamburger.classList.remove('active');
+            navMenu.classList.remove('active');
+        }
+    });
+}
 
 // Update active nav link based on current page
 function updateActiveNav() {
@@ -642,9 +669,7 @@ class HologramAnimation {
 let hologramAnimation = null;
 function initializeTerminalAnimation() {
     const canvas = document.getElementById('heroCanvas');
-    // three.js/GLTFLoader are only loaded on wide viewports (see index.html) and load
-    // asynchronously, so they may not be ready yet when this first runs.
-    if (canvas && !hologramAnimation && window.THREE && window.THREE.GLTFLoader) {
+    if (canvas && !hologramAnimation) {
         hologramAnimation = new HologramAnimation();
     }
 }
@@ -676,20 +701,20 @@ function formatPrice(amount) {
 
 async function loadShopProducts() {
     const supabaseClient = window.supabaseClient;
-        if (supabaseClient) {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('site_content')
-                    .select('*')
-                    .order('key', { ascending: true });
-                if (!error && Array.isArray(data)) {
-                    shopProductsSource = 'supabase';
-                    return data;
-                }
-            } catch (err) {
-                console.warn('Chargement Supabase échoué, fallback JSON', err);
+    if (supabaseClient) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('products')
+                .select('*')
+                .order('id', { ascending: true });
+            if (!error && Array.isArray(data)) {
+                shopProductsSource = 'supabase';
+                return data;
             }
+        } catch (err) {
+            console.warn('Chargement Supabase échoué, fallback JSON', err);
         }
+    }
 
     try {
         const response = await fetch('data/shop-products.json');
@@ -1007,22 +1032,22 @@ let lastFocusedElement = null;
 
 async function loadSiteContent() {
     const supabaseClient = window.supabaseClient;
-        if (!supabaseClient) return;
-        try {
-            const { data, error } = await supabaseClient
-                .from('products')
-                .select('*');
-            if (error || !Array.isArray(data)) return;
-            const contentMap = new Map(data.map((row) => [row.key, row.value]));
-            document.querySelectorAll('[data-content-key]').forEach((el) => {
-                const key = el.getAttribute('data-content-key');
-                if (contentMap.has(key)) {
-                    el.textContent = contentMap.get(key);
-                }
-            });
-        } catch (err) {
-            console.warn('Chargement contenu site échoué', err);
-        }
+    if (!supabaseClient) return;
+    try {
+        const { data, error } = await supabaseClient
+            .from('site_content')
+            .select('*');
+        if (error || !Array.isArray(data)) return;
+        const contentMap = new Map(data.map((row) => [row.key, row.value]));
+        document.querySelectorAll('[data-content-key]').forEach((el) => {
+            const key = el.getAttribute('data-content-key');
+            if (contentMap.has(key)) {
+                el.textContent = contentMap.get(key);
+            }
+        });
+    } catch (err) {
+        console.warn('Chargement contenu site échoué', err);
+    }
 }
 
 /* ===================== */
@@ -1727,80 +1752,6 @@ async function loadAdminContent() {
     const statTexts = document.getElementById('statTexts');
     if (statTexts) statTexts.textContent = Array.isArray(data) ? data.length : 0;
 }
-    
-    const loadAdminAvailability = async () => {
-        if (!window.supabaseClient) return;
-
-        const { data, error } = await window.supabaseClient
-            .from('site_content')
-            .select('key, value')
-            .in('key', [
-                'reservation.weekly_availability',
-                'reservation.date_overrides',
-                'reservation.daily_slots',
-                'reservation.booked_slots',
-                'reservation.purge_after_date'
-            ]);
-
-        if (error) {
-            console.warn('Impossible de charger les disponibilités admin, affichage des valeurs par défaut.', error);
-        }
-
-        // Debug: log the raw response from Supabase when loading admin availability
-        console.log('loadAdminAvailability response', { data, error });
-
-        const map = new Map((Array.isArray(data) ? data : []).map((row) => [row.key, row.value]));
-
-        // Debug: log the map created from site_content rows
-        console.log('loadAdminAvailability map keys', Array.from(map.keys()));
-        let weekly = {};
-        let overrides = {};
-        let daily_slots = {};
-        let booked = {};
-
-        try {
-            weekly = JSON.parse(map.get('reservation.weekly_availability') || '{}');
-        } catch {
-            weekly = {};
-        }
-
-        try {
-            overrides = JSON.parse(map.get('reservation.date_overrides') || '{}');
-        } catch {
-            overrides = {};
-        }
-
-        try {
-            daily_slots = JSON.parse(map.get('reservation.daily_slots') || '{}');
-        } catch {
-            daily_slots = {};
-        }
-
-        try {
-            booked = JSON.parse(map.get('reservation.booked_slots') || '{}');
-        } catch {
-            booked = {};
-        }
-
-        const purgeAfterDate = String(map.get('reservation.purge_after_date') || '').trim();
-        availabilityPurgeCutoffDate = /^\d{4}-\d{2}-\d{2}$/.test(purgeAfterDate) ? purgeAfterDate : '';
-
-        if (availabilityPurgeAfterDate) {
-            availabilityPurgeAfterDate.value = availabilityPurgeCutoffDate;
-        }
-
-        fillAvailabilityForm(weekly, overrides, booked);
-        dailyAvailability = daily_slots;
-        if (typeof window.initCalendar === 'function') {
-            try {
-                window.initCalendar();
-            } catch (err) {
-                console.warn('Erreur lors de l\u0027appel de initCalendar()', err);
-            }
-        } else {
-            console.warn('initCalendar() non défini au moment du chargement des disponibilit\u00e9s.');
-        }
-    };
 
 let adminReservationsCache = [];
 let adminOrdersCache = [];
@@ -1908,14 +1859,13 @@ async function initializeAdminDashboardPage() {
     };
 
     const LEGACY_DEFAULTS_CUTOFF = new Date(2026, 4, 1);
-    // Remove legacy prefilled hours so the editor is empty by default
     const LEGACY_DEFAULT_WEEKLY_AVAILABILITY = {
-        1: [],
-        2: [],
-        3: [],
-        4: [],
-        5: [],
-        6: []
+        1: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+        2: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+        3: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+        4: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+        5: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+        6: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00']
     };
 
     function normalizeLegacySlot(value) {
@@ -1962,8 +1912,6 @@ async function initializeAdminDashboardPage() {
             dailySlots: sanitizedDailySlots
         };
     }
-
-    /* Duplicate definition removed — single `loadAdminAvailability` is defined earlier with debug logs. */
 
     const showMessage = (type, text) => {
         if (!adminMessage) return;
@@ -2644,6 +2592,7 @@ async function initializeAdminDashboardPage() {
         await loadAdminContent();
         await loadAdminReviews();
         await loadAdminPromotions();
+        await loadAdminAvailability();
         await loadAdminReservationsAndOrders();
     };
 
@@ -2752,86 +2701,106 @@ async function initializeAdminDashboardPage() {
         }).join('');
     };
 
-    window.fillAvailabilityForm = function(weekly = {}, overrides = {}, booked = {}) {
+    const fillAvailabilityForm = (weekly = {}, overrides = {}, booked = {}) => {
         availabilityState.weekly = ensureWeeklyStructure(weekly);
         availabilityState.overrides = overrides || {};
         availabilityState.booked = booked || {};
         
         renderAvailabilityWeekEditor();
 
-        if (availabilityPurgeAfterDateBtn) {
-            availabilityPurgeAfterDateBtn.addEventListener('click', async () => {
-                const cutoff = String(availabilityPurgeAfterDate?.value || '').trim();
-
-                // If input is empty, disable the purge cutoff
-                if (!cutoff) {
-                    availabilityPurgeCutoffDate = '';
-                    // Persist empty cutoff if Supabase client is available
-                    if (window.supabaseClient) {
-                        try {
-                            await window.supabaseClient
-                                .from('site_content')
-                                .upsert([{ key: 'reservation.purge_after_date', value: '', updated_at: new Date().toISOString() }], { onConflict: 'key' });
-                        } catch (err) {
-                            // ignore persistence errors; UI still reflects the change
-                        }
-                    }
-                    initCalendar();
-                    showToast('Coupure de suppression désactivée.');
-                    return;
-                }
-
-                if (!/^\d{4}-\d{2}-\d{2}$/.test(cutoff)) {
-                    showToast('Choisis une date valide.');
-                    return;
-                }
-
-                availabilityPurgeCutoffDate = cutoff;
-
-                let updatedDays = 0;
-
-                Object.keys(dailyAvailability).forEach((dateKey) => {
-                    if (dateKey > cutoff) {
-                        if (Array.isArray(dailyAvailability[dateKey]) && dailyAvailability[dateKey].length > 0) {
-                            updatedDays += 1;
-                        }
-                        delete dailyAvailability[dateKey];
-                    }
-                });
-
-                Object.keys(availabilityState.overrides || {}).forEach((dateKey) => {
-                    if (dateKey > cutoff) {
-                        if (Array.isArray(availabilityState.overrides[dateKey]) && availabilityState.overrides[dateKey].length > 0) {
-                            updatedDays += 1;
-                        }
-                        delete availabilityState.overrides[dateKey];
-                    }
-                });
-
-                if (availabilityOverrides) {
-                    availabilityOverrides.value = Object.keys(availabilityState.overrides).length
-                        ? JSON.stringify(availabilityState.overrides, null, 2)
-                        : '';
-                }
-
-                // Persist the cutoff date in Supabase if possible
-                if (window.supabaseClient) {
-                    try {
-                        await window.supabaseClient
-                            .from('site_content')
-                            .upsert([{ key: 'reservation.purge_after_date', value: availabilityPurgeCutoffDate || '', updated_at: new Date().toISOString() }], { onConflict: 'key' });
-                    } catch (err) {
-                        // ignore persistence errors
-                    }
-                }
-
-                initCalendar();
-                showToast(updatedDays > 0
-                    ? `Créneaux supprimés après ${cutoff} (coupure active).`
-                    : `Coupure active après ${cutoff}.`);
-
-            });
+        if (availabilityOverrides) {
+            availabilityOverrides.value = Object.keys(availabilityState.overrides).length
+                ? JSON.stringify(availabilityState.overrides, null, 2)
+                : '';
         }
+        if (availabilityBooked) {
+            availabilityBooked.value = Object.keys(availabilityState.booked).length
+                ? JSON.stringify(availabilityState.booked, null, 2)
+                : '';
+        }
+    };
+
+    const loadAdminAvailability = async () => {
+        if (!window.supabaseClient) {
+            fillAvailabilityForm();
+            initCalendar();
+            return;
+        }
+        const { data, error } = await window.supabaseClient
+            .from('site_content')
+            .select('key, value')
+            .in('key', [
+                'reservation.weekly_availability',
+                'reservation.date_overrides',
+                'reservation.daily_slots',
+                'reservation.booked_slots',
+                'reservation.purge_after_date'
+            ]);
+
+        if (error || !Array.isArray(data)) {
+            fillAvailabilityForm();
+            initCalendar();
+            return;
+        }
+
+        const map = new Map(data.map((row) => [row.key, row.value]));
+        let weekly = {};
+        let overrides = {};
+        let daily_slots = {};
+        let booked = {};
+        let purgeAfterDate = '';
+
+        try {
+            weekly = JSON.parse(map.get('reservation.weekly_availability') || '{}');
+        } catch {
+            weekly = {};
+        }
+        try {
+            overrides = JSON.parse(map.get('reservation.date_overrides') || '{}');
+        } catch {
+            overrides = {};
+        }
+        try {
+            daily_slots = JSON.parse(map.get('reservation.daily_slots') || '{}');
+        } catch {
+            daily_slots = {};
+        }
+        try {
+            booked = JSON.parse(map.get('reservation.booked_slots') || '{}');
+        } catch {
+            booked = {};
+        }
+
+        purgeAfterDate = String(map.get('reservation.purge_after_date') || '').trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(purgeAfterDate)) {
+            purgeAfterDate = '';
+        }
+
+        const cleanedAvailability = stripLegacyAvailabilityDefaults(weekly, daily_slots);
+        const weeklyWasCleaned = JSON.stringify(cleanedAvailability.weekly) !== JSON.stringify(weekly);
+        const dailyWasCleaned = JSON.stringify(cleanedAvailability.dailySlots) !== JSON.stringify(daily_slots);
+        weekly = cleanedAvailability.weekly;
+        daily_slots = cleanedAvailability.dailySlots;
+        availabilityPurgeCutoffDate = purgeAfterDate;
+
+        if (availabilityPurgeAfterDate) {
+            availabilityPurgeAfterDate.value = availabilityPurgeCutoffDate;
+        }
+
+        fillAvailabilityForm(weekly, overrides, booked);
+        // Charger les créneaux du calendrier séparément
+        dailyAvailability = daily_slots;
+        if ((weeklyWasCleaned || dailyWasCleaned) && window.supabaseClient) {
+            const now = new Date().toISOString();
+            await window.supabaseClient
+                .from('site_content')
+                .upsert([
+                    { key: 'reservation.weekly_availability', value: JSON.stringify(weekly), updated_at: now },
+                    { key: 'reservation.daily_slots', value: JSON.stringify(daily_slots), updated_at: now },
+                    { key: 'reservation.purge_after_date', value: availabilityPurgeCutoffDate || '', updated_at: now }
+                ], { onConflict: 'key' });
+        }
+        initCalendar();
     };
 
     setupTabs();
@@ -2875,7 +2844,7 @@ async function initializeAdminDashboardPage() {
         }
     };
 
-    window.initCalendar = () => {
+    const initCalendar = () => {
         const calendarGrid = document.getElementById('calendarGrid');
         const calendarTitle = document.getElementById('calendarTitle');
         const calendarPrevMonth = document.getElementById('calendarPrevMonth');
@@ -2922,42 +2891,52 @@ async function initializeAdminDashboardPage() {
         const renderCalendar = () => {
             const year = calendarState.currentDate.getFullYear();
             const month = calendarState.currentDate.getMonth();
-            const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+            
+            // Update title
+            const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
                                'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-            const weekDays = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-            const today = new Date();
-
             calendarTitle.textContent = `${monthNames[month]} ${year}`;
-
+            
+            // Build calendar
             let html = '';
-
-            weekDays.forEach((day) => {
+            
+            // Weekday headers
+            const weekDays = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+            weekDays.forEach(day => {
                 html += `<div class="calendar-weekday">${day}</div>`;
             });
-
+            
+            // First day of month and number of days
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const daysInPrevMonth = new Date(year, month, 0).getDate();
-
+            
+            // Previous month days
             for (let i = firstDay - 1; i >= 0; i--) {
                 const day = daysInPrevMonth - i;
                 html += `<div class="calendar-day other-month">${day}</div>`;
             }
-
+            
+            // Current month days
+            const today = new Date();
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month, day);
+                // Créer la date en format ISO SANS conversion UTC (garder l'heure locale)
                 const dateStr = String(year).padStart(4, '0') + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+                
+                // Check if has availability for this specific date
                 const slots = getDaySlotsFromDate(dateStr);
                 const hasSlots = slots && slots.length > 0;
+                
                 const isToday = date.toDateString() === today.toDateString();
-
+                
                 let classes = 'calendar-day';
                 if (isToday) classes += ' today';
                 if (hasSlots) classes += ' has-availability';
                 if (selectedBulkDates.has(dateStr)) classes += ' bulk-selected';
-
+                
                 const slotCount = hasSlots ? slots.length : 0;
-
+                
                 html += `<div class="${classes}" data-date="${dateStr}">
                     <div class="calendar-day-content">
                         <span class="calendar-day-num">${day}</span>
@@ -2965,16 +2944,18 @@ async function initializeAdminDashboardPage() {
                     </div>
                 </div>`;
             }
-
+            
+            // Next month days
             const totalCells = firstDay + daysInMonth;
             const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
             for (let day = 1; day <= remainingCells; day++) {
                 html += `<div class="calendar-day other-month">${day}</div>`;
             }
-
+            
             calendarGrid.innerHTML = html;
-
-            calendarGrid.querySelectorAll('[data-date]').forEach((dayEl) => {
+            
+            // Attach click handlers
+            calendarGrid.querySelectorAll('[data-date]').forEach(dayEl => {
                 dayEl.addEventListener('click', () => {
                     const dateStr = dayEl.dataset.date;
                     if (isBulkSelectionMode) {
@@ -3161,39 +3142,40 @@ async function initializeAdminDashboardPage() {
                 const endTime = slotEndInput ? slotEndInput.value : '';
                 
                 if (!startTime || !endTime) {
-                    if (!startTime) {
-                        showToast('Veuillez entrer une heure.');
-                        return;
-                    }
+                    showToast('Veuillez entrer les heures de début et de fin.');
+                    return;
                 }
-
-                if (endTime && startTime >= endTime) {
+                
+                if (startTime >= endTime) {
                     showToast("L'heure de fin doit être après l'heure de début.");
                     return;
                 }
-
-                const slots = endTime
-                    ? buildSlotsFromRange(startTime, endTime, availabilityQuickStep?.value || '60') || []
-                    : [startTime];
-
-                if (!slots.length) {
-                    showToast('Créneau invalide.');
-                    return;
+                
+                // Create slots from range
+                const slots = [];
+                let current = new Date(`2000-01-01T${startTime}:00`);
+                const end = new Date(`2000-01-01T${endTime}:00`);
+                
+                while (current <= end) {
+                    slots.push(current.toTimeString().slice(0, 5));
+                    current.setMinutes(current.getMinutes() + 60);
+                }
+                
+                // Remove last slot if it equals endTime (we only want slots up to endTime, not including it)
+                if (slots.length > 1 && slots[slots.length - 1] === endTime) {
+                    slots.pop();
                 }
                 
                 // Add new slots for this specific date
                 const currentSlots = getDaySlotsFromDate(calendarState.selectedDate);
                 const updated = [...new Set([...currentSlots, ...slots])].sort();
                 setDaySlots(calendarState.selectedDate, updated);
-                // Debug: show the updated dailyAvailability for this date
-                console.log('setDaySlots', calendarState.selectedDate, updated, dailyAvailability[calendarState.selectedDate]);
                 if (modalDayClosedCheckbox) {
                     modalDayClosedCheckbox.checked = false;
                     updateDayClosedInputsState(false);
                 }
                 
-                renderSlotsList(updated);
-                renderCalendar();
+                renderSlotsList(getDaySlotsFromDate(calendarState.selectedDate));
                 if (slotStartInput) slotStartInput.value = '';
                 if (slotEndInput) slotEndInput.value = '';
             });
@@ -3213,7 +3195,6 @@ async function initializeAdminDashboardPage() {
                     renderSlotsList(getDaySlotsFromDate(calendarState.selectedDate));
                 }
                 updateDayClosedInputsState(modalDayClosedCheckbox.checked);
-                renderCalendar();
             });
         }
 
@@ -3404,8 +3385,10 @@ async function initializeAdminDashboardPage() {
                 return;
             }
 
-            const sanitizedWeekly = ensureWeeklyStructure(availabilityState.weekly);
-            const sanitizedDailySlots = dailyAvailability || {};
+            const weekly = ensureWeeklyStructure(availabilityState.weekly);
+            const cleanedAvailability = stripLegacyAvailabilityDefaults(weekly, dailyAvailability);
+            const sanitizedWeekly = cleanedAvailability.weekly;
+            const sanitizedDailySlots = cleanedAvailability.dailySlots;
             const now = new Date().toISOString();
             const payload = [
                 { key: 'reservation.weekly_availability', value: JSON.stringify(sanitizedWeekly), updated_at: now },
@@ -3415,33 +3398,20 @@ async function initializeAdminDashboardPage() {
                 { key: 'reservation.purge_after_date', value: availabilityPurgeCutoffDate || '', updated_at: now }
             ];
 
-            const saveErrors = [];
-            for (const row of payload) {
-                const { data, error } = await window.supabaseClient
-                    .from('site_content')
-                    .upsert(row, { onConflict: 'key' });
+            const { error } = await window.supabaseClient
+                .from('site_content')
+                .upsert(payload, { onConflict: 'key' });
 
-                // Log the full response for debugging (visible in browser console)
-                console.log('site_content upsert result', { key: row.key, data, error });
-
-                if (error) {
-                    saveErrors.push(`${row.key}: ${error.message || 'erreur inconnue'}`);
-                }
-            }
-
-            if (saveErrors.length > 0) {
-                const errorMessage = saveErrors.join(' | ');
-                console.error('Impossible d’enregistrer le planning.', errorMessage);
+            if (error) {
+                console.error('Impossible d’enregistrer le planning.', error);
+                const errorMessage = String(error.message || '').trim();
                 const isSchemaProblem = /site_content|row-level security|permission|does not exist|relation/i.test(errorMessage);
                 showToast(isSchemaProblem
-                    ? `Impossible d’enregistrer le planning: ${errorMessage}`
+                    ? `Impossible d’enregistrer le planning: ${errorMessage || 'vérifie la migration Supabase site_content.'}`
                     : 'Impossible d’enregistrer le planning.');
                 return;
             }
 
-            await loadAdminAvailability();
-            // Confirm reload in console
-            console.log('loadAdminAvailability completed after save');
             showToast('Planning enregistré.');
         });
     }
@@ -3944,7 +3914,6 @@ async function initializeAdminDashboardPage() {
             showMessage('success', 'Connexion réussie.');
             setDashboardVisible(true);
             await loadDashboardData();
-            await loadAdminAvailability();
         });
     }
 
@@ -3960,7 +3929,6 @@ async function initializeAdminDashboardPage() {
     if (await canAccessAdmin(currentUser)) {
         setDashboardVisible(true);
         await loadDashboardData();
-        await loadAdminAvailability();
         let lastReservationTime = adminReservationsCache[0]?.created_at || null;
         let lastOrderTime = adminOrdersCache[0]?.created_at || null;
         setInterval(async () => {

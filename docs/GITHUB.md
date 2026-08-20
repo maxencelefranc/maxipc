@@ -1,6 +1,6 @@
 # MaxPC Website
 
-Site web professionnel pour MaxPC - Réparation et montage de PC à Lannion.
+Site web professionnel pour MaxPC - Réparation et montage de PC à Pontivy.
 
 **URL**: [À mettre à jour après déploiement]
 
@@ -131,5 +131,5 @@ Pour des questions ou améliorations, consultez la documentation dans README.md
 
 ---
 
-**MaxPC - Réparation et montage de PC à Lannion**
+**MaxPC - Réparation et montage de PC à Pontivy**
 Créé avec ❤️ pour les clients locaux
