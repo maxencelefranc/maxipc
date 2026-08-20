@@ -84,23 +84,6 @@
     }
     </script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" defer></script>
-    <script>
-        // The 3D hero animation (three.js + a 13MB .glb model) is hidden below 768px
-        // (see .hero-canvas in the responsive CSS) — skip downloading it on mobile.
-        if (window.innerWidth > 768) {
-            var threeScript = document.createElement('script');
-            threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-            threeScript.onload = function () {
-                var loaderScript = document.createElement('script');
-                loaderScript.src = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/loaders/GLTFLoader.js';
-                loaderScript.onload = function () {
-                    if (typeof initializeTerminalAnimation === 'function') initializeTerminalAnimation();
-                };
-                document.head.appendChild(loaderScript);
-            };
-            document.head.appendChild(threeScript);
-        }
-    </script>
 </head>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-M2L7HS2DSJ"></script>
@@ -138,9 +121,15 @@
 
     <!-- Hero Section -->
     <section class="hero" aria-label="Bannière principale">
-        <canvas id="heroCanvas" class="hero-canvas" aria-hidden="true"></canvas>
         <div class="hero-content">
-            <img src="Assets/Logo.png" alt="MaxiPC Logo" class="hero-logo" loading="eager" width="150" height="150">
+            <div class="hero-image about-profile-card">
+                <img class="about-portrait" src="Assets/Photo_IUT.JPG" alt="Portrait de Maxence Lefranc" loading="eager" width="320" height="400">
+                <div class="about-identity-badge">
+                    <strong>Maxence Lefranc</strong>
+                    <span class="role-line">Technicien informatique indépendant</span>
+                    <span class="availability-line"><i class="fas fa-circle-check"></i>Disponible sur rendez-vous</span>
+                </div>
+            </div>
             <div class="hero-text">
                 <h1 data-content-key="index.hero.title">MaxiPC – Réparation et montage d'ordinateurs à Pontivy</h1>
                 <p class="hero-subtitle" data-content-key="index.hero.subtitle">Dépannage rapide et fiable pour particuliers et professionnels – intervention à domicile ou sur site.</p>

@@ -4042,18 +4042,26 @@ async function initializeGoogleReviewsSection() {
         let payload = null;
 
         if (window.supabaseClient) {
-            const { data: reviewRow } = await window.supabaseClient
-                .from('site_content')
-                .select('value')
-                .eq('key', 'homepage.reviews_json')
-                .single();
+            try {
+                const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000));
+                const { data: reviewRow } = await Promise.race([
+                    window.supabaseClient
+                        .from('site_content')
+                        .select('value')
+                        .eq('key', 'homepage.reviews_json')
+                        .single(),
+                    timeout
+                ]);
 
-            if (reviewRow?.value) {
-                try {
-                    payload = JSON.parse(reviewRow.value);
-                } catch {
-                    payload = null;
+                if (reviewRow?.value) {
+                    try {
+                        payload = JSON.parse(reviewRow.value);
+                    } catch {
+                        payload = null;
+                    }
                 }
+            } catch (err) {
+                console.warn('Supabase reviews load skipped, falling back to local JSON', err);
             }
         }
 

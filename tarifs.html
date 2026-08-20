@@ -138,129 +138,96 @@
         <!-- SERVICES DÉTAILLÉS -->
         <div style="margin-bottom: 80px;">
             <h2 style="text-align: center; font-size: 2rem; color: var(--text-light); margin-bottom: 50px; font-weight: 700; margin-top: 80px;">Services à la Carte</h2>
-            
-            <div class="grid grid-auto">
-                <!-- Dépannage à domicile -->
-                <div class="card">
-                    <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
-                        <i class="fas fa-house"></i>
-                    </div>
-                    <h4 style="color: var(--text-light); margin: 15px 0 10px 0; font-size: 1.2rem; font-weight: 600;">💻 Dépannage à Domicile</h4>
-                    <div style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px; line-height: 1.6;">
-                        <strong>Diagnostic simple :</strong><br>
-                        <span class="price-tag price-tag-sm">30 €</span><br><br>
-                        <strong>Intervention :</strong><br>
-                        <span class="price-tag price-tag-sm" data-base-price="45" data-price-prefix="à partir de " data-price-suffix=" / heure">à partir de 45 € / heure</span><br><br>
-                        <strong>Frais de déplacement :</strong><br>
-                        Pontivy et communes limitrophes : <span class="price-tag price-tag-sm">5 €</span><br>
-                        Jusqu'à 25 km : <span class="price-tag price-tag-sm">10 €</span><br>
-                        Au-delà (Loudéac, Guémené…) : <span class="price-tag price-tag-sm">15 €</span>
-                    </div>
+
+            <div class="pricing-table">
+                <div class="pricing-table-head">
+                    <span>Service</span>
+                    <span>Tarif</span>
                 </div>
 
-                <!-- Optimisation -->
-                <div class="card">
-                    <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
-                        <i class="fas fa-rocket"></i>
-                    </div>
-                    <h4 style="color: var(--text-light); margin: 15px 0 10px 0; font-size: 1.2rem; font-weight: 600;">🧹 Optimisation Complète</h4>
-                    <div style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px; line-height: 1.6;">
-                        <strong>Forfait tout-en-un</strong><br><br>
-                        ✓ Suppression virus<br>
-                        ✓ Nettoyage logiciel<br>
-                        ✓ Mises à jour<br>
-                        ✓ Vérification disque<br>
-                        ✓ Conseils
-                    </div>
-                    <div class="price-tag price-tag-md" data-base-price="65" data-price-prefix="à partir de ">à partir de 65 €</div>
+                <div class="pricing-table-row">
+                    <div class="pricing-table-name">Diagnostic simple</div>
+                    <div class="pricing-table-price">30 €</div>
                 </div>
 
-                <!-- Remplacement composant -->
-                <div class="card">
-                    <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
-                        <i class="fas fa-tools"></i>
+                <div class="pricing-table-row">
+                    <div>
+                        <div class="pricing-table-name">Intervention à domicile</div>
+                        <div class="pricing-table-detail">Dépannage, main-d'œuvre</div>
                     </div>
-                    <h4 style="color: var(--text-light); margin: 15px 0 10px 0; font-size: 1.2rem; font-weight: 600;">🔧 Remplacement Composant</h4>
-                    <div style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px; line-height: 1.6;">
-                        <strong>Intervention simple</strong><br><br>
-                        RAM, SSD, disque dur,<br>
-                        ventilateur, etc.<br><br>
-                        <span class="price-tag price-tag-sm">40–60 €</span><br>
-                        selon complexité
-                    </div>
+                    <div class="pricing-table-price" data-base-price="45" data-price-prefix="à partir de " data-price-suffix=" / heure">à partir de 45 € / heure</div>
                 </div>
 
-                <!-- Installation Windows -->
-                <div class="card">
-                    <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
-                        <i class="fas fa-window-restore"></i>
+                <div class="pricing-table-row">
+                    <div>
+                        <div class="pricing-table-name">Optimisation complète</div>
+                        <div class="pricing-table-detail">Suppression virus, nettoyage, mises à jour, vérif. disque</div>
                     </div>
-                    <h4 style="color: var(--text-light); margin: 15px 0 10px 0; font-size: 1.2rem; font-weight: 600;">💾 Installation Windows</h4>
-                    <div style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px; line-height: 1.6;">
-                        <strong>Installation + pilotes</strong><br><br>
-                        Windows propre<br>
-                        Pilotes optimisés<br>
-                        Conseils sur paramètres
-                    </div>
-                    <div class="price-tag price-tag-sm" data-base-price="40" data-price-prefix="à partir de ">à partir de 40 €</div>
+                    <div class="pricing-table-price" data-base-price="65" data-price-prefix="à partir de ">à partir de 65 €</div>
                 </div>
 
-                <!-- Montage standard -->
-                <div class="card">
-                    <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
-                        <i class="fas fa-cube"></i>
+                <div class="pricing-table-row">
+                    <div>
+                        <div class="pricing-table-name">Remplacement composant</div>
+                        <div class="pricing-table-detail">RAM, SSD, disque dur, ventilateur, etc.</div>
                     </div>
-                    <h4 style="color: var(--text-light); margin: 15px 0 10px 0; font-size: 1.2rem; font-weight: 600;">🖥️ Montage Standard</h4>
-                    <div style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px; line-height: 1.6;">
-                        <strong>Assembly professionnel</strong><br><br>
-                        Vérification compatibilité<br>
-                        Montage précis<br>
-                        Tests de fonctionnement
-                    </div>
-                    <div class="price-tag price-tag-sm" data-base-price="90" data-price-prefix="à partir de ">à partir de 90 €</div>
+                    <div class="pricing-table-price">40–60 €</div>
                 </div>
 
-                <!-- Montage Complet -->
-                <div class="card">
-                    <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
-                        <i class="fas fa-computer"></i>
+                <div class="pricing-table-row">
+                    <div>
+                        <div class="pricing-table-name">Installation Windows</div>
+                        <div class="pricing-table-detail">Windows propre + pilotes optimisés</div>
                     </div>
-                    <h4 style="color: var(--text-light); margin: 15px 0 10px 0; font-size: 1.2rem; font-weight: 600;">🎮 Montage + Installation</h4>
-                    <div style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px; line-height: 1.6;">
-                        <strong>Package complet</strong><br><br>
-                        Montage + Windows<br>
-                        + pilotes + logiciels<br>
-                        + configuration gaming
-                    </div>
-                    <div class="price-tag price-tag-sm" data-base-price="120" data-price-prefix="à partir de ">à partir de 120 €</div>
+                    <div class="pricing-table-price" data-base-price="40" data-price-prefix="à partir de ">à partir de 40 €</div>
                 </div>
 
-                <!-- Assistance et cours -->
-                <div class="card card-gradient">
-                    <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
-                        <i class="fas fa-chalkboard-user"></i>
+                <div class="pricing-table-row">
+                    <div>
+                        <div class="pricing-table-name">Montage PC standard</div>
+                        <div class="pricing-table-detail">Vérif. compatibilité, montage, tests</div>
                     </div>
-                    <div class="badge badge-primary" style="margin-bottom: 15px;">Cours & Assistance</div>
-                    <h4 style="color: var(--text-light); margin: 15px 0 10px 0; font-size: 1.2rem; font-weight: 600;">Assistance et cours informatique à domicile</h4>
-                    <div style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px; line-height: 1.6;">
-                        <strong>Ce que je propose :</strong><br><br>
-                        Installation et configuration de PC<br>
-                        Nettoyage et optimisation d'ordinateur<br>
-                        Aide smartphone Android / iPhone<br>
-                        Création et gestion d'adresses e-mail<br>
-                        Sauvegarde de photos et documents<br>
-                        Installation d'imprimantes<br>
-                        Aide aux démarches en ligne<br>
-                        Initiation à l'IA (ChatGPT, génération de textes, etc.)<br>
-                        Cours particuliers d'informatique
-                    </div>
-                    <div class="price-tag price-tag-sm" style="margin-bottom: 12px;">Tarifs de départ</div>
-                    <ul class="pricing-feature-list" style="margin: 0;">
-                        <li><i class="fas fa-check"></i> Intervention ponctuelle : 30 à 40 € / h</li>
-                        <li><i class="fas fa-check"></i> Forfait 2h : 60 à 70 €</li>
-                        <li><i class="fas fa-check"></i> Pack découverte seniors (2h) : 60 €</li>
-                    </ul>
+                    <div class="pricing-table-price" data-base-price="90" data-price-prefix="à partir de ">à partir de 90 €</div>
                 </div>
+
+                <div class="pricing-table-row">
+                    <div>
+                        <div class="pricing-table-name">Montage + Installation</div>
+                        <div class="pricing-table-detail">Montage + Windows + pilotes + configuration gaming</div>
+                    </div>
+                    <div class="pricing-table-price" data-base-price="120" data-price-prefix="à partir de ">à partir de 120 €</div>
+                </div>
+            </div>
+
+            <div class="alert alert-info" style="margin-top: 24px;">
+                <p style="margin: 0;"><i class="fas fa-route" style="color: var(--accent-color); margin-right: 8px;"></i> <strong>Frais de déplacement :</strong> Pontivy et communes limitrophes : 5 € · jusqu'à 25 km : 10 € · au-delà (Loudéac, Guémené…) : 15 €</p>
+            </div>
+
+            <!-- Assistance et cours -->
+            <div class="card card-gradient" style="margin-top: 30px;">
+                <div class="icon icon-lg icon-primary" style="margin-bottom: 15px;">
+                    <i class="fas fa-chalkboard-user"></i>
+                </div>
+                <div class="badge badge-primary" style="margin-bottom: 15px;">Cours & Assistance</div>
+                <h4 style="color: var(--text-light); margin: 15px 0 10px 0; font-size: 1.2rem; font-weight: 600;">Assistance et cours informatique à domicile</h4>
+                <div style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px; line-height: 1.6;">
+                    <strong>Ce que je propose :</strong><br><br>
+                    Installation et configuration de PC<br>
+                    Nettoyage et optimisation d'ordinateur<br>
+                    Aide smartphone Android / iPhone<br>
+                    Création et gestion d'adresses e-mail<br>
+                    Sauvegarde de photos et documents<br>
+                    Installation d'imprimantes<br>
+                    Aide aux démarches en ligne<br>
+                    Initiation à l'IA (ChatGPT, génération de textes, etc.)<br>
+                    Cours particuliers d'informatique
+                </div>
+                <div class="price-tag price-tag-sm" style="margin-bottom: 12px;">Tarifs de départ</div>
+                <ul class="pricing-feature-list" style="margin: 0;">
+                    <li><i class="fas fa-check"></i> Intervention ponctuelle : 30 à 40 € / h</li>
+                    <li><i class="fas fa-check"></i> Forfait 2h : 60 à 70 €</li>
+                    <li><i class="fas fa-check"></i> Pack découverte seniors (2h) : 60 €</li>
+                </ul>
             </div>
         </div>
 
