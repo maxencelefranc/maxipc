@@ -1,10 +1,10 @@
 {
-  "updated_at": "2026-03-24T16:17:18.429Z",
+  "updated_at": "2026-08-30T20:27:06.429Z",
   "source": "manual",
   "place": {
     "name": "MaxiPC",
     "rating": 5,
-    "user_ratings_total": 3,
+    "user_ratings_total": 5,
     "google_maps_url": ""
   },
   "write_review_url": "",
@@ -29,6 +29,20 @@
       "text": "Très bonne expérience, de superbes conseils et une personne à l'écoute je recommande 😁",
       "relative_time_description": "",
       "time": "2026-02-23T11:00:00.000Z"
+    },
+    {
+      "author_name": "Gwendal Briens",
+      "rating": 5,
+      "text": "Je recommande vivement MaxiPc, Maxence est très arrangeant et compétent, il a rendu la vie à un vieux disque dur sur lequel je ne misais pas grand chose. Il est à l écoute et très disponible. Merci à toi.",
+      "relative_time_description": "",
+      "time": "2026-07-17T11:00:00.000Z"
+    },
+    {
+      "author_name": "Bryan Callofduty56",
+      "rating": 5,
+      "text": "Je recommande à tout les gens",
+      "relative_time_description": "",
+      "time": "2026-04-15T11:00:00.000Z"
     }
   ]
 }
