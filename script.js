@@ -1505,22 +1505,6 @@ function renderAdminProducts(products) {
     });
 }
 
-function renderAdminContent(items) {
-    const list = document.getElementById('contentList');
-    if (!list) return;
-    list.innerHTML = '';
-    if (!Array.isArray(items)) return;
-    items.forEach((item) => {
-        const card = document.createElement('div');
-        card.className = 'content-card';
-        card.innerHTML = `
-            <div class="content-key">${escapeHtml(item.key)}</div>
-            <div class="content-value">${escapeHtml(item.value)}</div>
-        `;
-        list.appendChild(card);
-    });
-}
-
 function normalizeReviewItem(item = {}) {
     const ratingValue = Number(item.rating);
     return {
@@ -1730,17 +1714,6 @@ async function loadAdminProducts() {
     const statAvailable = document.getElementById('statAvailable');
     if (statProducts) statProducts.textContent = adminProductsCache.length;
     if (statAvailable) statAvailable.textContent = availableCount;
-}
-
-async function loadAdminContent() {
-    if (!window.supabaseClient) return;
-    const { data } = await window.supabaseClient
-        .from('site_content')
-        .select('*')
-        .order('key', { ascending: true });
-    renderAdminContent(data || []);
-    const statTexts = document.getElementById('statTexts');
-    if (statTexts) statTexts.textContent = Array.isArray(data) ? data.length : 0;
 }
 
 let adminReservationsCache = [];
@@ -2579,7 +2552,6 @@ async function initializeAdminDashboardPage() {
 
     const loadDashboardData = async () => {
         await loadAdminProducts();
-        await loadAdminContent();
         await loadAdminReviews();
         await loadAdminPromotions();
         await loadAdminAvailability();
