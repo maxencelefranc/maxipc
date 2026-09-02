@@ -57,7 +57,6 @@ document.addEventListener('DOMContentLoaded', function() {
         emailjs.init({
             publicKey: 'c4iw2Wxz3QnEZYi7S'
         });
-        console.log('EmailJS initialized successfully');
     }
 });
 
@@ -71,9 +70,7 @@ const formMessage = document.getElementById('formMessage');
 if (contactForm) {
     contactForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        
-        console.log('Form submitted');
-        
+
         // Disable submit button to prevent double submission
         const submitButton = contactForm.querySelector('button[type="submit"]');
         const originalButtonText = submitButton.textContent;
@@ -90,13 +87,9 @@ if (contactForm) {
             message: formData.get('message')
         };
 
-        console.log('Sending with params:', templateParams);
-
         // Send email using EmailJS
         emailjs.send('service_m3logoe', 'template_bqxnfpb', templateParams)
             .then(function(response) {
-                console.log('SUCCESS!', response.status, response.text);
-                
                 // Show success message
                 formMessage.textContent = '✓ Message envoyé avec succès! Nous vous répondrons dans les 24 heures.';
                 formMessage.classList.remove('error');
@@ -318,13 +311,10 @@ function trackEvent(eventName, eventData) {
     if (typeof gtag !== 'undefined') {
         gtag('event', eventName, eventData);
     }
-    console.log('Event tracked:', eventName, eventData);
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('MaxiPC website loaded successfully');
-    
     // Update navigation based on auth status
     await updateNavbar();
     

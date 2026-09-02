@@ -444,6 +444,11 @@
         // Exemple: '2026-02-24': ['19:00']
         let BOOKED_SLOTS = {};
         let AUTO_BOOKED_SLOTS = {};
+
+        function withTimeout(promise, ms, timeoutMessage) {
+            const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error(timeoutMessage)), ms));
+            return Promise.race([promise, timeout]);
+        }
         let AVAILABILITY_PURGE_AFTER_DATE = '';
         const PROMOTIONS_CONTENT_KEY = 'shop.promotions_json';
         let formLoadTimestamp = Date.now();
@@ -758,10 +763,14 @@
         async function loadBookedSlotsFromReservations() {
             if (!window.supabaseClient) return;
             try {
-                const { data, error } = await window.supabaseClient
-                    .from('reservations')
-                    .select('reservation_date, reservation_time, status')
-                    .neq('status', 'cancelled');
+                const { data, error } = await withTimeout(
+                    window.supabaseClient
+                        .from('reservations')
+                        .select('reservation_date, reservation_time, status')
+                        .neq('status', 'cancelled'),
+                    8000,
+                    'Chargement des créneaux trop long.'
+                );
 
                 if (error || !Array.isArray(data)) return;
 
@@ -1320,7 +1329,11 @@
                 }
 
                 // Save to Supabase
-                const dbResult = await reservationManager.createReservation(currentUser.id, reservationData);
+                const dbResult = await withTimeout(
+                    reservationManager.createReservation(currentUser.id, reservationData),
+                    10000,
+                    'La réservation prend trop de temps à s’enregistrer.'
+                );
                 
                 if (!dbResult.success) {
                     throw new Error(dbResult.error);
