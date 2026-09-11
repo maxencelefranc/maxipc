@@ -246,7 +246,7 @@ npx unlighthouse --site https://maxencelefranc.github.io/maxipc/
 ## 📞 Support
 
 Pour toute question sur les optimisations :
-- 📧 Email: lefrancmaxence8@gmail.com
+- 📧 Email: contact@maxipc.fr
 - 📄 Documentation: Voir OPTIMIZATIONS.md
 - ✅ Checklist: Voir LIGHTHOUSE-CHECKLIST.md
 

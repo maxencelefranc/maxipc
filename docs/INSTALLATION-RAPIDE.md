@@ -115,7 +115,7 @@ Par :
   "@type": "LocalBusiness",
   "name": "MaxiPC",
   "telephone": "+33682186791",
-  "email": "lefrancmaxence8@gmail.com",
+  "email": "contact@maxipc.fr",
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "Pontivy",
@@ -293,7 +293,7 @@ Votre site MaxiPC est maintenant :
 - 🔧 [structured-data-snippets.html](structured-data-snippets.html) - SEO
 
 ### Support
-Questions ? 📧 lefrancmaxence8@gmail.com
+Questions ? 📧 contact@maxipc.fr
 
 ---
 

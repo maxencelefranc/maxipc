@@ -235,7 +235,7 @@ lighthouse http://localhost:8000 --view
 ## 📞 Contact
 
 **MaxiPC**
-- 📧 Email: lefrancmaxence8@gmail.com
+- 📧 Email: contact@maxipc.fr
 - 📱 Téléphone: +33 6 82 18 67 91
 - 📍 Zone: Pontivy et environs
 - 🌐 Site: [maxencelefranc.github.io/maxipc](https://maxencelefranc.github.io/maxipc/)

@@ -82,7 +82,7 @@ lighthouse https://maxencelefranc.github.io/maxipc/ --view
   "@id": "https://maxencelefranc.github.io/maxipc/",
   "url": "https://maxencelefranc.github.io/maxipc/",
   "telephone": "+33682186791",
-  "email": "lefrancmaxence8@gmail.com",
+  "email": "contact@maxipc.fr",
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "Pontivy",

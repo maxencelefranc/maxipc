@@ -80,7 +80,7 @@ npx http-server -p 8000
 
 ## 📞 Informations de contact
 
-- Email : lefrancmaxence8@gmail.com
+- Email : contact@maxipc.fr
 - Téléphone : +33 6 82 18 67 91
 - Zone : Pontivy et environs
 
@@ -111,7 +111,7 @@ Trois éléments qui se renforcent mutuellement :
 ## 🛠️ Maintenance
 
 ### Mettre à jour les informations de contact
-Chercher `lefrancmaxence8@gmail.com` et `+33682186791` dans les fichiers HTML.
+Chercher `contact@maxipc.fr` et `+33682186791` dans les fichiers HTML.
 
 ### Ajouter une page
 1. Dupliquer une page `.html` existante proche du besoin
