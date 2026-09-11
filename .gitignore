@@ -34,3 +34,6 @@ build/
 
 # Supabase CLI local state
 supabase/.temp/
+
+# Local site mirror/snapshot (duplicate of root files, not used for deployment)
+_site/
