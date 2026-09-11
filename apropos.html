@@ -72,25 +72,25 @@
 </script>
 <body>
     <!-- Navigation -->
-    <nav class="navbar">
+    <nav class="navbar" role="navigation" aria-label="Navigation principale">
         <div class="container nav-container">
-            <a href="index.html" class="logo">
-                <img src="Assets/Logo.png" alt="MaxiPC Logo" class="logo-img">
+            <a href="index.html" class="logo" aria-label="MaxiPC - Accueil">
+                <img src="Assets/Logo.png" alt="MaxiPC Logo" class="logo-img" width="40" height="40">
                 <span>MaxiPC</span>
             </a>
-            <button class="hamburger" id="hamburger">
+            <button class="hamburger" id="hamburger" aria-label="Menu de navigation" aria-expanded="false" aria-controls="navMenu">
                 <span></span>
                 <span></span>
                 <span></span>
             </button>
-            <ul class="nav-menu" id="navMenu">
-                <li><a href="index.html">Accueil</a></li>
-                <li><a href="services.html">Services</a></li>
-                <li><a href="tarifs.html">Tarifs</a></li>
-                <li><a href="apropos.html" class="active">À propos</a></li>
-                <li><a href="contact.html">Contact</a></li>
-                <li><a href="boutique.html">Boutique</a></li>
-                <li><a href="reservation.html" class="cta-button">Réservation</a></li>
+            <ul class="nav-menu" id="navMenu" role="menubar">
+                <li role="none"><a href="index.html" role="menuitem">Accueil</a></li>
+                <li role="none"><a href="services.html" role="menuitem">Services</a></li>
+                <li role="none"><a href="tarifs.html" role="menuitem">Tarifs</a></li>
+                <li role="none"><a href="apropos.html" role="menuitem" class="active" aria-current="page">À propos</a></li>
+                <li role="none"><a href="contact.html" role="menuitem">Contact</a></li>
+                <li role="none"><a href="boutique.html" role="menuitem">Boutique</a></li>
+                <li role="none"><a href="reservation.html" class="cta-button" role="menuitem">Réservation</a></li>
             </ul>
         </div>
     </nav>
@@ -405,11 +405,11 @@
     </section>
 
     <!-- Footer -->
-    <footer class="footer">
+    <footer class="footer" role="contentinfo">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <img src="Assets/Logo.png" alt="MaxiPC Logo" class="footer-logo">
+                    <img src="Assets/Logo.png" alt="MaxiPC Logo" class="footer-logo" loading="lazy" width="50" height="50">
                     <h4>MaxiPC</h4>
                     <p>Réparation et montage de PC à Pontivy</p>
                     <div class="footer-social">
@@ -429,13 +429,14 @@
                         <li><a href="tarifs.html">Tarifs</a></li>
                         <li><a href="apropos.html">À propos</a></li>
                         <li><a href="contact.html">Contact</a></li>
+                        <li><a href="boutique.html">Boutique</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Contact</h4>
                     <p><strong>Email:</strong><br><a href="mailto:lefrancmaxence8@gmail.com">lefrancmaxence8@gmail.com</a></p>
-                    <p><strong>Téléphone:</strong><br><a href="tel:+33682186791">+33 6 82 18 67 91</a></p>
                     <p><strong>Zone:</strong><br>Pontivy et environs</p>
+                    <p><strong>Services:</strong><br><a href="reservation.html">Réserver une intervention</a></p>
                 </div>
             </div>
             <div class="footer-bottom">

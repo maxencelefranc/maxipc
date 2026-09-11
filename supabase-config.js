@@ -71,7 +71,10 @@ const supabaseAuth = {
             if (error) throw error;
             return user;
         } catch (error) {
-            console.error('Get user error:', error.message);
+            // "Auth session missing!" is the expected state for a visitor who isn't logged in, not a real error.
+            if (error.message !== 'Auth session missing!') {
+                console.error('Get user error:', error.message);
+            }
             return null;
         }
     },
